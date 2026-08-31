@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { Heart, HeartCrack, MessageSquare, Star } from "lucide-react";
 import { ThoughtMediaItem } from "@/lib/notion";
-import Comments from "@/components/post/Comments";
+import { LazyCommentSection } from "@/components/post/LazyCommentSection";
 import { supabase } from "@/lib/supabase";
 
 export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
@@ -158,7 +158,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
       <div className="my-10 h-[1px] w-full border-t border-dashed border-black/[0.08] dark:border-white/[0.08]" />
 
       {/* 评论区：发布新评论时同步递增计数 */}
-      <Comments
+      <LazyCommentSection
         thoughtId={item.id}
         onCommentAdded={() => setCommentCount((prev) => prev + 1)}
       />

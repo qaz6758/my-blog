@@ -6,6 +6,7 @@ import { Disc3, RefreshCw } from "lucide-react";
 import { Playlist, PlaylistCategory } from "@/components/playlist/Playlist";
 import { Song } from "@/components/playlist/SongList";
 import { useMusic } from "@/components/playlist/MusicContext";
+import PlaylistLoading from "./loading";
 
 export default function PlaylistPage() {
   const [playlists, setPlaylists] = useState<PlaylistCategory[]>([]);
@@ -48,23 +49,15 @@ export default function PlaylistPage() {
     playSong(song, activePl?.songs || []);
   };
 
+  if (isLoading) {
+    return <PlaylistLoading />;
+  }
+
   return (
     /* 移除多余的 pb-20，保持紧凑自然 */
     <div className="relative min-h-screen w-full bg-transparent px-4 pt-20 pb-4 transition-colors duration-300 sm:px-8 lg:px-10 xl:px-14">
       <main className="mx-auto w-full max-w-[1800px]">
-        {isLoading ? (
-          <div className="flex flex-col gap-8 lg:flex-row">
-            <div className="h-72 w-full animate-pulse rounded-2xl bg-neutral-200/50 dark:bg-neutral-800/40 lg:w-56 xl:w-64" />
-            <div className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="aspect-square animate-pulse rounded-xl bg-neutral-200/50 dark:bg-neutral-800/40"
-                />
-              ))}
-            </div>
-          </div>
-        ) : errorMsg ? (
+        {errorMsg ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-500">
               <Disc3 className="h-6 w-6" />

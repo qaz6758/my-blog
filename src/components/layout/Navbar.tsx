@@ -18,6 +18,26 @@ const NAV_LINKS = [
   { name: "thinking", href: "/thoughts" },
 ];
 
+function ThemeToggleButton({ className = "" }: { className?: string }) {
+  const { isDark, toggleTheme, mounted } = useTheme();
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => toggleTheme(e)}
+      className={`rounded-full text-neutral-500 hover:bg-black/5 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer ${className}`}
+      title="切换主题"
+      aria-label="切换主题"
+    >
+      {mounted ? (
+        isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />
+      ) : (
+        <div className="h-4 w-4" />
+      )}
+    </button>
+  );
+}
+
 export function Navbar() {
   const pathname = usePathname();
   const { isDark, toggleTheme, mounted } = useTheme();
@@ -79,42 +99,12 @@ export function Navbar() {
             })}
           </nav>
 
-          <button
-            type="button"
-            onClick={(e) => toggleTheme(e)}
-            className="rounded-full p-2 text-neutral-500 hover:bg-black/5 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer"
-            title="切换主题"
-          >
-            {mounted ? (
-              isDark ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )
-            ) : (
-              <div className="h-4 w-4" />
-            )}
-          </button>
+          <ThemeToggleButton className="p-2" />
         </div>
 
         {/* ===================== 移动端右侧：主题切换 + 汉堡菜单 ===================== */}
         <div className="flex items-center gap-1.5 md:hidden">
-          <button
-            type="button"
-            onClick={(e) => toggleTheme(e)}
-            className="rounded-full p-1.5 text-neutral-600 dark:text-neutral-400 cursor-pointer"
-            title="切换主题"
-          >
-            {mounted ? (
-              isDark ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )
-            ) : (
-              <div className="h-4 w-4" />
-            )}
-          </button>
+          <ThemeToggleButton className="p-1.5" />
 
           <button
             type="button"

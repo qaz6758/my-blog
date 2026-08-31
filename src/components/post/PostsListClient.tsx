@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FolderOpen, Tag as TagIcon, X } from "lucide-react";
 import { SlideEnter } from "@/components/layout/SlideEnter";
+import { formatDate } from "@/lib/utils";
 
 export interface PostItem {
   id: string | number;
@@ -21,18 +22,6 @@ interface PostsListClientProps {
   initialPosts: PostItem[];
   initialCategory?: string;
   initialTag?: string;
-}
-
-function formatDate(dateString: string) {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return "";
-  }
 }
 
 function getYear(dateString: string) {
@@ -325,7 +314,7 @@ export function PostsListClient({
                             </span>
                           )}
                           <span className="tabular-nums opacity-75">
-                            {formatDate(date)}
+                            {formatDate(date, false)}
                           </span>
                         </div>
                       </Link>

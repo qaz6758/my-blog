@@ -7,6 +7,7 @@ import { X, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Prism from "prismjs";
 import clsx from "clsx";
+import { slugifyHeading } from "@/lib/utils";
 
 // 常用语言语法支持
 import "prismjs/components/prism-javascript";
@@ -95,16 +96,6 @@ function getNodeText(node: React.ReactNode): string {
     return props && props.children ? getNodeText(props.children) : "";
   }
   return "";
-}
-
-function slugifyHeading(text: string): string {
-  return (
-    text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "heading"
-  );
 }
 
 /**

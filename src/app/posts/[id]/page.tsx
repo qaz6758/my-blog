@@ -12,6 +12,13 @@ import {
 
 import { supabase } from "@/lib/supabase";
 import type { TocItem } from "@/components/post/TableOfContents";
+import {
+  formatDate,
+  slugifyHeading,
+  decodeHtmlEntities,
+  normalizeTags,
+  calculateReadTime,
+} from "@/lib/utils";
 // ⚡ 懒加载桥接组件 — Prism.js + ReactMarkdown + 评论区 + ToC 均延迟打包
 import { LazyPostContent } from "@/components/post/LazyPostContent";
 import { LazyCommentSection } from "@/components/post/LazyCommentSection";
@@ -55,31 +62,6 @@ interface Post {
   author?: string | null;
 }
 
-function decodeHtmlEntities(str: string) {
-  return str
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&rsquo;/gi, "'")
-    .replace(/&lsquo;/gi, "'")
-    .replace(/&rdquo;/gi, '"')
-    .replace(/&ldquo;/gi, '"')
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&#x27;/gi, "'");
-}
-
-function slugifyHeading(text: string): string {
-  return (
-    text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "heading"
-  );
-}
-
 /* ============================================================
    解析文章目录（增强唯一 ID 冲突检测）
    ============================================================ */
@@ -88,7 +70,6 @@ function parseTocAndContent(rawContent: string) {
   const tocList: TocItem[] = [];
   const seenIds = new Map<string, number>();
 
-  // 生成全局唯一 ID 防止目录 key 冲突
   const getUniqueId = (baseId: string) => {
     const count = seenIds.get(baseId) || 0;
     seenIds.set(baseId, count + 1);
@@ -138,40 +119,6 @@ function parseTocAndContent(rawContent: string) {
     processedContent: rawContent,
     isHtml: false,
   };
-}
-
-function formatDate(dateString?: string | null) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function calculateReadTime(content: string) {
-  const plainText = content
-    .replace(/<[^>]*>/g, "")
-    .replace(/[#>*_`~()[\]\\]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!plainText) return 1;
-  return Math.max(1, Math.ceil(plainText.length / 350));
-}
-
-function normalizeTags(tags?: string[] | string | null): string[] {
-  if (!tags) return [];
-  const rawList: string[] = [];
-  const items = Array.isArray(tags) ? tags : [tags];
-  for (const item of items) {
-    if (typeof item === "string") {
-      const split = item.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean);
-      rawList.push(...split);
-    }
-  }
-  return Array.from(new Set(rawList));
 }
 
 export default async function PostDetailPage({ params }: PostPageProps) {
