@@ -1,40 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# theyole's Blog & Digital Garden
 
-## Getting Started
+> 简约而不简单的个人博客、摄影画廊与数字生活空间。
 
-First, run the development server:
+---
+
+## ✨ 核心特性
+
+- 📝 **长篇博文 (`/posts`)**：基于 Notion API 驱动，代码与内容完全解耦。
+- 📷 **日系摄影画廊 (`/gallery`)**：支持 4 列紧凑正方形网格与原比例瀑布流双布局切换，配备沉浸式 Lightbox 大图预览。
+- 💡 **碎片化思考 (`/thoughts`)**：记录生活感悟与即时灵感。
+- 🎵 **全局背景音乐 (`/playlist`)**：跨路由常驻播放体验。
+- 🌓 **双色主题**：极简暗黑与清新亮白模式无缝切换。
+- ⚡ **极致性能**：基于 Next.js App Router 服务端渲染 (SSR) 与 Tailwind CSS 构建。
+
+---
+
+## 🛠️ 技术栈
+
+- **框架**：[Next.js 16](https://nextjs.org/) (App Router + Turbopack)
+- **样式**：[Tailwind CSS v4](https://tailwindcss.com/)
+- **动效**：[Framer Motion](https://www.framer.com/motion/)
+- **数据源**：Notion API / Supabase
+- **部署**：[Vercel](https://vercel.com/)
+
+---
+
+## 🚀 本地开发
 
 ```bash
+# 1. 安装依赖
+npm install
+
+# 2. 启动开发服务器
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# 3. 构建生产版本
+npm run build
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Project Structure
-
-本项目目录架构与规范已归档至 [STRUCTURE.md](file:///d:/code/my-blog/STRUCTURE.md)。后续所有的功能添加与优化均以此为准进行维护与同步。
