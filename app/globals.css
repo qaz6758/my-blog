@@ -1,26 +1,372 @@
 @import "tailwindcss";
 
+/*
+ * ============================================================
+ * Tailwind v4 全局字体映射 (@theme)
+ *
+ * 规范 font-sans 与 font-mono，确保所有组件的字体层级一致。
+ * ============================================================
+ */
+
+@theme {
+  --font-sans:
+    var(--font-inter),
+    var(--font-noto-sans-sc),
+    -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "WenQuanYi Micro Hei",
+    system-ui,
+    sans-serif;
+
+  --font-mono:
+    "JetBrains Mono",
+    "Fira Code",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace;
+}
+
+/*
+ * ============================================================
+ * Tailwind Dark Mode 变体
+ * ============================================================
+ */
+
+@variant dark (&:where(.dark, .dark *));
+
+/*
+ * ============================================================
+ * Root Theme (中性黑灰体系)
+ * ============================================================
+ */
+
 :root {
+  color-scheme: light;
+
   --background: #ffffff;
   --foreground: #171717;
+
+  --surface: #ffffff;
+  --surface-secondary: #f7f7f7;
+  --surface-tertiary: #f3f3f3;
+
+  --border: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.1);
+
+  --text-primary: #171717;
+  --text-secondary: #737373;
+  --text-tertiary: #a3a3a3;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/*
+ * ============================================================
+ * Dark Theme
+ * ============================================================
+ */
+
+html.dark {
+  color-scheme: dark;
+
+  --background: #111111;
+  --foreground: #f5f5f5;
+
+  --surface: #181818;
+  --surface-secondary: #1c1c1c;
+  --surface-tertiary: #202020;
+
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.11);
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * ============================================================
+ * HTML & 全局文本排版渲染优化
+ * ============================================================
+ */
+
+html {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  color-scheme: light;
+  transition: none;
+
+  /* 核心：提升中英文混排的清晰度与文本渲染引擎质量 */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  /* 彻底禁用浏览器算法伪造的假粗体与假斜体，消除字体重影与模糊发虚 */
+  font-synthesis: none;
+
+  /* 开启 Inter 的 OpenType 字符优化（对齐数字高度、规范字符基线） */
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "calt";
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/*
+ * ============================================================
+ * BODY
+ * ============================================================
+ */
+
+body {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+
+  background: var(--background);
+  color: var(--foreground);
+
+  /* 严密的中西文回退链 */
+  font-family: var(--font-sans);
+
+  /* 优化中文阅读的行高与字间距 */
+  line-height: 1.65;
+  letter-spacing: -0.011em;
+
+  overflow-x: hidden;
+}
+
+/*
+ * ============================================================
+ * Root Elements
+ * ============================================================
+ */
+
+#__next,
+body > div {
+  min-height: 100%;
+}
+
+/*
+ * ============================================================
+ * Selection (选中文本高亮)
+ * ============================================================
+ */
+
+::selection {
+  background: rgba(0, 0, 0, 0.1);
+  color: #111111;
+}
+
+html.dark ::selection {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/*
+ * ============================================================
+ * Scrollbar
+ * ============================================================
+ */
+
+html {
+  scrollbar-color: #c4c4c4 transparent;
+  scrollbar-width: thin;
+}
+
+html.dark {
+  scrollbar-color: #3a3a3a transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.24);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/*
+ * ============================================================
+ * Links & Buttons & Images
+ * ============================================================
+ */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
+}
+
+html.dark :focus-visible {
+  outline-color: rgba(255, 255, 255, 0.35);
+}
+
+/*
+ * ============================================================
+ * Theme View Transition
+ * ============================================================
+ */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/*
+ * ============================================================
+ * Surface & Utility Classes
+ * ============================================================
+ */
+
+.surface {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.surface-secondary {
+  background: var(--surface-secondary);
+  border-color: var(--border);
+}
+
+.surface-tertiary {
+  background: var(--surface-tertiary);
+  border-color: var(--border);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.bg-page {
+  background: var(--background);
+}
+
+.bg-surface {
+  background: var(--surface);
+}
+
+.bg-surface-secondary {
+  background: var(--surface-secondary);
+}
+
+.border-surface {
+  border-color: var(--border);
+}
+
+.border-surface-strong {
+  border-color: var(--border-strong);
+}
+
+/*
+ * ============================================================
+ * SlideEnter Animation
+ * ============================================================
+ */
+
+.slide-enter {
+  --slide-enter-delay: 0ms;
+  --slide-enter-offset: 8px;
+  --slide-enter-duration: 400ms;
+
+  animation-name: slide-enter;
+  animation-duration: var(--slide-enter-duration);
+  animation-delay: var(--slide-enter-delay);
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+  will-change: opacity, transform;
+}
+
+@keyframes slide-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--slide-enter-offset), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media (prefers-reduced-motion: reduce) {
+  .slide-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (padding: max(0px)) {
+  body {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* 仅在主题切换触发的 260ms 内生效 */
+.theme-smooth-transition,
+.theme-smooth-transition *,
+.theme-smooth-transition *::before,
+.theme-smooth-transition *::after {
+  transition:
+    background-color 0.25s ease-out,
+    border-color 0.25s ease-out,
+    color 0.25s ease-out,
+    fill 0.25s ease-out,
+    stroke 0.25s ease-out !important;
+  transition-delay: 0s !important;
 }
