@@ -4,7 +4,9 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import Prism from "prismjs";
+import clsx from "clsx";
 
 // 常用语言语法支持
 import "prismjs/components/prism-javascript";
@@ -73,6 +75,26 @@ interface PostContentWrapperProps {
   isHtml: boolean;
 }
 
+function getNodeText(node: React.ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(getNodeText).join("");
+  if (React.isValidElement(node)) {
+    const props = node.props as { children?: React.ReactNode };
+    return props && props.children ? getNodeText(props.children) : "";
+  }
+  return "";
+}
+
+function slugifyHeading(text: string): string {
+  return (
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "heading"
+  );
+}
+
 export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
@@ -133,7 +155,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
       toolbar.appendChild(copyBtn);
       pre.appendChild(toolbar);
     });
-  }, [cleanHtmlContent, isHtml]);
+  }, [cleanHtmlContent, isHtml, content]);
 
   // =======================================================
   // 2. 统一事件委托处理（代码复制与图片灯箱）
@@ -198,6 +220,27 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     };
   }, [activeImg, closeLightbox]);
 
+  const proseClassName = `
+    text-[14.5px] sm:text-[16px] leading-[1.8] text-neutral-800 dark:text-[#cbd5e1]
+    [&_p]:mb-4 sm:[&_p]:mb-5
+    [&_h1]:text-xl sm:[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-8 [&_h1]:mb-3 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100
+    [&_h2]:text-lg sm:[&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-1 [&_h2]:border-b [&_h2]:border-neutral-200 dark:[&_h2]:border-white/[0.06] [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100
+    [&_h3]:text-sm sm:[&_h3]:text-base [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2.5 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100
+    [&_h4]:text-sm sm:[&_h4]:text-sm [&_h4]:font-semibold [&_h4]:mt-5 [&_h4]:mb-2 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
+    [&_blockquote]:border-l-2 [&_blockquote]:border-sky-500/40 [&_blockquote]:bg-sky-500/[0.04] dark:[&_blockquote]:bg-sky-500/[0.06] [&_blockquote]:px-4 [&_blockquote]:py-2.5 [&_blockquote]:my-4 [&_blockquote]:rounded-r-lg [&_blockquote]:italic [&_blockquote]:text-neutral-700 dark:[&_blockquote]:text-neutral-300
+    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5
+    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5
+    [&_li]:leading-relaxed
+    [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-5 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.01]
+    [&_pre]:bg-[#0d1117] [&_pre]:border [&_pre]:border-white/[0.08] [&_pre]:p-4 sm:[&_pre]:p-5 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-5 [&_pre]:text-xs sm:[&_pre]:text-[13px] [&_pre]:leading-relaxed [&_pre]:font-mono
+    [&_code]:font-mono [&_code]:text-neutral-800 dark:[&_code]:text-neutral-200
+    [&_a]:text-sky-600 dark:[&_a]:text-sky-400 [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-sky-500
+    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block [&_table]:whitespace-nowrap sm:[&_table]:whitespace-normal [&_table]:my-5
+    [&_th]:border [&_th]:border-neutral-300 dark:[&_th]:border-neutral-700 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-neutral-50 dark:[&_th]:bg-neutral-800/50
+    [&_td]:border [&_td]:border-neutral-300 dark:[&_td]:border-neutral-700 [&_td]:px-4 [&_td]:py-2
+    [&_hr]:my-8 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
+  `;
+
   return (
     <>
       {/* 语法高亮配色主题 */}
@@ -218,32 +261,122 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className="
-            text-[14.5px] sm:text-[16px] leading-[1.8] text-neutral-800 dark:text-[#cbd5e1]
-            [&_p]:mb-4 sm:[&_p]:mb-5
-            [&_h1]:text-xl sm:[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-6 sm:[&_h1]:mt-8 [&_h1]:mb-3
-            [&_h2]:text-lg sm:[&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-2.5 [&_h2]:pb-1 [&_h2]:border-b [&_h2]:border-neutral-200 dark:[&_h2]:border-white/[0.06]
-            [&_h3]:text-sm sm:[&_h3]:text-base [&_h3]:font-bold [&_h3]:mt-5 [&_h3]:mb-2
-            [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:pl-3.5 [&_blockquote]:my-4 [&_blockquote]:italic
-            [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4
-            [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4
-            [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-4 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.01]
-            [&_pre]:bg-[#0d1117] [&_pre]:border [&_pre]:border-white/[0.08] [&_pre]:p-4 sm:[&_pre]:p-5 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-5 [&_pre]:text-xs sm:[&_pre]:text-[13px] [&_pre]:leading-relaxed [&_pre]:font-mono
-            [&_code]:font-mono [&_code]:text-neutral-200
-            [&_a]:text-sky-600 dark:[&_a]:text-sky-400 [&_a]:underline
-            [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block [&_table]:whitespace-nowrap sm:[&_table]:whitespace-normal
-            [&_th]:border [&_th]:border-neutral-300 dark:[&_th]:border-neutral-700 [&_th]:px-4 [&_th]:py-2
-            [&_td]:border [&_td]:border-neutral-300 dark:[&_td]:border-neutral-700 [&_td]:px-4 [&_td]:py-2
-          "
+          className={proseClassName}
           dangerouslySetInnerHTML={{ __html: cleanHtmlContent }}
         />
       ) : (
         <div
           ref={contentRef}
           onClick={handleContentClick}
-          className="text-[14.5px] sm:text-[16px] leading-[1.8] text-neutral-800 dark:text-[#cbd5e1] whitespace-pre-wrap [&_img]:cursor-zoom-in"
+          suppressHydrationWarning
+          className={proseClassName}
         >
-          {content}
+          <ReactMarkdown
+            components={{
+              h1: ({ children, node, ...props }) => {
+                const id = slugifyHeading(getNodeText(children));
+                return (
+                  <h1 id={id} {...props}>
+                    {children}
+                  </h1>
+                );
+              },
+              h2: ({ children, node, ...props }) => {
+                const id = slugifyHeading(getNodeText(children));
+                return (
+                  <h2 id={id} {...props}>
+                    {children}
+                  </h2>
+                );
+              },
+              h3: ({ children, node, ...props }) => {
+                const id = slugifyHeading(getNodeText(children));
+                return (
+                  <h3 id={id} {...props}>
+                    {children}
+                  </h3>
+                );
+              },
+              h4: ({ children, node, ...props }) => {
+                const id = slugifyHeading(getNodeText(children));
+                return (
+                  <h4 id={id} {...props}>
+                    {children}
+                  </h4>
+                );
+              },
+              pre: ({ children, node, ...props }) => {
+                return (
+                  <pre
+                    suppressHydrationWarning
+                    {...props}
+                  >
+                    {children}
+                  </pre>
+                );
+              },
+              code: ({ className, children, node, ...props }) => {
+                const isInline = !className && typeof children === "string" && !children.includes("\n");
+                if (isInline) {
+                  return (
+                    <code
+                      className="rounded bg-neutral-200/60 px-1.5 py-0.5 font-mono text-[13px] text-neutral-800 dark:bg-neutral-800/80 dark:text-neutral-200"
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                }
+                return (
+                  <code
+                    suppressHydrationWarning
+                    className={clsx("font-mono text-neutral-200", className)}
+                    {...props}
+                  >
+                    {children}
+                  </code>
+                );
+              },
+              img: ({ src, alt, node, ...props }) => {
+                const rawSrc = typeof src === "string" ? src : "";
+                let optimizedSrc = rawSrc;
+                if (
+                  (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
+                  !rawSrc.includes("wsrv.nl")
+                ) {
+                  optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`;
+                }
+                return (
+                  <img
+                    src={optimizedSrc}
+                    alt={alt || "文章配图"}
+                    data-original-src={rawSrc}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    className="mx-auto my-5 max-w-full cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01] sm:rounded-xl"
+                    {...props}
+                  />
+                );
+              },
+              a: ({ href, children, node, ...props }) => {
+                const isExternal = href?.startsWith("http://") || href?.startsWith("https://");
+                return (
+                  <a
+                    href={href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="text-sky-600 underline underline-offset-4 transition-colors hover:text-sky-500 dark:text-sky-400"
+                    {...props}
+                  >
+                    {children}
+                  </a>
+                );
+              },
+            }}
+          >
+            {content}
+          </ReactMarkdown>
         </div>
       )}
 

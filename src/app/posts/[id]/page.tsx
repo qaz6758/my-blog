@@ -62,6 +62,16 @@ function decodeHtmlEntities(str: string) {
     .replace(/&#x27;/gi, "'");
 }
 
+function slugifyHeading(text: string): string {
+  return (
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "heading"
+  );
+}
+
 /* ============================================================
    解析文章目录（增强唯一 ID 冲突检测）
    ============================================================ */
@@ -69,7 +79,6 @@ function parseTocAndContent(rawContent: string) {
   const isHtml = /<[a-z][\s\S]*>/i.test(rawContent);
   const tocList: TocItem[] = [];
   const seenIds = new Map<string, number>();
-  let headingIndex = 0;
 
   // 生成全局唯一 ID 防止目录 key 冲突
   const getUniqueId = (baseId: string) => {
@@ -87,7 +96,7 @@ function parseTocAndContent(rawContent: string) {
           innerText.replace(/<[^>]+>/g, "").trim()
         );
         const idMatch = attrs.match(/id=["']([^"']+)["']/i);
-        const rawId = idMatch?.[1] || `heading-${headingIndex++}`;
+        const rawId = idMatch?.[1] || slugifyHeading(cleanText);
         const uniqueId = getUniqueId(rawId);
 
         if (cleanText) {
@@ -105,21 +114,20 @@ function parseTocAndContent(rawContent: string) {
   }
 
   const lines = rawContent.split("\n");
-  const processedLines = lines.map((line) => {
+  lines.forEach((line) => {
     const match = line.match(/^(#{1,6})\s+(.+)$/);
-    if (!match) return line;
+    if (!match) return;
 
     const level = match[1].length;
     const text = decodeHtmlEntities(match[2].trim());
-    const uniqueId = getUniqueId(`heading-${headingIndex++}`);
+    const uniqueId = getUniqueId(slugifyHeading(text));
 
     tocList.push({ id: uniqueId, text, level });
-    return line;
   });
 
   return {
     tocList,
-    processedContent: processedLines.join("\n"),
+    processedContent: rawContent,
     isHtml: false,
   };
 }
