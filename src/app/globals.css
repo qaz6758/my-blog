@@ -314,128 +314,39 @@ html.dark :focus-visible {
 
 /*
  * ============================================================
- * Anthony Fu Signature Staggered Slide-Enter Cascade
+ * SlideEnter Animation (Safe & Isolated)
  * ============================================================
  */
 
-.slide-enter,
-.slide-enter-content > *:not(:has(.slide-enter)),
-.slide-enter-content main > *:not(:has(.slide-enter)),
-.slide-enter-content article > *:not(:has(.slide-enter)) {
-  --slide-enter-stage: 0;
-  --slide-enter-step: 60ms;
-  --slide-enter-initial: 0ms;
-  --slide-enter-offset: 10px;
-  --slide-enter-duration: 450ms;
+.slide-enter {
+  --slide-enter-delay: 0ms;
+  --slide-enter-offset: 8px;
+  --slide-enter-duration: 400ms;
 
   animation-name: slide-enter;
   animation-duration: var(--slide-enter-duration);
-  animation-delay: calc(var(--slide-enter-initial) + var(--slide-enter-stage) * var(--slide-enter-step));
+  animation-delay: var(--slide-enter-delay);
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: both;
   will-change: opacity, transform;
 }
 
 @keyframes slide-enter {
-  0% {
+  from {
     opacity: 0;
-    transform: translateY(var(--slide-enter-offset, 10px));
+    transform: translate3d(0, var(--slide-enter-offset), 0);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
-/* Stagger nth-child sequence */
-.slide-enter-content > *:nth-child(1),
-.slide-enter-content main > *:nth-child(1),
-.slide-enter-content article > *:nth-child(1) { --slide-enter-stage: 1; }
-
-.slide-enter-content > *:nth-child(2),
-.slide-enter-content main > *:nth-child(2),
-.slide-enter-content article > *:nth-child(2) { --slide-enter-stage: 2; }
-
-.slide-enter-content > *:nth-child(3),
-.slide-enter-content main > *:nth-child(3),
-.slide-enter-content article > *:nth-child(3) { --slide-enter-stage: 3; }
-
-.slide-enter-content > *:nth-child(4),
-.slide-enter-content main > *:nth-child(4),
-.slide-enter-content article > *:nth-child(4) { --slide-enter-stage: 4; }
-
-.slide-enter-content > *:nth-child(5),
-.slide-enter-content main > *:nth-child(5),
-.slide-enter-content article > *:nth-child(5) { --slide-enter-stage: 5; }
-
-.slide-enter-content > *:nth-child(6),
-.slide-enter-content main > *:nth-child(6),
-.slide-enter-content article > *:nth-child(6) { --slide-enter-stage: 6; }
-
-.slide-enter-content > *:nth-child(7),
-.slide-enter-content main > *:nth-child(7),
-.slide-enter-content article > *:nth-child(7) { --slide-enter-stage: 7; }
-
-.slide-enter-content > *:nth-child(8),
-.slide-enter-content main > *:nth-child(8),
-.slide-enter-content article > *:nth-child(8) { --slide-enter-stage: 8; }
-
-.slide-enter-content > *:nth-child(9),
-.slide-enter-content main > *:nth-child(9),
-.slide-enter-content article > *:nth-child(9) { --slide-enter-stage: 9; }
-
-.slide-enter-content > *:nth-child(10),
-.slide-enter-content main > *:nth-child(10),
-.slide-enter-content article > *:nth-child(10) { --slide-enter-stage: 10; }
-
-.slide-enter-content > *:nth-child(11),
-.slide-enter-content main > *:nth-child(11),
-.slide-enter-content article > *:nth-child(11) { --slide-enter-stage: 11; }
-
-.slide-enter-content > *:nth-child(12),
-.slide-enter-content main > *:nth-child(12),
-.slide-enter-content article > *:nth-child(12) { --slide-enter-stage: 12; }
-
-.slide-enter-content > *:nth-child(13),
-.slide-enter-content main > *:nth-child(13),
-.slide-enter-content article > *:nth-child(13) { --slide-enter-stage: 13; }
-
-.slide-enter-content > *:nth-child(14),
-.slide-enter-content main > *:nth-child(14),
-.slide-enter-content article > *:nth-child(14) { --slide-enter-stage: 14; }
-
-.slide-enter-content > *:nth-child(15),
-.slide-enter-content main > *:nth-child(15),
-.slide-enter-content article > *:nth-child(15) { --slide-enter-stage: 15; }
-
-.slide-enter-content > *:nth-child(16),
-.slide-enter-content main > *:nth-child(16),
-.slide-enter-content article > *:nth-child(16) { --slide-enter-stage: 16; }
-
-.slide-enter-content > *:nth-child(17),
-.slide-enter-content main > *:nth-child(17),
-.slide-enter-content article > *:nth-child(17) { --slide-enter-stage: 17; }
-
-.slide-enter-content > *:nth-child(18),
-.slide-enter-content main > *:nth-child(18),
-.slide-enter-content article > *:nth-child(18) { --slide-enter-stage: 18; }
-
-.slide-enter-content > *:nth-child(19),
-.slide-enter-content main > *:nth-child(19),
-.slide-enter-content article > *:nth-child(19) { --slide-enter-stage: 19; }
-
-.slide-enter-content > *:nth-child(20),
-.slide-enter-content main > *:nth-child(20),
-.slide-enter-content article > *:nth-child(20) { --slide-enter-stage: 20; }
-
 @media (prefers-reduced-motion: reduce) {
-  .slide-enter,
-  .slide-enter-content > *,
-  .slide-enter-content main > *,
-  .slide-enter-content article > * {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+  .slide-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
