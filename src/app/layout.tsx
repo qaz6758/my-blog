@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_SC } from "next/font/google";
+import { Inter } from "next/font/google";
 import { cookies } from "next/headers";  
 import "@/app/globals.css";  
 
@@ -9,19 +9,13 @@ import { Navbar } from "@/components/layout/Navbar";
 import { BackgroundImage } from "@/components/layout/BackgroundImage";  
 import { MusicProvider } from "@/components/playlist/MusicContext";
 
+// 仅加载极速英文字体 Inter (体积仅 ~15KB)，中文由系统原生高清字体库接管 (0ms 阻塞)
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-inter",
   preload: true,
-});  
-
-const notoSansSC = Noto_Sans_SC({
-  weight: ["400", "500", "700"],
-  display: "swap",
-  preload: false,
-  variable: "--font-noto-sans-sc",
 });  
 
 export const viewport: Viewport = {
@@ -57,25 +51,13 @@ export default async function RootLayout({
   const savedTheme = cookieStore.get("theme")?.value;  
   const initialTheme: "light" | "dark" =
     savedTheme === "light" ? "light" : "dark";  
-  const isDark = initialTheme === "dark";  
 
   return (
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${inter.variable} ${notoSansSC.variable} ${initialTheme}`}  
+      className={`${inter.variable} ${initialTheme}`}  
     >
-      <head>
-        {isDark && (
-          <link
-            rel="preload"
-            href="/home-bg.webp"
-            as="image"
-            type="image/webp"
-          />
-        )}  
-      </head>
-
       <body className="min-h-screen w-full font-sans bg-[#ffffff] text-neutral-900 selection:bg-neutral-200 dark:bg-[#050505] dark:text-neutral-100 dark:selection:bg-neutral-800 overflow-x-hidden antialiased">  
         <ThemeProvider initialTheme={initialTheme}>  
           {/* 包裹全局播放器 Provider */}
@@ -83,7 +65,7 @@ export default async function RootLayout({
             <BackgroundImage />  
             <NoiseOverlay />
             <Navbar />  
-            <div className="relative z-10 w-full pb-20">
+            <div className="relative z-10 w-full pb-4 sm:pb-6">
               {children}  
             </div>
           </MusicProvider>

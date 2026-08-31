@@ -11,7 +11,6 @@
 @theme {
   --font-sans:
     var(--font-inter),
-    var(--font-noto-sans-sc),
     -apple-system,
     BlinkMacSystemFont,
     "PingFang SC",
@@ -328,7 +327,6 @@ html.dark :focus-visible {
   animation-delay: var(--slide-enter-delay);
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: both;
-  will-change: opacity, transform;
 }
 
 @keyframes slide-enter {
@@ -357,17 +355,18 @@ html.dark :focus-visible {
   }
 }
 
-/* 仅在主题切换触发的 260ms 内生效 */
+/* 仅在根节点与主要容器上做平滑渐变，避免使用通用选择器 (*) 导致手机端掉帧 */
 .theme-smooth-transition,
-.theme-smooth-transition *,
-.theme-smooth-transition *::before,
-.theme-smooth-transition *::after {
+.theme-smooth-transition body,
+.theme-smooth-transition header,
+.theme-smooth-transition footer,
+.theme-smooth-transition nav,
+.theme-smooth-transition .surface,
+.theme-smooth-transition .bg-page {
   transition:
-    background-color 0.25s ease-out,
-    border-color 0.25s ease-out,
-    color 0.25s ease-out,
-    fill 0.25s ease-out,
-    stroke 0.25s ease-out !important;
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out,
+    color 0.2s ease-out !important;
   transition-delay: 0s !important;
 }
 

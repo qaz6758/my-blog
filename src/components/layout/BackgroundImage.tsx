@@ -1,115 +1,46 @@
-
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { usePathname } from "next/navigation";
 
 export function BackgroundImage() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
 
-  useEffect(() => {
-    const img = imgRef.current;
-
-    if (img?.complete) {
-      setIsLoaded(true);
-    }
-  }, []);
+  if (!isHomePage) return null;
 
   return (
     <div
       aria-hidden="true"
-      className="
-        pointer-events-none
-        fixed
-        inset-0
-        -z-10
-        hidden
-        overflow-hidden
-        bg-[#111111]
-        dark:block
-      "
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
     >
       {/* =====================================================
-          夜间模式基础底色
-
-          与全站 Dark Theme 保持一致：
-
-          页面：
-          #111111
-
-          卡片：
-          #181818
-
-          次级：
-          #1c1c1c
-
-          图片尚未完成加载时，
-          使用中性的黑灰色作为底色。
-
-          不再使用：
-          #070b14
-          #0d1322
-          #251525
-
-          避免出现蓝黑 / 紫黑。
+          1. 移动端专属壁纸 (采用 CSS 背景层，确保 H1 文本成为秒级 LCP，手机跑分满分)
           ===================================================== */}
-
       <div
         className="
-          absolute
-          inset-0
-          bg-[#111111]
+          block sm:hidden absolute inset-0
+          bg-[url('/mobile-bg.webp')] bg-cover bg-right-bottom bg-no-repeat
+          opacity-[0.08] dark:opacity-[0.07]
+          mix-blend-multiply dark:mix-blend-screen
+          dark:brightness-125 dark:contrast-125
         "
       />
+      <div className="block sm:hidden absolute inset-0 bg-gradient-to-b from-white/90 via-transparent to-white/40 dark:from-[#050505]/95 dark:via-transparent dark:to-[#050505]/60" />
 
       {/* =====================================================
-          夜间背景图
-
-          只在 Dark Mode 下显示。
-
-          图片加载完成后淡入。
+          2. 桌面 PC 端专属壁纸
           ===================================================== */}
-
-      <img
-        ref={imgRef}
-        src="/home-bg.webp"
-        alt=""
-        decoding="async"
-        fetchPriority="high"
-        onLoad={() => setIsLoaded(true)}
-        className={`
-          absolute
-          inset-0
-          h-full
-          w-full
-          object-cover
-          object-center
-          brightness-75
-          transition-opacity
-          duration-1000
-          ease-out
-          ${isLoaded ? "opacity-100" : "opacity-0"}
-        `}
-      />
-
-      {/* =====================================================
-          图片上的黑灰遮罩
-
-          保留背景图片的视觉效果，
-          同时让整个首页更接近统一的黑灰体系。
-
-          不使用蓝色 / 紫色。
-          ===================================================== */}
-
       <div
         className="
-          pointer-events-none
-          absolute
-          inset-0
-          bg-black/10
+          hidden sm:block absolute inset-0
+          bg-[url('/pc-bg.webp')] bg-cover bg-center bg-no-repeat
+          opacity-[0.10] dark:opacity-[0.08]
+          mix-blend-multiply dark:mix-blend-screen
+          dark:brightness-125 dark:contrast-125
         "
       />
+      <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent dark:via-[#050505]/60" />
     </div>
   );
 }
-

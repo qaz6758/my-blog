@@ -83,7 +83,7 @@ function SignatureLogoComponent({
             }
           }
 
-          @media (prefers-reduced-motion: reduce) {
+          @media (max-width: 640px), (prefers-reduced-motion: reduce) {
             .signature-main,
             .signature-line {
               animation: none !important;

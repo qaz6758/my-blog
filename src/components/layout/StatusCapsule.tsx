@@ -176,7 +176,7 @@ export function StatusCapsule({
                 {musicArtist}
               </div>
               <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
-                MoeKoe Music · {musicIsPlaying ? "Playing" : "Paused"}
+                MoeKoe Music · {musicIsPlaying ? "" : "Paused"}
               </div>
             </div>
           </div>
@@ -357,7 +357,7 @@ export function StatusCapsule({
                       {musicArtist}
                     </div>
                     <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
-                      MoeKoe Music · {musicIsPlaying ? "Playing" : "Paused"}
+                      MoeKoe Music · {musicIsPlaying ? "播放中" : "Paused"}
                     </div>
                   </div>
                 </div>
@@ -410,7 +410,7 @@ export function StatusCapsule({
                   )}
                 </div>
                 <span className="truncate text-xs text-neutral-600 dark:text-neutral-300">
-                  Now using <span className="font-semibold text-neutral-900 dark:text-white">{liveStatus.app.name}</span>
+                  正在使用 <span className="font-semibold text-neutral-900 dark:text-white">{liveStatus.app.name}</span>
                 </span>
               </div>
             )}

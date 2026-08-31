@@ -289,8 +289,6 @@ export function PostsListClient({
                           rounded-lg
                           px-3
                           py-2.5
-                          transition-colors
-                          duration-200
                           hover:bg-black/[0.03]
                           dark:hover:bg-white/[0.04]
                         "
@@ -304,7 +302,6 @@ export function PostsListClient({
                               text-neutral-700
                               antialiased
                               group-hover:text-neutral-950
-                              group-hover:transition-colors
                               dark:text-neutral-300
                               dark:group-hover:text-white
                               sm:text-[16px]
