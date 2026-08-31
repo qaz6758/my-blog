@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
-import TableOfContents, { TocItem } from "@/components/post/TableOfContents";
-import { CommentSection } from "@/components/post/CommentSection";
-import { PostContentWrapper } from "@/components/post/PostContentWrapper";
+import type { TocItem } from "@/components/post/TableOfContents";
+// ⚡ 懒加载桥接组件 — Prism.js + ReactMarkdown + 评论区 + ToC 均延迟打包
+import { LazyPostContent } from "@/components/post/LazyPostContent";
+import { LazyCommentSection } from "@/components/post/LazyCommentSection";
+import { LazyTableOfContents } from "@/components/post/LazyTableOfContents";
 import { Footer } from "@/components/layout/Footer";
 
 import { fetchPostsFromNotion, fetchPostDetailFromNotion } from "@/lib/notion";
@@ -243,7 +245,7 @@ export default async function PostDetailPage({ params }: PostPageProps) {
           {/* 左侧悬浮目录 */}
           {tocList.length > 0 && (
             <div className="fixed left-6 top-24 hidden w-56 xl:block">
-              <TableOfContents
+              <LazyTableOfContents
                 tocList={tocList}
                 className="!w-full !static"
               />
@@ -302,7 +304,7 @@ export default async function PostDetailPage({ params }: PostPageProps) {
 
             {/* 正文内容 */}
             <article className="post-article min-w-0">
-              <PostContentWrapper
+              <LazyPostContent
                 content={processedContent}
                 isHtml={isHtml}
               />
@@ -330,7 +332,7 @@ export default async function PostDetailPage({ params }: PostPageProps) {
                 <div className="mb-4 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400 dark:text-neutral-500">
                   On this page
                 </div>
-                <TableOfContents
+                <LazyTableOfContents
                   tocList={tocList}
                   className="!block !w-full !static"
                 />
@@ -378,7 +380,7 @@ export default async function PostDetailPage({ params }: PostPageProps) {
 
             {/* 评论区 */}
             <section className="mt-16">
-              <CommentSection postId={currentPost.id} />
+              <LazyCommentSection postId={currentPost.id} />
             </section>
           </div>
         </div>

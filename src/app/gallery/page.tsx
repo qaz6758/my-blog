@@ -1,6 +1,8 @@
+// app/gallery/page.tsx
 import React from "react";
+import { Suspense } from "react";
 import { getGalleryImages } from "@/lib/gallery";
-import GalleryClient from "./GalleryClient";
+import GalleryLoader from "./GalleryLoader";
 
 export const metadata = {
   title: "Gallery",
@@ -9,6 +11,9 @@ export const metadata = {
 
 export default async function GalleryPage() {
   const photos = await getGalleryImages();
-
-  return <GalleryClient photos={photos} />;
+  return (
+    <Suspense fallback={null}>
+      <GalleryLoader photos={photos} />
+    </Suspense>
+  );
 }

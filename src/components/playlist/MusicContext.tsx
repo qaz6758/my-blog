@@ -4,7 +4,8 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Song } from "@/components/playlist/SongList";
-import { MusicPlayer } from "@/components/playlist/MusicPlayer";
+// ⚡ 懒加载桥接 — 播放器 JS 在用户点击播放前完全不下载
+import { LazyMusicPlayer } from "@/components/playlist/LazyMusicPlayer";
 
 interface MusicContextType {
   currentSong: Song | null;
@@ -162,7 +163,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       {/* 全局底部持久化浮动播放器 */}
       <AnimatePresence>
         {currentSong && (
-          <MusicPlayer
+          <LazyMusicPlayer
             currentSong={currentSong}
             playlistSongs={playlistSongs}
             isPlaying={isPlaying}
