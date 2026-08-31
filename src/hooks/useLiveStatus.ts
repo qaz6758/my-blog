@@ -27,10 +27,17 @@ export interface LiveMusicStatus {
   isPlaying: boolean;
 }
 
+export interface LiveAppStatus {
+  name: string;
+  title: string | null;
+  icon: string | null;
+}
+
 export interface LiveStatus {
-  activity: "music" | "idle" | "offline";
+  activity: "music" | "app" | "idle" | "offline";
   lastSeenAt: string | null;
   music: LiveMusicStatus | null;
+  app: LiveAppStatus | null;
 }
 
 /* ============================================================
@@ -41,13 +48,15 @@ const DEFAULT_STATUS: LiveStatus = {
   activity: "offline",
   lastSeenAt: null,
   music: null,
+  app: null,
 };
 
 function isStatusExpired(lastSeenAt: string | null): boolean {
   if (!lastSeenAt) return true;
   const timestamp = new Date(lastSeenAt).getTime();
   if (!Number.isFinite(timestamp)) return true;
-  return Date.now() - timestamp > STATUS_TIMEOUT;
+  // 120 秒无心跳才认为掉线
+  return Date.now() - timestamp > 120_000;
 }
 
 function mapRow(row: any): LiveStatus {
@@ -60,13 +69,16 @@ function mapRow(row: any): LiveStatus {
       activity: "offline",
       lastSeenAt,
       music: null,
+      app: null,
     };
   }
 
-  const isMusic = row.activity === "music" && Boolean(row.music_title);
+  const isMusic = Boolean(row.music_title);
+  const isApp = Boolean(row.app_name);
 
   return {
-    activity: row.activity === "music" ? "music" : "idle",
+    // 这里只要在线就视为 app 或 music，activity字段可以弱化
+    activity: isMusic ? "music" : isApp ? "app" : "idle",
     lastSeenAt,
     music: isMusic
       ? {
@@ -76,6 +88,13 @@ function mapRow(row: any): LiveStatus {
           currentTime: Number(row.music_current_time) || 0,
           duration: Number(row.music_duration) || 0,
           isPlaying: Boolean(row.music_is_playing),
+        }
+      : null,
+    app: isApp
+      ? {
+          name: row.app_name ?? "Desktop",
+          title: row.app_title ?? null,
+          icon: row.app_icon ?? null,
         }
       : null,
   };
@@ -101,7 +120,7 @@ async function fetchInitialStatus() {
     const { data, error } = await supabase
       .from("site_status")
       .select(
-        "id, last_seen_at, activity, music_title, music_artist, music_cover, music_current_time, music_duration, music_is_playing"
+        "id, last_seen_at, activity, music_title, music_artist, music_cover, music_current_time, music_duration, music_is_playing, app_name, app_title, app_icon"
       )
       .eq("id", SITE_STATUS_ID)
       .maybeSingle();
@@ -159,6 +178,7 @@ function startRealtime() {
         activity: "offline",
         lastSeenAt: globalStatus.lastSeenAt,
         music: null,
+        app: null,
       });
     }
   }, STATUS_CHECK_INTERVAL);

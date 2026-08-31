@@ -43,7 +43,7 @@ async function queryNotionDatabase(rawDatabaseId: string, name: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({}),
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
   const data = await res.json();
   if (!res.ok) {
@@ -215,7 +215,7 @@ export async function fetchThoughtDetailFromNotion(pageId: string): Promise<Thou
         Authorization: `Bearer ${NOTION_API_KEY}`,
         "Notion-Version": NOTION_VERSION,
       },
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) return null;
@@ -245,6 +245,246 @@ export async function fetchThoughtDetailFromNotion(pageId: string): Promise<Thou
     };
   } catch (error) {
     console.error("获取 Notion 单页失败:", error);
+    return null;
+  }
+}
+
+// ============================================================
+// 博客文章（Notion as CMS）
+// ============================================================
+
+export interface NotionPostItem {
+  id: string;
+  title: string;
+  created_at: string;
+  published_at: string;
+  summary: string;
+  category: string;
+  tags: string[];
+  source: string;
+  source_url?: string;
+  post_type: "original" | "notion" | "rss";
+  status: string;
+  content?: string;
+}
+
+function getStatus(prop: any): string {
+  if (!prop) return "";
+  if (prop.type === "status") return prop.status?.name || "";
+  if (prop.type === "select") return prop.select?.name || "";
+  return "";
+}
+
+function richTextToMarkdown(richTexts: any[] = []): string {
+  return richTexts
+    .map((rt) => {
+      let text = rt.plain_text || "";
+      if (rt.annotations) {
+        if (rt.annotations.code) text = `\`${text}\``;
+        if (rt.annotations.bold) text = `**${text}**`;
+        if (rt.annotations.italic) text = `*${text}*`;
+        if (rt.annotations.strikethrough) text = `~~${text}~~`;
+      }
+      if (rt.href) {
+        text = `[${text}](${rt.href})`;
+      }
+      return text;
+    })
+    .join("");
+}
+
+async function fetchBlockChildren(blockId: string): Promise<any[]> {
+  const cleanId = extractDatabaseId(blockId);
+  if (!cleanId || !NOTION_API_KEY) return [];
+  try {
+    const res = await fetch(`https://api.notion.com/v1/blocks/${cleanId}/children?page_size=100`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${NOTION_API_KEY}`,
+        "Notion-Version": NOTION_VERSION,
+      },
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.results || [];
+  } catch {
+    return [];
+  }
+}
+
+async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
+  const lines: string[] = [];
+
+  for (const block of blocks) {
+    const type = block.type;
+    const data = block[type];
+
+    switch (type) {
+      case "paragraph":
+        lines.push(richTextToMarkdown(data?.rich_text) + "\n");
+        break;
+      case "heading_1":
+        lines.push(`\n# ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "heading_2":
+        lines.push(`\n## ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "heading_3":
+        lines.push(`\n### ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "bulleted_list_item":
+        lines.push(`* ${richTextToMarkdown(data?.rich_text)}`);
+        break;
+      case "numbered_list_item":
+        lines.push(`1. ${richTextToMarkdown(data?.rich_text)}`);
+        break;
+      case "to_do":
+        lines.push(`* [${data?.checked ? "x" : " "}] ${richTextToMarkdown(data?.rich_text)}`);
+        break;
+      case "quote":
+        lines.push(`> ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "code":
+        const codeText = (data?.rich_text || []).map((t: any) => t.plain_text).join("");
+        const lang = data?.language || "";
+        lines.push(`\n\`\`\`${lang}\n${codeText}\n\`\`\`\n`);
+        break;
+      case "callout":
+        lines.push(`> 💡 ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "divider":
+        lines.push(`\n---\n`);
+        break;
+      case "image":
+        const imgUrl = data?.file?.url || data?.external?.url || "";
+        const caption = (data?.caption || []).map((t: any) => t.plain_text).join("") || "配图";
+        if (imgUrl) lines.push(`\n![${caption}](${imgUrl})\n`);
+        break;
+      case "bookmark":
+      case "link_preview":
+        const url = data?.url || "";
+        if (url) lines.push(`\n[${url}](${url})\n`);
+        break;
+      default:
+        if (data?.rich_text) {
+          lines.push(richTextToMarkdown(data.rich_text) + "\n");
+        }
+        break;
+    }
+  }
+
+  return lines.join("\n");
+}
+
+export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
+  const postsDbId = process.env.NOTION_POSTS_DB_ID;
+  if (!postsDbId || !NOTION_API_KEY) return [];
+
+  try {
+    const postsRes = await queryNotionDatabase(postsDbId, "NOTION_POSTS_DB_ID");
+    const items: NotionPostItem[] = [];
+
+    (postsRes.results || []).forEach((page: any) => {
+      const p = page.properties;
+      const status = getStatus(findProp(p, "状态", "Status", "State"));
+      
+      // 仅展示已发布或准备发布的文章（或者不带状态过滤）
+      const isPublished =
+        status.includes("已发布") ||
+        status.includes("准备发布") ||
+        status.includes("Published") ||
+        getCheckbox(findProp(p, "Published", "公开", "发布"));
+
+      // 允许显示带公开标记的文章，如果没有状态属性则默认展示
+      if (status && !isPublished && !status.includes("发布")) {
+        return;
+      }
+
+      const rawDate = getDate(findProp(p, "发布日期", "Date", "日期", "时间")) || page.created_time;
+      const title = getText(findProp(p, "文章标题", "Title", "Name", "标题")) || "未命名文章";
+      const category = getSelect(findProp(p, "主题/分类", "Category", "分类", "主题")) || "技术";
+      const tagsList = getMultiSelect(findProp(p, "主要SEO关键词", "Tags", "Tag", "标签", "关键词"));
+      const seoKeywords = getText(findProp(p, "主要SEO关键词", "Keywords", "摘要"));
+      const splitKeywords = seoKeywords
+        ? seoKeywords.split(/[,，、\s]+/).map((s: string) => s.trim()).filter(Boolean)
+        : [];
+      const finalTags = Array.from(new Set([...tagsList, ...splitKeywords]));
+      const summary = getText(findProp(p, "Summary", "Description", "简介", "摘要")) || seoKeywords || "";
+
+      items.push({
+        id: page.id,
+        title,
+        created_at: new Date(rawDate).toISOString(),
+        published_at: new Date(rawDate).toISOString(),
+        summary,
+        category,
+        tags: finalTags,
+        source: "Notion 原创",
+        source_url: getUrl(findProp(p, "发布网址", "Url", "Link")) || undefined,
+        post_type: "original",
+        status: status || "已发布",
+      });
+    });
+
+    return items;
+  } catch (error) {
+    console.error("抓取 Notion 博客文章列表失败:", error);
+    return [];
+  }
+}
+
+export async function fetchPostDetailFromNotion(pageId: string): Promise<NotionPostItem | null> {
+  if (!NOTION_API_KEY) return null;
+  try {
+    const cleanId = extractDatabaseId(pageId);
+    if (!cleanId) return null;
+
+    const [pageRes, blocks] = await Promise.all([
+      fetch(`https://api.notion.com/v1/pages/${cleanId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${NOTION_API_KEY}`,
+          "Notion-Version": NOTION_VERSION,
+        },
+        next: { revalidate: 60 },
+      }),
+      fetchBlockChildren(cleanId),
+    ]);
+
+    if (!pageRes.ok) return null;
+    const page = await pageRes.json();
+    const p = page.properties;
+
+    const rawDate = getDate(findProp(p, "发布日期", "Date", "日期", "时间")) || page.created_time;
+    const title = getText(findProp(p, "文章标题", "Title", "Name", "标题")) || "未命名文章";
+    const category = getSelect(findProp(p, "主题/分类", "Category", "分类", "主题")) || "技术";
+    const tagsList = getMultiSelect(findProp(p, "主要SEO关键词", "Tags", "Tag", "标签", "关键词"));
+    const seoKeywords = getText(findProp(p, "主要SEO关键词", "Keywords", "摘要"));
+    const splitKeywords = seoKeywords
+      ? seoKeywords.split(/[,，、\s]+/).map((s: string) => s.trim()).filter(Boolean)
+      : [];
+    const finalTags = Array.from(new Set([...tagsList, ...splitKeywords]));
+    const summary = getText(findProp(p, "Summary", "Description", "简介", "摘要")) || seoKeywords || "";
+    const status = getStatus(findProp(p, "状态", "Status", "State"));
+    const markdownContent = await convertBlocksToMarkdown(blocks);
+
+    return {
+      id: page.id,
+      title,
+      created_at: new Date(rawDate).toISOString(),
+      published_at: new Date(rawDate).toISOString(),
+      summary,
+      category,
+      tags: finalTags,
+      source: "Notion 原创",
+      source_url: getUrl(findProp(p, "发布网址", "Url", "Link")) || undefined,
+      post_type: "original",
+      status: status || "已发布",
+      content: markdownContent,
+    };
+  } catch (error) {
+    console.error("获取 Notion 博客详情失败:", error);
     return null;
   }
 }

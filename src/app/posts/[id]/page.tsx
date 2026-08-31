@@ -16,6 +16,8 @@ import { CommentSection } from "@/components/post/CommentSection";
 import { PostContentWrapper } from "@/components/post/PostContentWrapper";
 import { Footer } from "@/components/layout/Footer";
 
+import { fetchPostsFromNotion, fetchPostDetailFromNotion } from "@/lib/notion";
+
 interface PostPageProps {
   params: Promise<{
     id: string;
@@ -25,10 +27,14 @@ interface PostPageProps {
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const { data: posts } = await supabase.from("posts").select("id").limit(100);
-  return (posts || []).map((post) => ({
-    id: String(post.id),
-  }));
+  const [notionPosts, { data: supabasePosts }] = await Promise.all([
+    fetchPostsFromNotion(),
+    supabase.from("posts").select("id").limit(100),
+  ]);
+
+  const notionParams = (notionPosts || []).map((p) => ({ id: String(p.id) }));
+  const supabaseParams = (supabasePosts || []).map((p) => ({ id: String(p.id) }));
+  return [...notionParams, ...supabaseParams];
 }
 
 interface Post {
@@ -153,37 +159,49 @@ function calculateReadTime(content: string) {
   return Math.max(1, Math.ceil(plainText.length / 350));
 }
 
-/* ============================================================
-   标签规范化并强制去重
-   ============================================================ */
 function normalizeTags(tags?: string[] | string | null): string[] {
   if (!tags) return [];
-  const rawList = Array.isArray(tags)
-    ? tags.map((t) => String(t).trim()).filter(Boolean)
-    : String(tags)
-        .split(/[,，\s]+/)
-        .map((t) => t.trim())
-        .filter(Boolean);
-
-  // 使用 Set 彻底过滤掉重复标签名（如重复的 "dede"）
+  const rawList: string[] = [];
+  const items = Array.isArray(tags) ? tags : [tags];
+  for (const item of items) {
+    if (typeof item === "string") {
+      const split = item.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean);
+      rawList.push(...split);
+    }
+  }
   return Array.from(new Set(rawList));
 }
 
 export default async function PostDetailPage({ params }: PostPageProps) {
   const { id } = await params;
-  const queryId = !Number.isNaN(Number(id)) ? Number(id) : id;
+  let currentPost: Post | null = null;
 
-  const { data: post, error } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("id", queryId)
-    .maybeSingle();
-
-  if (error || !post) {
-    notFound();
+  // 1. 如果 ID 包含连字符或长度为 32 位 hex，优先从 Notion 抓取
+  const cleanId = id.replace(/-/g, "").trim();
+  if (cleanId.length === 32 || /[a-f0-9]{32}/i.test(cleanId)) {
+    const notionPost = await fetchPostDetailFromNotion(id);
+    if (notionPost) {
+      currentPost = notionPost as unknown as Post;
+    }
   }
 
-  const currentPost = post as Post;
+  // 2. 如果 Notion 中未查到或为数字 ID，回退到 Supabase 查询 (RSS 文章)
+  if (!currentPost) {
+    const queryId = !Number.isNaN(Number(id)) ? Number(id) : id;
+    const { data: supabasePost } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("id", queryId)
+      .maybeSingle();
+
+    if (supabasePost) {
+      currentPost = supabasePost as Post;
+    }
+  }
+
+  if (!currentPost) {
+    notFound();
+  }
   const currentDate =
     currentPost.created_at ||
     currentPost.published_at ||

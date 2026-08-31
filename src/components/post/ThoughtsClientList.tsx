@@ -77,7 +77,7 @@ export function ThoughtsClientList({
         return (
           <article
             key={item.id}
-            className="relative rounded-none border border-black/[0.05] bg-[#fafafa] p-5 sm:p-6 shadow-sm dark:border-white/[0.05] dark:bg-[#18181a]"
+            className="relative rounded-none p-5 sm:p-6 shadow-sm torn-paper"
           >
             {/* 头部信息 */}
             <div className="mb-4 flex items-center gap-2 text-[13px]">

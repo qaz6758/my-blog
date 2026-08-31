@@ -34,7 +34,7 @@ export default async function ThoughtDetailPage({
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-4xl">
             思考
           </h1>
-          <p className="mt-2 text-xs text-neutral-500 dark:text-[#8e8e93] tracking-widest">
+          <p className="mt-3 text-2xl text-neutral-500 dark:text-[#8e8e93] tracking-widest">
             感君倾耳。
           </p>
         </header>

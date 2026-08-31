@@ -32,17 +32,21 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };  
 
+import { siteConfig } from "@/config/site";
+
 export const metadata: Metadata = {
   title: {
-    default: "theyole's Blog",
-    template: "%s | theyole's Blog",
+    default: `${siteConfig.name}'s Blog`,
+    template: `%s | ${siteConfig.name}'s Blog`,
   },
-  description: "Personal Blog & Portfolio - 记录技术探索、折腾过程与生活碎片",
+  description: siteConfig.description,
   robots: {
     index: true,
     follow: true,
   },
 };  
+
+import { NoiseOverlay } from "@/components/effects/NoiseOverlay";
 
 export default async function RootLayout({
   children,
@@ -77,6 +81,7 @@ export default async function RootLayout({
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
             <BackgroundImage />  
+            <NoiseOverlay />
             <Navbar />  
             <div className="relative z-10 w-full pb-20">
               {children}  

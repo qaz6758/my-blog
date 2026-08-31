@@ -3,6 +3,7 @@
 import { Footer } from "@/components/layout/Footer";
 import { SlideEnter } from "@/components/layout/SlideEnter";
 import { supabase } from "@/lib/supabase";
+import { fetchPostsFromNotion } from "@/lib/notion";
 import { PostsListClient, PostItem } from "@/components/post/PostsListClient";
 
 export const revalidate = 60;
@@ -17,19 +18,30 @@ interface PostsPageProps {
 export default async function PostsPage({ searchParams }: PostsPageProps) {
   const { category, tag } = await searchParams;
 
-  // 服务端一次性读取轻量列表元数据（不读取重体积的 content 正文）
-  const { data: postsData, error } = await supabase
-    .from("posts")
-    .select("id, title, created_at, published_at, summary, category, tags")
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(500);
+  // 并行获取 Notion 原创文章与 Supabase RSS 文章
+  const [notionPosts, supabaseRes] = await Promise.all([
+    fetchPostsFromNotion(),
+    supabase
+      .from("posts")
+      .select("id, title, created_at, published_at, summary, category, tags, source, post_type")
+      .eq("post_type", "rss")
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(500),
+  ]);
 
-  if (error) {
-    console.error("[Supabase Error] Failed to fetch posts:", error);
+  if (supabaseRes.error) {
+    console.error("[Supabase Error] Failed to fetch posts:", supabaseRes.error);
   }
 
-  const posts = (postsData || []) as PostItem[];
+  const supabasePosts = (supabaseRes.data || []) as PostItem[];
+
+  // 合并数据源并按发布时间倒序排列
+  const allPosts = [...notionPosts, ...supabasePosts].sort((a, b) => {
+    const timeA = new Date(a.published_at || a.created_at).getTime();
+    const timeB = new Date(b.published_at || b.created_at).getTime();
+    return timeB - timeA;
+  });
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -47,7 +59,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
 
           {/* 即时响应式文章分类过滤列表 */}
           <PostsListClient
-            initialPosts={posts}
+            initialPosts={allPosts}
             initialCategory={category}
             initialTag={tag}
           />

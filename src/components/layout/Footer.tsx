@@ -3,6 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { siteConfig } from "@/config/site";
 
 export function Footer() {
   return (
@@ -12,7 +13,7 @@ export function Footer() {
         {/* 上层：版权、技术栈与快捷跳转 */}
         <div className="flex flex-col gap-3 text-[13px] leading-6 text-neutral-500 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[12px]">
-            <span>© 2026 dede</span>
+            <span>© 2026 {siteConfig.name}</span>
 
             <span className="text-neutral-300 dark:text-neutral-700">
               /

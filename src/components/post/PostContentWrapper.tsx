@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Prism from "prismjs";
 import clsx from "clsx";
@@ -19,6 +19,12 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-python";
 import "prismjs/components/prism-sql";
 import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-rust";
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
 
 const COPY_SVG = `<svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 const CHECK_SVG = `<svg class="h-3.5 w-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -51,10 +57,16 @@ function processAndOptimizeHtml(rawHtml: string): string {
     const rawSrc = srcMatch[1];
     let optimizedSrc = rawSrc;
 
-    // 仅对外链且未被代理的图片进行 CDN WebP 优化
+    // 仅对外链且未被代理的图片进行 CDN WebP 优化（跳过 AWS S3 / Notion 原生签名图，防止签名损坏）
+    const isNotionOrAws =
+      rawSrc.includes("amazonaws.com") ||
+      rawSrc.includes("notion.so") ||
+      rawSrc.includes("notion-static.com");
+
     if (
       (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
-      !rawSrc.includes("wsrv.nl")
+      !rawSrc.includes("wsrv.nl") &&
+      !isNotionOrAws
     ) {
       optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`;
     }
@@ -95,6 +107,107 @@ function slugifyHeading(text: string): string {
   );
 }
 
+/**
+ * 独立的 React 代码块组件（支持多语言语法高亮、顶栏 Mac 风格徽标、一键复制）
+ */
+function CodeBlock({ language, code }: { language: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const highlighted = useMemo(() => {
+    if (!code) return "";
+    const cleanLang = (language || "").toLowerCase().trim();
+    const langMap: Record<string, string> = {
+      ts: "typescript",
+      js: "javascript",
+      py: "python",
+      sh: "bash",
+      shell: "bash",
+      yml: "yaml",
+      html: "markup",
+      xml: "markup",
+      md: "markdown",
+    };
+    const targetLang = langMap[cleanLang] || cleanLang;
+    const grammar = Prism.languages[targetLang] || Prism.languages.javascript;
+
+    if (grammar) {
+      try {
+        return Prism.highlight(code, grammar, targetLang);
+      } catch {
+        return "";
+      }
+    }
+    return "";
+  }, [code, language]);
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("复制失败:", err);
+    }
+  };
+
+  return (
+    <div className="group relative my-6 overflow-hidden rounded-xl border border-neutral-200/80 bg-[#0d1117] dark:border-white/[0.08] shadow-sm">
+      {/* 顶栏信息与复制按钮 */}
+      <div className="flex items-center justify-between border-b border-white/[0.06] bg-neutral-900/60 px-4 py-2 select-none backdrop-blur-sm">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 opacity-60">
+            <div className="h-2.5 w-2.5 rounded-full bg-rose-500/80" />
+            <div className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
+            <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+          </div>
+          <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-neutral-400">
+            {language || "code"}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCopy}
+          aria-label="copy"
+          className="flex items-center gap-1.5 rounded-md border border-neutral-700/60 bg-neutral-800/80 px-2.5 py-1 text-[11px] font-mono text-neutral-300 transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-700 hover:text-white cursor-pointer"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-emerald-400">success!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="h-3.5 w-3.5 text-neutral-400" />
+              <span>copy</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* 代码内容 */}
+      <pre
+        suppressHydrationWarning
+        className="overflow-x-auto p-4 sm:p-5 font-mono text-xs sm:text-[13.5px] leading-relaxed text-neutral-200"
+      >
+        {highlighted ? (
+          <code
+            suppressHydrationWarning
+            className={`language-${language}`}
+            dangerouslySetInnerHTML={{ __html: highlighted }}
+          />
+        ) : (
+          <code suppressHydrationWarning className={`language-${language}`}>
+            {code}
+          </code>
+        )}
+      </pre>
+    </div>
+  );
+}
+
 export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
@@ -110,10 +223,10 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   }, [content, isHtml]);
 
   // =======================================================
-  // 1. Prism.js 语法高亮与代码块顶栏注入
+  // 1. Prism.js 语法高亮与代码块顶栏注入（针对 HTML 模式）
   // =======================================================
   useEffect(() => {
-    if (!contentRef.current) return;
+    if (!contentRef.current || !isHtml) return;
 
     const preElements = contentRef.current.querySelectorAll("pre");
 
@@ -155,7 +268,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
       toolbar.appendChild(copyBtn);
       pre.appendChild(toolbar);
     });
-  }, [cleanHtmlContent, isHtml, content]);
+  }, [cleanHtmlContent, isHtml]);
 
   // =======================================================
   // 2. 统一事件委托处理（代码复制与图片灯箱）
@@ -163,7 +276,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   const handleContentClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
 
-    // A. 处理复制按钮点击
+    // A. 处理 HTML 模式下的复制按钮点击
     const copyBtn = target.closest<HTMLButtonElement>('button[data-action="copy-code"]');
     if (copyBtn) {
       e.preventDefault();
@@ -232,8 +345,6 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5
     [&_li]:leading-relaxed
     [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-5 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.01]
-    [&_pre]:bg-[#0d1117] [&_pre]:border [&_pre]:border-white/[0.08] [&_pre]:p-4 sm:[&_pre]:p-5 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-5 [&_pre]:text-xs sm:[&_pre]:text-[13px] [&_pre]:leading-relaxed [&_pre]:font-mono
-    [&_code]:font-mono [&_code]:text-neutral-800 dark:[&_code]:text-neutral-200
     [&_a]:text-sky-600 dark:[&_a]:text-sky-400 [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-sky-500
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block [&_table]:whitespace-nowrap sm:[&_table]:whitespace-normal [&_table]:my-5
     [&_th]:border [&_th]:border-neutral-300 dark:[&_th]:border-neutral-700 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-neutral-50 dark:[&_th]:bg-neutral-800/50
@@ -250,7 +361,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
         .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol { color: #79c0ff; }
         .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: #a5d6ff; }
         .token.operator, .token.entity, .token.url { color: #d2a8ff; }
-        .token.atrule, .token.attr-value, .token.keyword { color: #ff7b72; }
+        .token.atrule, .token.attr-value, .token.keyword { color: #ff7b72; font-weight: 500; }
         .token.function, .token.class-name { color: #d2a8ff; }
         .token.regex, .token.important, .token.variable { color: #ffa657; }
       `}</style>
@@ -305,18 +416,12 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
                   </h4>
                 );
               },
-              pre: ({ children, node, ...props }) => {
-                return (
-                  <pre
-                    suppressHydrationWarning
-                    {...props}
-                  >
-                    {children}
-                  </pre>
-                );
-              },
+              pre: ({ children }) => <>{children}</>,
               code: ({ className, children, node, ...props }) => {
-                const isInline = !className && typeof children === "string" && !children.includes("\n");
+                const match = /language-(\w+)/.exec(className || "");
+                const codeString = String(children).replace(/\n$/, "");
+                const isInline = !match && !codeString.includes("\n");
+
                 if (isInline) {
                   return (
                     <code
@@ -327,22 +432,26 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
                     </code>
                   );
                 }
+
                 return (
-                  <code
-                    suppressHydrationWarning
-                    className={clsx("font-mono text-neutral-200", className)}
-                    {...props}
-                  >
-                    {children}
-                  </code>
+                  <CodeBlock
+                    language={match ? match[1] : "text"}
+                    code={codeString}
+                  />
                 );
               },
               img: ({ src, alt, node, ...props }) => {
                 const rawSrc = typeof src === "string" ? src : "";
                 let optimizedSrc = rawSrc;
+                const isNotionOrAws =
+                  rawSrc.includes("amazonaws.com") ||
+                  rawSrc.includes("notion.so") ||
+                  rawSrc.includes("notion-static.com");
+
                 if (
                   (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
-                  !rawSrc.includes("wsrv.nl")
+                  !rawSrc.includes("wsrv.nl") &&
+                  !isNotionOrAws
                 ) {
                   optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`;
                 }

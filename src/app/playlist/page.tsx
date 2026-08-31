@@ -6,7 +6,6 @@ import { Disc3, RefreshCw } from "lucide-react";
 import { Playlist, PlaylistCategory } from "@/components/playlist/Playlist";
 import { Song } from "@/components/playlist/SongList";
 import { useMusic } from "@/components/playlist/MusicContext";
-import { Footer } from "@/components/layout/Footer";
 
 export default function PlaylistPage() {
   const [playlists, setPlaylists] = useState<PlaylistCategory[]>([]);
@@ -95,11 +94,6 @@ export default function PlaylistPage() {
           />
         )}
       </main>
-
-      {/* 紧凑贴合的页脚容器 */}
-      <div className="mt-8 sm:mt-12 w-full">
-        <Footer />
-      </div>
     </div>
   );
 }

@@ -370,3 +370,37 @@ html.dark :focus-visible {
     stroke 0.25s ease-out !important;
   transition-delay: 0s !important;
 }
+
+/*
+ * ============================================================
+ * Torn Paper Effect (撕裂纸张效果)
+ * ============================================================
+ */
+
+.torn-paper {
+  --s: 5px; /* 锯齿大小 */
+  
+  /* 日间模式下发黄的老旧纸张质感，带轻微颗粒纹理 */
+  background-color: #fbf5e2 !important; /* 老旧偏黄底色 */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E") !important;
+  
+  /* 锯齿边缘蒙版 */
+  -webkit-mask: 
+    conic-gradient(from -45deg at bottom, #0000 90deg, #000 0) 0 100% / calc(2*var(--s)) var(--s) repeat-x,
+    conic-gradient(from 135deg at top   , #0000 90deg, #000 0) 0 0    / calc(2*var(--s)) var(--s) repeat-x,
+    linear-gradient(#000 0 0) center / 100% calc(100% - 2*var(--s)) no-repeat;
+  mask: 
+    conic-gradient(from -45deg at bottom, #0000 90deg, #000 0) 0 100% / calc(2*var(--s)) var(--s) repeat-x,
+    conic-gradient(from 135deg at top   , #0000 90deg, #000 0) 0 0    / calc(2*var(--s)) var(--s) repeat-x,
+    linear-gradient(#000 0 0) center / 100% calc(100% - 2*var(--s)) no-repeat;
+
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark .torn-paper {
+  /* 夜间模式保持原有的深色背景，仅保留撕裂边缘 */
+  background-color: #18181a !important;
+  background-image: none !important;
+}

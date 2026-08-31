@@ -1,18 +1,29 @@
-// components/home/HeroSection.tsx
+// src/components/home/HeroSection.tsx
 "use client";
 
 import React from "react";
 import Link from "next/link";
 import { ShootingStars } from "@/components/effects/ShootingStars";
+import { siteConfig } from "@/config/site";
 import {
   SiGithub,
   SiX,
   SiBilibili,
   SiTelegram,
   SiGmail,
+  IconType,
 } from "@icons-pack/react-simple-icons";
 
-// 统一文本链接组件：强化边缘下划线与对比度，杜绝重复代码
+// 社交平台图标映射表
+const ICON_MAP: Record<string, IconType> = {
+  GitHub: SiGithub,
+  X: SiX,
+  Bilibili: SiBilibili,
+  Telegram: SiTelegram,
+  Email: SiGmail,
+};
+
+// 统一文本链接组件：强化边缘下划线与对比度
 function TextLink({
   href,
   children,
@@ -45,15 +56,9 @@ function TextLink({
   );
 }
 
-const SOCIAL_LINKS = [
-  { name: "GitHub", href: "https://github.com", icon: SiGithub },
-  { name: "X", href: "https://x.com", icon: SiX },
-  { name: "Bilibili", href: "https://bilibili.com", icon: SiBilibili },
-  { name: "Telegram", href: "https://t.me", icon: SiTelegram },
-  { name: "Email", href: "mailto:your-email@example.com", icon: SiGmail },
-];
-
 export function HeroSection() {
+  const { name, tagline, intro, currently, photography, socialLinks } = siteConfig;
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <ShootingStars />
@@ -69,39 +74,40 @@ export function HeroSection() {
           transform-gpu [backface-visibility:hidden]
         "
       >
-        <div className=" space-y-6">
-          {/* Header */}
+        <div className="space-y-6">
+          {/* Header 头部标题 */}
           <header className="mb-10">
             <h1 className="text-[32px] sm:text-[36px] font-semibold tracking-[-0.025em] text-neutral-900 dark:text-neutral-50">
-              theyole
+              {name}
             </h1>
             <p className="mt-1.5 text-[14px] leading-6 text-neutral-500 dark:text-neutral-400">
-              拾光小站 · Anything is possible
+              {tagline}
             </p>
           </header>
 
+          {/* 个人介绍段落 */}
           <p>
-            嗨，我是{" "}
+            {intro.greeting}{" "}
             <strong className="font-semibold text-neutral-900 dark:text-neutral-50">
-              theyole
+              {name}
             </strong>
-            ，一名热爱折腾的全栈开发者与数字手艺人。
+            ，{intro.role}
           </p>
 
           <p>
             在这里记录技术探索、系统折腾、DIY 工具与生活碎片。秉持着
             <span className="font-medium text-neutral-900 dark:text-neutral-100">
-              “破碎重组，再破碎的循环，让自己成为自己”
+              “{intro.philosophy}”
             </span>
             的理念，持续构建有温度的开源与个人项目。
           </p>
 
           <p>
-            我喜欢研究新的东西，也喜欢把想法真正做出来。常在{" "}
+            {intro.hobby.split("GitHub")[0]}
             <TextLink href="https://github.com" external>
               GitHub
-            </TextLink>{" "}
-            探索开源项目，也会在各种平台上分享自己的折腾日常。
+            </TextLink>
+            {intro.hobby.split("GitHub")[1]}
           </p>
 
           <p>
@@ -111,27 +117,31 @@ export function HeroSection() {
             <TextLink href="/gallery">摄影作品</TextLink>。
           </p>
 
+          {/* Currently 当前进行中 */}
           <section className="pt-3 space-y-2.5">
             <div className="text-[12px] uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500 font-mono font-medium">
-              Currently
+              {currently.title}
             </div>
             <p>
               正在学习{" "}
               <span className="font-medium text-neutral-900 dark:text-neutral-100">
-                React · Next.js · TypeScript
+                {currently.techStack}
               </span>
               ，探索全栈开发与现代 Web 技术。
             </p>
-            <p>也在持续折腾自己的博客、摄影网站以及一些有趣的小项目。</p>
+            <p>{currently.projectText}</p>
           </section>
 
+          {/* Photography 摄影 */}
           <section className="pt-3 space-y-2.5">
             <div className="text-[12px] uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500 font-mono font-medium">
-              Photography
+              {photography.title}
             </div>
             <p>
-              除了写代码，我也喜欢摄影。这里记录我在生活和旅途中留下的一些影像。如果你也喜欢照片，可以去{" "}
-              <TextLink href="/gallery">摄影画廊</TextLink>{" "}
+              {photography.text}{" "}
+              <TextLink href={photography.linkHref}>
+                {photography.linkText}
+              </TextLink>{" "}
               看看。
             </p>
           </section>
@@ -139,15 +149,15 @@ export function HeroSection() {
 
         {/* 沉底社交图标栏 */}
         <section
-          className=" mt-auto pt-16"
+          className="mt-auto pt-16"
           style={{ "--enter-stage": 8 } as React.CSSProperties}
         >
           <div className="mb-3.5 text-[12px] uppercase tracking-[0.12em] text-neutral-400 dark:text-neutral-500 font-mono font-medium">
             Find me on
           </div>
           <div className="flex items-center gap-5 text-neutral-500 dark:text-neutral-400">
-            {SOCIAL_LINKS.map((item) => {
-              const Icon = item.icon;
+            {socialLinks.map((item) => {
+              const Icon = ICON_MAP[item.name] || SiGithub;
               return (
                 <a
                   key={item.name}
