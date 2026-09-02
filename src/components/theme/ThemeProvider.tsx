@@ -62,6 +62,27 @@ function getStoredTheme(): Theme | null {
   return null;
 }
 
+function getInitialTheme(defaultFallback: Theme = "light"): Theme {
+  if (typeof window === "undefined") return defaultFallback;
+  try {
+    const stored = getStoredTheme();
+    if (stored) return stored;
+
+    if (document.documentElement.classList.contains("dark")) {
+      return "dark";
+    }
+    if (document.documentElement.classList.contains("light")) {
+      return "light";
+    }
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+  } catch {
+    // 忽略异常
+  }
+  return defaultFallback;
+}
+
 function persistTheme(target: Theme) {
   if (typeof window === "undefined") return;
   try {
@@ -79,13 +100,12 @@ export function ThemeProvider({
   children: React.ReactNode;
   initialTheme?: Theme;
 }) {
-  const [theme, setThemeState] = useState<Theme>(initialTheme);
+  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme(initialTheme));
   const mounted = useSyncExternalStore(
     subscribeEmpty,
     getClientMounted,
     getServerMounted
   );
-  const isTransitioningRef = useRef(false);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 1. 基础直接切换（更新 DOM Class、React 状态与持久化双写）
@@ -97,14 +117,16 @@ export function ThemeProvider({
       if (newTheme === "dark") {
         root.classList.add("dark");
         root.classList.remove("light");
+        root.style.colorScheme = "dark";
       } else {
         root.classList.remove("dark");
         root.classList.add("light");
+        root.style.colorScheme = "light";
       }
     }
   }, []);
 
-  // 2. 移动端平滑色彩过渡
+  // 2. 移动端与平滑降级过渡
   const applyThemeWithSmoothTransition = useCallback((newTheme: Theme) => {
     if (typeof document === "undefined") return;
 
@@ -118,32 +140,29 @@ export function ThemeProvider({
     if (newTheme === "dark") {
       root.classList.add("dark");
       root.classList.remove("light");
+      root.style.colorScheme = "dark";
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
+      root.style.colorScheme = "light";
     }
     setThemeState(newTheme);
     persistTheme(newTheme);
 
     transitionTimerRef.current = setTimeout(() => {
       root.classList.remove("theme-smooth-transition");
-      isTransitioningRef.current = false;
     }, 260);
   }, []);
 
   // 3. 客户端挂载初始化与系统主题偏好监听
   useEffect(() => {
-    const stored = getStoredTheme();
-    if (stored) {
-      applyThemeDirect(stored);
-    } else {
-      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      applyThemeDirect(isSystemDark ? "dark" : "light");
-    }
+    const current = getInitialTheme(initialTheme);
+    setThemeState(current);
+    applyThemeDirect(current);
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
-      // 只要 localStorage 或 Cookie 中已有用户手动设定的主题，一律不跟随系统突变
+      // 只要用户没有手动选择过主题，才跟随系统偏好变化
       const currentStored = getStoredTheme();
       if (!currentStored) {
         const nextSystemTheme = e.matches ? "dark" : "light";
@@ -153,36 +172,31 @@ export function ThemeProvider({
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [applyThemeDirect]);
+  }, [initialTheme, applyThemeDirect]);
 
-  // 4. 主题切换核心逻辑（支持 View Transitions 扩散圆动效）
+  // 4. 主题切换核心逻辑（支持精准状态识别与 View Transitions 动效）
   const toggleTheme = useCallback(
     (
       event?: React.MouseEvent<HTMLElement>,
       options?: ToggleThemeOptions
     ) => {
-      if (isTransitioningRef.current) return;
+      // 精确读取当前实际生效的主题，彻底防止状态与视图不同步
+      const isCurrentlyDark =
+        typeof document !== "undefined"
+          ? document.documentElement.classList.contains("dark")
+          : theme === "dark";
 
-      const nextTheme: Theme = theme === "dark" ? "light" : "dark";
+      const nextTheme: Theme = isCurrentlyDark ? "light" : "dark";
 
-      const isMobile =
-        typeof window !== "undefined" &&
-        window.matchMedia("(max-width: 768px)").matches;
+      const hasViewTransitions =
+        typeof document !== "undefined" &&
+        "startViewTransition" in document &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      // 移动端、用户开启减弱动态效果或不支持 View Transitions 时平滑降级
-      if (
-        options?.disableAnimation ||
-        isMobile ||
-        typeof document === "undefined" ||
-        !("startViewTransition" in document) ||
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
-        isTransitioningRef.current = true;
+      if (options?.disableAnimation || !hasViewTransitions) {
         applyThemeWithSmoothTransition(nextTheme);
         return;
       }
-
-      isTransitioningRef.current = true;
 
       // 计算点击坐标中心点
       let x = window.innerWidth / 2;
@@ -226,7 +240,7 @@ export function ThemeProvider({
                 ],
               },
               {
-                duration: 450,
+                duration: 400,
                 easing: "cubic-bezier(0.16, 1, 0.3, 1)",
                 pseudoElement: "::view-transition-new(root)",
               }
@@ -234,12 +248,8 @@ export function ThemeProvider({
           })
           .catch(() => {
             applyThemeDirect(nextTheme);
-          })
-          .finally(() => {
-            isTransitioningRef.current = false;
           });
       } catch {
-        isTransitioningRef.current = false;
         applyThemeWithSmoothTransition(nextTheme);
       }
     },
