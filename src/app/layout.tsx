@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import { cookies } from "next/headers";  
 import "@/app/globals.css";  
 
+export const runtime = "edge";  
+
 import { Suspense } from "react";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";  
 import { Navbar } from "@/components/layout/Navbar";  
