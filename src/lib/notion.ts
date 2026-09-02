@@ -40,7 +40,7 @@ async function queryNotionDatabase(rawDatabaseId: string, name: string) {
     return { results: [] };
   }
 
-  let allResults: any[] = [];
+  const allResults: any[] = [];
   let hasMore = true;
   let cursor: string | undefined = undefined;
 

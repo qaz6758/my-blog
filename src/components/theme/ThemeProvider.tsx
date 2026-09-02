@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
   useCallback,
+  useSyncExternalStore,
 } from "react";
 import { flushSync } from "react-dom";
 
@@ -32,6 +33,18 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const STORAGE_KEY = "theme";
 
+function subscribeEmpty() {
+  return () => {};
+}
+
+function getClientMounted() {
+  return true;
+}
+
+function getServerMounted() {
+  return false;
+}
+
 function getStoredTheme(): Theme | null {
   if (typeof window === "undefined") return null;
   try {
@@ -43,7 +56,9 @@ function getStoredTheme(): Theme | null {
     if (cookieMatch) {
       return cookieMatch[1] as Theme;
     }
-  } catch (e) {}
+  } catch {
+    // 忽略异常
+  }
   return null;
 }
 
@@ -52,7 +67,9 @@ function persistTheme(target: Theme) {
   try {
     localStorage.setItem(STORAGE_KEY, target);
     document.cookie = `theme=${target}; path=/; max-age=31536000; SameSite=Lax`;
-  } catch (e) {}
+  } catch {
+    // 忽略异常
+  }
 }
 
 export function ThemeProvider({
@@ -63,7 +80,11 @@ export function ThemeProvider({
   initialTheme?: Theme;
 }) {
   const [theme, setThemeState] = useState<Theme>(initialTheme);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeEmpty,
+    getClientMounted,
+    getServerMounted
+  );
   const isTransitioningRef = useRef(false);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -112,8 +133,6 @@ export function ThemeProvider({
 
   // 3. 客户端挂载初始化与系统主题偏好监听
   useEffect(() => {
-    setMounted(true);
-
     const stored = getStoredTheme();
     if (stored) {
       applyThemeDirect(stored);
@@ -183,41 +202,46 @@ export function ThemeProvider({
         Math.max(y, window.innerHeight - y)
       );
 
-      let transition: any;
       try {
-        transition = (document as any).startViewTransition(() => {
+        const transitionDoc = document as unknown as {
+          startViewTransition: (callback: () => void) => {
+            ready: Promise<void>;
+            finished: Promise<void>;
+          };
+        };
+
+        const transition = transitionDoc.startViewTransition(() => {
           flushSync(() => {
             applyThemeDirect(nextTheme);
           });
         });
+
+        transition.ready
+          .then(() => {
+            document.documentElement.animate(
+              {
+                clipPath: [
+                  `circle(0px at ${x}px ${y}px)`,
+                  `circle(${endRadius}px at ${x}px ${y}px)`,
+                ],
+              },
+              {
+                duration: 450,
+                easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+                pseudoElement: "::view-transition-new(root)",
+              }
+            );
+          })
+          .catch(() => {
+            applyThemeDirect(nextTheme);
+          })
+          .finally(() => {
+            isTransitioningRef.current = false;
+          });
       } catch {
         isTransitioningRef.current = false;
         applyThemeWithSmoothTransition(nextTheme);
-        return;
       }
-
-      transition.ready
-        .then(() => {
-          document.documentElement.animate(
-            {
-              clipPath: [
-                `circle(0px at ${x}px ${y}px)`,
-                `circle(${endRadius}px at ${x}px ${y}px)`,
-              ],
-            },
-            {
-              duration: 450,
-              easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-              pseudoElement: "::view-transition-new(root)",
-            }
-          );
-        })
-        .catch(() => {
-          applyThemeDirect(nextTheme);
-        })
-        .finally(() => {
-          isTransitioningRef.current = false;
-        });
     },
     [theme, applyThemeDirect, applyThemeWithSmoothTransition]
   );

@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabase";
  * 配置
  * ============================================================ */
 
-const STATUS_TIMEOUT = 30_000;
 const STATUS_CHECK_INTERVAL = 5_000;
 const SITE_STATUS_ID = "admin";
 
