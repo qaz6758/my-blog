@@ -7,13 +7,19 @@ import { Song } from "@/components/playlist/SongList";
 // ⚡ 懒加载桥接 — 播放器 JS 在用户点击播放前完全不下载
 import { LazyMusicPlayer } from "@/components/playlist/LazyMusicPlayer";
 
+export type RepeatMode = "off" | "all" | "one";
+
 interface MusicContextType {
   currentSong: Song | null;
   playlistSongs: Song[];
   isPlaying: boolean;
+  isShuffle: boolean;
+  repeatMode: RepeatMode;
   playSong: (song: Song, playlist?: Song[]) => void;
   playAll: (songs: Song[]) => void;
   togglePlay: () => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
   closePlayer: () => void;
 }
 
@@ -27,6 +33,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.85);
   const [isMuted, setIsMuted] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>("all");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -67,8 +75,34 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     setIsPlaying((prev) => !prev);
   };
 
+  const toggleShuffle = () => {
+    setIsShuffle((prev) => !prev);
+  };
+
+  const toggleRepeat = () => {
+    setRepeatMode((prev) => {
+      if (prev === "off") return "all";
+      if (prev === "all") return "one";
+      return "off";
+    });
+  };
+
   const handleNext = () => {
     if (!playlistSongs.length || !currentSong) return;
+    if (repeatMode === "one" && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      return;
+    }
+    if (isShuffle && playlistSongs.length > 1) {
+      let randomIndex = Math.floor(Math.random() * playlistSongs.length);
+      while (playlistSongs[randomIndex].id === currentSong.id) {
+        randomIndex = Math.floor(Math.random() * playlistSongs.length);
+      }
+      setCurrentSong(playlistSongs[randomIndex]);
+      setIsPlaying(true);
+      return;
+    }
     const currentIndex = playlistSongs.findIndex((s) => s.id === currentSong.id);
     const nextIndex = (currentIndex + 1) % playlistSongs.length;
     setCurrentSong(playlistSongs[nextIndex]);
@@ -77,6 +111,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
   const handlePrev = () => {
     if (!playlistSongs.length || !currentSong) return;
+    if (currentTime > 3 && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
     const currentIndex = playlistSongs.findIndex((s) => s.id === currentSong.id);
     const prevIndex = (currentIndex - 1 + playlistSongs.length) % playlistSongs.length;
     setCurrentSong(playlistSongs[prevIndex]);
@@ -132,9 +170,13 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         currentSong,
         playlistSongs,
         isPlaying,
+        isShuffle,
+        repeatMode,
         playSong,
         playAll,
         togglePlay,
+        toggleShuffle,
+        toggleRepeat,
         closePlayer,
       }}
     >
@@ -153,9 +195,9 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             audioRef.current && setDuration(audioRef.current.duration || 0)
           }
           onEnded={handleNext}
-          onError={() => {
-            console.warn("音频解析失败，播放下一首");
-            handleNext();
+          onError={(e) => {
+            console.warn(`[Audio Error] 歌曲《${currentSong.title}》音频加载失败:`, e);
+            setIsPlaying(false);
           }}
         />
       )}
@@ -167,11 +209,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             currentSong={currentSong}
             playlistSongs={playlistSongs}
             isPlaying={isPlaying}
+            isShuffle={isShuffle}
+            repeatMode={repeatMode}
             currentTime={currentTime}
             duration={duration}
             volume={volume}
             isMuted={isMuted}
             onTogglePlay={togglePlay}
+            onToggleShuffle={toggleShuffle}
+            onToggleRepeat={toggleRepeat}
             onPrev={handlePrev}
             onNext={handleNext}
             onSeek={handleSeek}
@@ -190,7 +236,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 export function useMusic() {
   const context = useContext(MusicContext);
   if (!context) {
-    throw new Error("useMusic 必须在 MusicProvider 内使用");
+    throw new Error("useMusic must be used within a MusicProvider");
   }
   return context;
 }

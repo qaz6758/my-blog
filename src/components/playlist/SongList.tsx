@@ -45,151 +45,151 @@ export function SongList({
   };
 
   return (
-    <div className="w-full select-none" onMouseLeave={() => setHoveredIndex(null)}>
-      {/* ===================== Apple Music 极简紧凑表头 ===================== */}
-      <div className="relative grid grid-cols-12 items-center px-4 py-1.5 text-xs font-normal text-neutral-400 dark:text-[#86868b]">
-        <div className="col-span-6 md:col-span-5 flex items-center">
+    <div className="w-full select-none antialiased" onMouseLeave={() => setHoveredIndex(null)}>
+      {/* ===================== 表头：与下方数据列 100% 垂直像素级对齐 ===================== */}
+      <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-[#86868b]  border-black/[0.08] dark:border-white/[0.08]">
+        {/* 歌曲列 (包含与下方序号、封面对应占位，使“歌曲”精准对齐歌名) */}
+        <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3">
+          <span className="w-5 text-center font-mono shrink-0">#</span>
+          <span className="w-8 shrink-0 text-center"></span>
           <span>歌曲</span>
         </div>
-        <div className="col-span-3 md:col-span-3">艺人</div>
-        <div className="hidden md:block md:col-span-3">专辑</div>
-        <div className="col-span-3 md:col-span-1 text-right">时长</div>
-
-        {/* 顶部表头底部分隔线 (对齐下方封面左侧 left-4，悬停第 1 首曲目时智能淡出) */}
-        <div
-          className={`absolute bottom-0 left-4 right-4 h-[1px] bg-black/[0.06] dark:bg-white/[0.08] pointer-events-none transition-opacity duration-150 ${
-            hoveredIndex === 0 || currentSongId === songs[0]?.id ? "opacity-0" : "opacity-100"
-          }`}
-        />
+        {/* 艺人列 */}
+        <div className="w-[30%] sm:w-[28%] md:w-[28%] pl-2 pr-3">艺人</div>
+        {/* 专辑列 */}
+        <div className="hidden md:block md:w-[24%] pl-2 pr-3">专辑</div>
+        {/* 时长列 */}
+        <div className="flex-1 text-right pr-2">时长</div>
       </div>
 
-      {/* ===================== 紧凑型歌曲列表 ===================== */}
-      <div className="mt-1 space-y-[2px]">
+      {/* ===================== Apple Music 原生曲目列表 ===================== */}
+      <div className="w-full">
         {songs.map((song, index) => {
           const isCurrent = song.id === currentSongId;
           const trackIndex = index + 1;
 
-          // 当悬停或正在播放当前行时，该行下方的分割线以及该行上方的分割线均自动淡出
-          const isDividerHidden =
-            hoveredIndex === index ||
-            hoveredIndex === index + 1 ||
-            isCurrent ||
-            (songs[index + 1] && songs[index + 1].id === currentSongId);
-
           return (
             <div
               key={song.id || index}
-              onClick={() => onSelectSong(song)}
-              onMouseEnter={() => setHoveredIndex(index)}
-              className={`relative group grid grid-cols-12 items-center px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-[13.5px] transition-all duration-200 cursor-pointer ${
-                isCurrent
-                  ? "bg-[#9E0014] text-white shadow-md shadow-[#9E0014]/25"
-                  : "hover:bg-black/[0.035] dark:hover:bg-white/[0.06]"
-              }`}
+              className="relative"
+              style={{
+                contentVisibility: "auto",
+                containIntrinsicSize: "0 48px",
+              }}
             >
-              {/* 1. 歌曲列：封面 + 序号 + 歌名 */}
-              <div className="col-span-6 md:col-span-5 flex items-center gap-3 min-w-0 pr-4">
-                {/* 紧凑正方形封面 (34x34 微圆角) */}
-                <div className="relative h-8 w-8 sm:h-8.5 sm:w-8.5 shrink-0 overflow-hidden rounded-[5px] bg-neutral-900 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
-                  <img
-                    src={song.cover_url || FALLBACK_SONG_COVER}
-                    alt={song.title}
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = FALLBACK_SONG_COVER;
-                    }}
-                    className="h-full w-full object-cover"
-                  />
-
-                  {/* 悬停/播放中半透明遮罩与播放图标 */}
-                  <div
-                    className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
-                      isCurrent ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              <div
+                onClick={() => onSelectSong(song)}
+                onMouseEnter={() => setHoveredIndex(index)}
+                className={`relative z-10 group flex items-center px-3 sm:px-4 py-2.5 rounded-xl text-[13.5px] leading-none transition-colors duration-150 cursor-pointer ${
+                  isCurrent
+                    ? "bg-[#9A0014] dark:bg-[#920013] text-white shadow-md shadow-[#9A0014]/25"
+                    : "text-neutral-900 dark:text-neutral-200 hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
+                }`}
+              >
+                {/* 1. 歌曲列 (序号 + 封面 + 歌名) */}
+                <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 min-w-0 pr-3">
+                  {/* 序号 (统一使用 tabular-nums 保证数字与中文绝对对齐) */}
+                  <span
+                    className={`w-5 text-center tabular-nums text-xs font-medium shrink-0 ${
+                      isCurrent ? "text-white/90" : "text-neutral-400 dark:text-[#86868b]"
                     }`}
                   >
-                    {isCurrent && isPlaying ? (
-                      <Pause className="h-3 w-3 fill-white text-white" />
-                    ) : (
-                      <Play className="h-3 w-3 fill-white text-white ml-0.5" />
+                    {trackIndex}
+                  </span>
+
+                  {/* 封面 (32x32 Apple 标准微倒角) */}
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-[5px] bg-neutral-900 ring-1 ring-black/10 dark:ring-white/10">
+                    <img
+                      src={song.cover_url || FALLBACK_SONG_COVER}
+                      alt={song.title}
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = FALLBACK_SONG_COVER;
+                      }}
+                      className="h-full w-full object-cover"
+                    />
+
+                    {/* 悬停/播放中半透明遮罩与播放图标 */}
+                    <div
+                      className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${
+                        isCurrent ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}
+                    >
+                      {isCurrent && isPlaying ? (
+                        <Pause className="h-3 w-3 fill-white text-white" />
+                      ) : (
+                        <Play className="h-3 w-3 fill-white text-white ml-0.5" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 歌名 */}
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      className={`truncate font-medium text-[13.5px] ${
+                        isCurrent
+                          ? "text-white font-semibold"
+                          : "text-neutral-900 dark:text-white"
+                      }`}
+                    >
+                      {song.title}
+                    </span>
+
+                    {song.explicit && (
+                      <span
+                        className={`shrink-0 rounded-[2px] px-1 py-0.2 text-[9px] font-bold ${
+                          isCurrent
+                            ? "bg-white/25 text-white"
+                            : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                        }`}
+                      >
+                        E
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* 歌曲序号 (等宽中粗) */}
-                <span
-                  className={`w-4 text-center font-mono text-xs font-medium shrink-0 ${
-                    isCurrent ? "text-white/90" : "text-neutral-400 dark:text-[#86868b]"
+                {/* 2. 艺人列 */}
+                <div
+                  className={`w-[30%] sm:w-[28%] md:w-[28%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
+                    isCurrent
+                      ? "text-white/90 font-normal"
+                      : "text-neutral-500 dark:text-[#a1a1a6]"
                   }`}
                 >
-                  {trackIndex}
-                </span>
+                  {song.artist || "未知歌手"}
+                </div>
 
-                {/* 歌名与显式标识 */}
-                <div className="flex items-center gap-1.5 min-w-0">
+                {/* 3. 专辑列 */}
+                <div
+                  className={`hidden md:block md:w-[24%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
+                    isCurrent
+                      ? "text-white/80 font-normal"
+                      : "text-neutral-500 dark:text-[#a1a1a6]"
+                  }`}
+                >
+                  {song.album || song.title}
+                </div>
+
+                {/* 4. 时长列 */}
+                <div className="flex-1 text-right pr-2">
                   <span
-                    className={`truncate font-medium text-[13px] sm:text-[13.5px] ${
+                    className={`tabular-nums text-xs sm:text-[13px] ${
                       isCurrent
-                        ? "text-white font-semibold"
-                        : "text-neutral-900 dark:text-white"
+                        ? "text-white font-medium"
+                        : "text-neutral-400 dark:text-[#86868b]"
                     }`}
                   >
-                    {song.title}
+                    {formatDuration(song.duration || "3:45")}
                   </span>
-
-                  {song.explicit && (
-                    <span
-                      className={`shrink-0 rounded-[2px] px-1 py-0.2 text-[9px] font-bold ${
-                        isCurrent
-                          ? "bg-white/20 text-white"
-                          : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                      }`}
-                    >
-                      E
-                    </span>
-                  )}
                 </div>
               </div>
 
-              {/* 2. 艺人列 */}
-              <div
-                className={`col-span-3 md:col-span-3 truncate pr-3 text-xs sm:text-[13px] ${
-                  isCurrent
-                    ? "text-white/90 font-normal"
-                    : "text-neutral-500 dark:text-[#a1a1a6]"
-                }`}
-              >
-                {song.artist || "未知歌手"}
-              </div>
-
-              {/* 3. 专辑列 */}
-              <div
-                className={`hidden md:block md:col-span-3 truncate pr-3 text-xs sm:text-[13px] ${
-                  isCurrent
-                    ? "text-white/80 font-normal"
-                    : "text-neutral-500 dark:text-[#a1a1a6]"
-                }`}
-              >
-                {song.album || song.title}
-              </div>
-
-              {/* 4. 时长列 (与表头时长 100% 垂直居右对齐，消掉三点图标) */}
-              <div className="col-span-3 md:col-span-1 text-right">
-                <span
-                  className={`font-mono tabular-nums text-xs sm:text-[13px] ${
-                    isCurrent ? "text-white font-medium" : "text-neutral-400 dark:text-[#86868b]"
-                  }`}
-                >
-                  {formatDuration(song.duration || "3:45")}
-                </span>
-              </div>
-
-              {/* 独立底部分隔线 (悬停该行或下一行时双向智能淡出) */}
-              {index < songs.length - 1 && (
-                <div
-                  className={`absolute bottom-0 left-4 right-4 h-[1px] bg-black/[0.04] dark:bg-white/[0.05] pointer-events-none transition-opacity duration-150 ${
-                    isDividerHidden ? "opacity-0" : "opacity-100"
-                  }`}
-                />
+              {/* 纯平直贯通底部分隔线 (与表头完全融合对齐，无弯角) */}
+              {index < songs.length - 1 && !isCurrent && hoveredIndex !== index && (
+                <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-black/[0.04] dark:bg-white/[0.05] pointer-events-none" />
               )}
             </div>
           );

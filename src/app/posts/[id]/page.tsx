@@ -33,7 +33,7 @@ interface PostPageProps {
   }>;
 }
 
-export const revalidate = 60;
+export const revalidate = 5;
 
 export async function generateStaticParams() {
   const [notionPosts, { data: supabasePosts }] = await Promise.all([
@@ -201,18 +201,10 @@ export default async function PostDetailPage({ params }: PostPageProps) {
             </div>
           )}
 
-          {/* 正文居中容器 (黄金 65ch 比例) */}
-          <div className="slide-enter-content mx-auto w-full max-w-[680px]">
+          {/* 正文居中容器 (Anthony Fu 官方黄金 65ch 比例) */}
+          <div className="slide-enter-content mx-auto w-full max-w-[65ch]">
             {/* 返回按钮 */}
-            <div className="mb-8">
-              <Link
-                href="/posts"
-                className="inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors cursor-pointer select-none"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                <span>cd ..</span>
-              </Link>
-            </div>
+            
 
             {/* 页面头部：标题与极简元信息 */}
             <header className="mb-10">

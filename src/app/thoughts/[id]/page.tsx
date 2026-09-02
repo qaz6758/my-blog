@@ -7,7 +7,7 @@ import { fetchThoughtDetailFromNotion } from "@/lib/notion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { Footer } from "@/components/layout/Footer";
 
-export const revalidate = 60;
+export const revalidate = 5;
 
 export default async function ThoughtDetailPage({
   params,
@@ -29,7 +29,7 @@ export default async function ThoughtDetailPage({
 
   return (
     <div className="relative min-h-screen w-full bg-transparent px-4 pt-24 pb-16 sm:px-8 lg:px-12 antialiased">
-      <main className="mx-auto w-full max-w-3xl">
+      <main className="mx-auto w-full max-w-[65ch]">
         <header className="mb-10 pl-1">
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-4xl">
             思考

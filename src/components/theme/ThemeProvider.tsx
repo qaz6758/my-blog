@@ -30,6 +30,31 @@ export interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const STORAGE_KEY = "theme";
+
+function getStoredTheme(): Theme | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const fromLocal = localStorage.getItem(STORAGE_KEY);
+    if (fromLocal === "light" || fromLocal === "dark") {
+      return fromLocal as Theme;
+    }
+    const cookieMatch = document.cookie.match(/(?:^|;\s*)theme=(light|dark)/);
+    if (cookieMatch) {
+      return cookieMatch[1] as Theme;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function persistTheme(target: Theme) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, target);
+    document.cookie = `theme=${target}; path=/; max-age=31536000; SameSite=Lax`;
+  } catch (e) {}
+}
+
 export function ThemeProvider({
   children,
   initialTheme = "light",
@@ -42,29 +67,23 @@ export function ThemeProvider({
   const isTransitioningRef = useRef(false);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 1. 客户端挂载标记与系统主题偏好监听
-  useEffect(() => {
-    setMounted(true);
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      // 检查 Cookie 中是否已有用户显式手动设定的主题，若无则跟随系统
-      const hasCookieTheme = document.cookie.includes("theme=");
-      if (!hasCookieTheme) {
-        const nextSystemTheme = e.matches ? "dark" : "light";
-        applyThemeDirect(nextSystemTheme);
+  // 1. 基础直接切换（更新 DOM Class、React 状态与持久化双写）
+  const applyThemeDirect = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    persistTheme(newTheme);
+    if (typeof document !== "undefined") {
+      const root = document.documentElement;
+      if (newTheme === "dark") {
+        root.classList.add("dark");
+        root.classList.remove("light");
+      } else {
+        root.classList.remove("dark");
+        root.classList.add("light");
       }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    }
   }, []);
 
-  const saveTheme = (newTheme: Theme) => {
-    document.cookie = `theme=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
-  };
-
-  // 2. 移动端/降级平滑色彩过渡
+  // 2. 移动端平滑色彩过渡
   const applyThemeWithSmoothTransition = useCallback((newTheme: Theme) => {
     if (typeof document === "undefined") return;
 
@@ -83,7 +102,7 @@ export function ThemeProvider({
       root.classList.add("light");
     }
     setThemeState(newTheme);
-    saveTheme(newTheme);
+    persistTheme(newTheme);
 
     transitionTimerRef.current = setTimeout(() => {
       root.classList.remove("theme-smooth-transition");
@@ -91,21 +110,31 @@ export function ThemeProvider({
     }, 260);
   }, []);
 
-  // 3. 基础直接切换（更新 DOM Class、React 状态与持久化 Cookie）
-  const applyThemeDirect = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme);
-    if (typeof document !== "undefined") {
-      const root = document.documentElement;
-      if (newTheme === "dark") {
-        root.classList.add("dark");
-        root.classList.remove("light");
-      } else {
-        root.classList.remove("dark");
-        root.classList.add("light");
-      }
-      saveTheme(newTheme);
+  // 3. 客户端挂载初始化与系统主题偏好监听
+  useEffect(() => {
+    setMounted(true);
+
+    const stored = getStoredTheme();
+    if (stored) {
+      applyThemeDirect(stored);
+    } else {
+      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyThemeDirect(isSystemDark ? "dark" : "light");
     }
-  }, []);
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      // 只要 localStorage 或 Cookie 中已有用户手动设定的主题，一律不跟随系统突变
+      const currentStored = getStoredTheme();
+      if (!currentStored) {
+        const nextSystemTheme = e.matches ? "dark" : "light";
+        applyThemeDirect(nextSystemTheme);
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [applyThemeDirect]);
 
   // 4. 主题切换核心逻辑（支持 View Transitions 扩散圆动效）
   const toggleTheme = useCallback(
@@ -115,7 +144,7 @@ export function ThemeProvider({
     ) => {
       if (isTransitioningRef.current) return;
 
-      const nextTheme = theme === "dark" ? "light" : "dark";
+      const nextTheme: Theme = theme === "dark" ? "light" : "dark";
 
       const isMobile =
         typeof window !== "undefined" &&

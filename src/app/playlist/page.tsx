@@ -1,97 +1,37 @@
 // app/playlist/page.tsx
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { Disc3, RefreshCw } from "lucide-react";
-import { Playlist, PlaylistCategory } from "@/components/playlist/Playlist";
-import { Song } from "@/components/playlist/SongList";
-import { useMusic } from "@/components/playlist/MusicContext";
+import React, { Suspense } from "react";
+import { fetchPlaylistsFromNotion } from "@/lib/notion";
+import PlaylistClient from "./PlaylistClient";
+import { PlaylistSkeleton } from "@/components/playlist/PlaylistSkeleton";
 import { Footer } from "@/components/layout/Footer";
 
-export default function PlaylistPage() {
-  const [playlists, setPlaylists] = useState<PlaylistCategory[]>([]);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+export const metadata = {
+  title: "Playlist",
+  description: "Curated playlists & music collection",
+};
 
-  const { currentSong, isPlaying, playSong, playAll } = useMusic();
+export const revalidate = 5; // 智能 ISR 缓存：5秒极速同步，后台静默刷新
 
-  const loadNotionPlaylists = async () => {
-    setIsLoading(true);
-    setErrorMsg(null);
-    try {
-      const res = await fetch("/api/playlist");
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setPlaylists(json.data);
-      } else {
-        setErrorMsg(json.error || "未能获取到歌单数据");
-      }
-    } catch {
-      setErrorMsg("网络请求异常，请稍后重试");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadNotionPlaylists();
-  }, []);
-
-  const handlePlayAll = (playlist: PlaylistCategory) => {
-    if (playlist.songs && playlist.songs.length > 0) {
-      playAll(playlist.songs);
-    }
-  };
-
-  const handleSelectSong = (song: Song) => {
-    const activePl = playlists.find((p) => p.id === selectedPlaylistId);
-    playSong(song, activePl?.songs || []);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="relative flex min-h-screen w-full flex-col justify-between bg-transparent px-6 sm:px-10 lg:px-16 pt-26 pb-20">
-        <main className="mx-auto w-full max-w-[1800px] flex-1" />
-      </div>
-    );
+export default async function PlaylistPage() {
+  let initialPlaylists: any[] = [];
+  try {
+    initialPlaylists = await fetchPlaylistsFromNotion();
+  } catch (err) {
+    console.warn("[Playlist Server Error] 服务端预取降级:", err);
   }
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col justify-between bg-transparent px-6 sm:px-10 lg:px-16 pt-20 pb-20 antialiased">
-      <main className="slide-enter-content mx-auto w-full max-w-[1800px] flex-1">
-        {errorMsg ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-500">
-              <Disc3 className="h-6 w-6" />
-            </div>
-            <h3 className="mt-4 text-base font-semibold text-neutral-800 dark:text-neutral-200">
-              歌单读取遇到问题
-            </h3>
-            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{errorMsg}</p>
-            <button
-              type="button"
-              onClick={loadNotionPlaylists}
-              className="mt-6 inline-flex items-center gap-1.5 rounded-xl border border-black/[0.08] bg-white px-4 py-2 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 dark:border-white/[0.08] dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              <span>重新加载</span>
-            </button>
-          </div>
-        ) : (
-          <Playlist
-            playlists={playlists}
-            selectedPlaylistId={selectedPlaylistId}
-            currentSongId={currentSong?.id}
-            isPlaying={isPlaying}
-            onSelectPlaylist={setSelectedPlaylistId}
-            onPlayAll={handlePlayAll}
-            onSelectSong={handleSelectSong}
-          />
-        )}
+    <div className="relative min-h-screen w-full overflow-hidden">
+      <main className="relative z-10 w-full min-h-[85vh] px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-20 sm:pt-24 pb-16">
+        <div className="slide-enter-content">
+          <Suspense fallback={<PlaylistSkeleton />}>
+            <PlaylistClient initialPlaylists={initialPlaylists} />
+          </Suspense>
+        </div>
       </main>
 
-      <div className="mt-20 w-full">
+      {/* 页脚分割线与内容大幅下移至视口下方 */}
+      <div className="relative z-10 mt-48 sm:mt-64 w-full">
         <Footer />
       </div>
     </div>

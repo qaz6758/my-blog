@@ -40,29 +40,43 @@ async function queryNotionDatabase(rawDatabaseId: string, name: string) {
     return { results: [] };
   }
 
-  try {
-    const res = await fetch(`https://api.notion.com/v1/databases/${cleanId}/query`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${NOTION_API_KEY}`,
-        "Notion-Version": NOTION_VERSION,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      next: { revalidate: 0 },
-    });
+  let allResults: any[] = [];
+  let hasMore = true;
+  let cursor: string | undefined = undefined;
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      console.warn(`[Notion Warning] ${name} 查询非 200:`, data.message || res.statusText);
-      return { results: [] };
+  try {
+    while (hasMore) {
+      const res: Response = await fetch(`https://api.notion.com/v1/databases/${cleanId}/query`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${NOTION_API_KEY}`,
+          "Notion-Version": NOTION_VERSION,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          page_size: 100,
+          start_cursor: cursor,
+        }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        next: { revalidate: 5 },
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.warn(`[Notion Warning] ${name} 查询非 200:`, data.message || res.statusText);
+        break;
+      }
+
+      const data: any = await res.json();
+      allResults.push(...(data.results || []));
+      hasMore = !!data.has_more;
+      cursor = data.next_cursor || undefined;
     }
 
-    return await res.json();
+    return { results: allResults };
   } catch (err: any) {
     console.warn(`[Notion Timeout/Network Warning] ${name} 请求超时或网络波动，已安全降级:`, err.message || err);
-    return { results: [] };
+    return { results: allResults };
   }
 }
 
@@ -201,9 +215,8 @@ export async function fetchPlaylistsFromNotion(): Promise<PlaylistCategory[]> {
         });
 
       const rawCover = getUrl(findProp(p, "Cover", "Pic", "封面"));
-      // 歌单封面：自动获取该歌单中最新一首歌的高清封面
       const latestSongCover = matchedSongs[0]?.cover_url;
-      const finalPlaylistCover = latestSongCover || upgradeCoverToHighRes(rawCover) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+      const finalPlaylistCover = upgradeCoverToHighRes(rawCover) || latestSongCover || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
 
       return {
         id: key,
@@ -212,8 +225,16 @@ export async function fetchPlaylistsFromNotion(): Promise<PlaylistCategory[]> {
         cover: finalPlaylistCover,
         tag: getSelect(findProp(p, "Tag", "Category", "标签")) || "Apple Music",
         curatorNote: getText(findProp(p, "CuratorNote", "Note", "手记")) || "日常反复循环的旋律记录。",
+        order: getNumber(findProp(p, "Order", "序号", "No", "Sort", "Rank", "排序")),
         songs: matchedSongs,
       };
+    }).sort((a: any, b: any) => {
+      if (a.order !== null && b.order !== null && a.order !== b.order) {
+        return a.order - b.order;
+      }
+      if (a.order !== null) return -1;
+      if (b.order !== null) return 1;
+      return 0;
     });
   } catch (error) {
     console.warn("[Notion Playlists Warning] 抓取歌单失败，已安全降级:", error);
@@ -279,7 +300,7 @@ export async function fetchThoughtDetailFromNotion(pageId: string): Promise<Thou
         "Notion-Version": NOTION_VERSION,
       },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      next: { revalidate: 60 },
+      next: { revalidate: 5 },
     });
 
     if (!res.ok) return null;
@@ -368,7 +389,7 @@ async function fetchBlockChildren(blockId: string): Promise<any[]> {
         "Notion-Version": NOTION_VERSION,
       },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      next: { revalidate: 60 },
+      next: { revalidate: 5 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -512,7 +533,7 @@ export async function fetchPostDetailFromNotion(pageId: string): Promise<NotionP
           "Notion-Version": NOTION_VERSION,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        next: { revalidate: 60 },
+        next: { revalidate: 5 },
       }),
       fetchBlockChildren(cleanId),
     ]);

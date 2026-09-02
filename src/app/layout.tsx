@@ -56,7 +56,7 @@ export default async function RootLayout({
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${inter.variable} ${initialTheme}`}  
+      className={inter.variable}  
     >
       <head>
         {/* 
@@ -68,10 +68,10 @@ export default async function RootLayout({
             __html: `
               (function() {
                 try {
-                  var m = document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/);
-                  var t = m ? m[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  var saved = localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
+                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var cl = document.documentElement.classList;
-                  if (t === 'dark') {
+                  if (isDark) {
                     cl.add('dark');
                     cl.remove('light');
                   } else {

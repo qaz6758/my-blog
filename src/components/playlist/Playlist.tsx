@@ -77,16 +77,16 @@ export function Playlist({
             transition={{ duration: 0.15 }}
           >
 
-            {/* 宽屏自适应铺满画廊网格 */}
-            <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 sm:gap-x-8 sm:gap-y-12">
+            {/* Apple Music 标准 220px-240px 质感歌单网格 (单屏可轻松容纳 2 整行) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-5 sm:gap-6 lg:gap-7 justify-start">
               {playlists.map((playlist) => (
                 <div
                   key={playlist.id}
                   onClick={() => onSelectPlaylist(playlist.id)}
-                  className="group flex cursor-pointer flex-col"
+                  className="group flex cursor-pointer flex-col w-full max-w-[240px]"
                 >
-                  {/* 歌单封面卡片 */}
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl sm:rounded-3xl bg-neutral-100 dark:bg-[#111] border border-black/[0.06] dark:border-white/[0.08] shadow-md transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-2xl">
+                  {/* 歌单封面卡片 (Apple 官方标准 rounded-[5px] 微倒角 + ring-1 锐利细边框) */}
+                  <div className="relative aspect-square w-full max-w-[240px] overflow-hidden rounded-[5px] bg-neutral-900 ring-1 ring-black/10 dark:ring-white/10 shadow-sm transition-all duration-300 group-hover:scale-[1.015] group-hover:shadow-md">
                     <img
                       src={playlist.cover || FALLBACK_COVER}
                       alt={playlist.title}
@@ -96,19 +96,21 @@ export function Playlist({
                       }}
                       className="h-full w-full object-cover transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 backdrop-blur-[2px] transition-opacity duration-200 group-hover:opacity-100">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-neutral-950 shadow-2xl transition-transform active:scale-90">
-                        <Play className="ml-0.5 h-5 w-5 fill-current" />
+
+                    {/* Apple Music 同款精致右下角悬浮播放标 (不遮挡画面中心) */}
+                    <div className="absolute inset-0 flex items-end justify-end p-2.5 bg-black/15 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-950 shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-transform duration-200 group-hover:scale-100 scale-90 active:scale-95">
+                        <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
                       </div>
                     </div>
                   </div>
 
-                  {/* 标题与描述信息 */}
-                  <div className="mt-4">
-                    <h2 className="truncate text-base sm:text-[17px] font-semibold tracking-tight text-neutral-900 transition-colors group-hover:text-rose-500 dark:text-neutral-100 dark:group-hover:text-rose-400">
+                  {/* 标题与描述信息 (Apple 标准 mt-2 紧凑间距 + 纯白/纯灰克制色调) */}
+                  <div className="mt-2 max-w-[240px]">
+                    <h2 className="truncate text-[13.5px] sm:text-[14px] font-semibold tracking-tight text-neutral-900 dark:text-white transition-opacity group-hover:opacity-75">
                       {playlist.title}
                     </h2>
-                    <p className="mt-1.5 truncate text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 font-normal">
+                    <p className="mt-0.5 truncate text-[12px] text-neutral-500 dark:text-[#86868b] font-normal">
                       {playlist.tag ? `${playlist.tag} · ` : ""}{playlist.songs?.length || 0} 首歌曲
                     </p>
                   </div>
@@ -142,8 +144,8 @@ export function Playlist({
               <div>
                 {/* Apple Music 原生 Hero 头部排版 (高度与封面等高对齐，紧凑衔接下方曲目) */}
                 <div className="mb-5 sm:mb-7 flex flex-col md:flex-row items-stretch gap-8 sm:gap-10 pt-1 pb-2">
-                  {/* 左侧封面 */}
-                  <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-2xl bg-neutral-900 shadow-[0_12px_32px_rgba(0,0,0,0.18)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.55)] border border-black/5 dark:border-white/10">
+                  {/* 左侧封面 (Apple Music 同款 rounded-[6px] 锐利微倒角 + ring-1 边框) */}
+                  <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-[6px] sm:rounded-[8px] bg-neutral-900 shadow-[0_12px_32px_rgba(0,0,0,0.18)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.55)] ring-1 ring-black/10 dark:ring-white/10">
                     <img
                       src={activePlaylist.cover || FALLBACK_COVER}
                       alt={activePlaylist.title}
@@ -157,18 +159,21 @@ export function Playlist({
 
                   {/* 右侧信息排版 (与左侧封面等高，上下两端对齐，中间留白舒展) */}
                   <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                    {/* 上部区块：大标题 + 红色副标题 (适度向下微调下移) */}
-                    <div className="pt-4 sm:pt-10">
-                      <h1 className="text-[24px] sm:text-[27px] font-bold tracking-[-0.02em] text-neutral-900 dark:text-white leading-[1.2]">
+                    {/* 上部区块：28px 加粗纯白大标 + Apple 专属品红副标 */}
+                    <div className="pt-2 sm:pt-4">
+                      <h1 className="text-[26px] sm:text-[28px] md:text-[30px] font-bold tracking-tight text-neutral-900 dark:text-white leading-[1.15]">
                         {activePlaylist.title}
                       </h1>
-                      <div className="mt-[6px] text-[19px] sm:text-[21px] font-normal text-[#FA2D48] leading-[1.2]">
+                      <div className="mt-1 text-[17px] sm:text-[19px] font-semibold text-[#FA2D48] leading-[1.2]">
                         {activePlaylist.tag || "Apple Music"}
                       </div>
+                      <p className="mt-1 text-xs text-neutral-400 dark:text-[#86868b] font-normal">
+                        精选集 · {activePlaylist.songs?.length || 0} 首歌曲
+                      </p>
                     </div>
 
-                    {/* 下部区块：简介描述 + 试听胶囊按钮 (与封面底部对齐) */}
-                    <div className="mt-6 md:mt-0">
+                    {/* 下部区块：简介描述 + Apple 原生高质感纯白实体胶囊按钮 */}
+                    <div className="mt-5 md:mt-0">
                       <p className="text-[12.5px] sm:text-[13px] leading-[1.65] text-neutral-500 dark:text-[#8e8e93] max-w-[540px]">
                         {activePlaylist.description || activePlaylist.curatorNote || `这张歌单为你持续聚焦精选好歌与经典佳作，点开聆听，即刻把心仪旋律加入你的个人资料库。`}
                       </p>
@@ -177,7 +182,7 @@ export function Playlist({
                         <button
                           type="button"
                           onClick={() => onPlayAll(activePlaylist)}
-                          className="inline-flex items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-6 py-2.5 text-[13.5px] font-bold shadow-sm hover:opacity-90 transition-transform active:scale-95 cursor-pointer select-none leading-none"
+                          className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 px-6 py-2.5 text-[13.5px] font-bold shadow-[0_4px_14px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_20px_rgba(255,255,255,0.2)] hover:opacity-90 transition-opacity duration-150 cursor-pointer select-none leading-none"
                         >
                           <Play className="h-3.5 w-3.5 fill-current shrink-0" />
                           <span className="leading-none flex items-center">试听</span>

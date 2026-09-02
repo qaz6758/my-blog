@@ -65,8 +65,8 @@ export function Navbar() {
           : "border-b border-transparent bg-transparent"
       }`}
     >
-      {/* 顶部全宽铺满容器 */}
-      <div className="flex h-full w-full items-center justify-between px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
+      {/* 顶部全宽铺满容器 (克制边距，向两端适度延展) */}
+      <div className="flex h-full w-full items-center justify-between px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12">
         {/* ===================== 左侧：签名 Logo + 状态胶囊 ===================== */}
         <div className="flex items-center gap-3 sm:gap-4">
           <Link
@@ -107,7 +107,6 @@ export function Navbar() {
             })}
           </nav>
 
-          <div className="h-3.5 w-[1px] bg-black/[0.08] dark:bg-white/[0.1]" />
 
           <ThemeToggleButton className="p-1" />
         </div>

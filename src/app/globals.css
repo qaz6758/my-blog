@@ -74,18 +74,18 @@
  */
 
 .prose-link {
-  color: #525252;
-  border-bottom: 1px solid rgba(120, 120, 120, 0.4);
-  padding-bottom: 2px;
+  font-weight: 600;
+  color: #171717;
+  border-bottom: 1px solid rgba(120, 120, 120, 0.45);
+  padding-bottom: 1px;
   text-decoration: none !important;
   cursor: pointer;
-  user-select: none;
-  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  transition: color 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
 }
 
 .dark .prose-link {
-  color: #a3a3a3;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  color: #e5e5e5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .prose-link:hover {
@@ -191,7 +191,7 @@ body {
 
   /* 优化中文阅读的行高与字间距 */
   line-height: 1.65;
-  letter-spacing: -0.011em;
+  letter-spacing: -0.015em;
 
   overflow-x: hidden;
 }
@@ -489,6 +489,10 @@ html.dark :focus-visible {
 ::view-transition-new(root) {
   animation: none !important;
   mix-blend-mode: normal !important;
+  will-change: clip-path, transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 ::view-transition-old(root) {
@@ -520,4 +524,38 @@ html.dark :focus-visible {
 .animate-top-progress {
   transform-origin: 0% 50%;
   animation: top-progress-indeterminate 1.4s infinite cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/*
+ * ============================================================
+ * 方案 B：CRT 示波器光线压扁湮灭动画 (CRT Oscilloscope Collapse)
+ * ============================================================
+ */
+
+@keyframes crt-collapse {
+  0% {
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scaleY(0.04) scaleX(1);
+    filter: brightness(3.5) drop-shadow(0 0 12px #ffffff);
+    opacity: 1;
+  }
+  75% {
+    transform: scaleY(0.04) scaleX(0.04);
+    filter: brightness(6) drop-shadow(0 0 20px #ffffff);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0) scaleX(0);
+    filter: brightness(0);
+    opacity: 0;
+  }
+}
+
+.animate-crt-collapse {
+  animation: crt-collapse 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+  pointer-events: none !important;
 }

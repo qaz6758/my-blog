@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { LayoutGrid } from "lucide-react";
 import type { GalleryImage } from "@/types/gallery";
 
 export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
@@ -23,43 +22,68 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
   // Lock body scroll when lightbox is open
   useEffect(() => {
     if (activePhoto) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [activePhoto]);
 
   return (
-    <div className="mx-auto max-w-[1800px] px-4 sm:px-8 lg:px-12 pt-28">
-      {/* 布局切换按钮 */}
-      <div className="mb-6 flex items-center">
+    <div className="w-full px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16 pt-20 sm:pt-24 pb-16">
+      {/* 布局切换按钮 (参考 Anthony Fu 极简无框半透明图标) */}
+      <div className="mb-3 sm:mb-4 flex items-center">
         <button
           onClick={() => setIsGrid(!isGrid)}
-          className={`p-2 rounded-md transition-colors ${
-            !isGrid 
-              ? "bg-neutral-200 dark:bg-white/10 text-neutral-900 dark:text-white" 
-              : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/5"
-          }`}
-          title="Toggle Layout"
+          className="p-1 text-neutral-400 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-opacity opacity-70 hover:opacity-100 cursor-pointer"
+          title={isGrid ? "切换为原比例瀑布流" : "切换为等方网格"}
+          aria-label="Toggle gallery layout"
         >
-          <LayoutGrid className="h-4 w-4" />
+          {isGrid ? (
+            // 6 宫格矩阵图标 (参考图二原生样式)
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <rect x="3" y="4" width="4.5" height="6.5" rx="0.75" />
+              <rect x="9.75" y="4" width="4.5" height="6.5" rx="0.75" />
+              <rect x="16.5" y="4" width="4.5" height="6.5" rx="0.75" />
+              <rect x="3" y="13.5" width="4.5" height="6.5" rx="0.75" />
+              <rect x="9.75" y="13.5" width="4.5" height="6.5" rx="0.75" />
+              <rect x="16.5" y="13.5" width="4.5" height="6.5" rx="0.75" />
+            </svg>
+          ) : (
+            // 错落瀑布流图标
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <rect x="3" y="3" width="7.5" height="11" rx="0.75" />
+              <rect x="13.5" y="3" width="7.5" height="6.5" rx="0.75" />
+              <rect x="13.5" y="12" width="7.5" height="9" rx="0.75" />
+              <rect x="3" y="16.5" width="7.5" height="4.5" rx="0.75" />
+            </svg>
+          )}
         </button>
       </div>
 
       {/* 照片画廊 */}
       {isGrid ? (
-        // 紧凑正方形网格
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+        // 正方形网格 (gap-3 sm:gap-4，完美复刻图二通透呼吸感)
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {photos.map((photo) => (
-            <div 
-              key={photo.id} 
+            <div
+              key={photo.id}
               className="relative aspect-square overflow-hidden group bg-neutral-100 dark:bg-[#0a0a0a] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500"
               onClick={() => setActivePhoto(photo)}
-              onKeyDown={(e) => e.key === 'Enter' && setActivePhoto(photo)}
+              onKeyDown={(e) => e.key === "Enter" && setActivePhoto(photo)}
               tabIndex={0}
               role="button"
-              aria-label={`View ${photo.title || 'image'}`}
+              aria-label={`View ${photo.title || "image"}`}
             >
               <Image
                 src={photo.url}
@@ -76,16 +100,16 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
         </div>
       ) : (
         // 原比例错落排版 (Masonry / Columns)
-        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-8">
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4">
           {photos.map((photo) => (
-            <div 
-              key={photo.id} 
-              className="relative overflow-hidden group bg-neutral-100 dark:bg-[#0a0a0a] cursor-pointer break-inside-avoid mb-8 focus:outline-none focus:ring-2 focus:ring-neutral-500"
+            <div
+              key={photo.id}
+              className="relative overflow-hidden group bg-neutral-100 dark:bg-[#0a0a0a] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500"
               onClick={() => setActivePhoto(photo)}
-              onKeyDown={(e) => e.key === 'Enter' && setActivePhoto(photo)}
+              onKeyDown={(e) => e.key === "Enter" && setActivePhoto(photo)}
               tabIndex={0}
               role="button"
-              aria-label={`View ${photo.title || 'image'}`}
+              aria-label={`View ${photo.title || "image"}`}
             >
               <Image
                 src={photo.url}
@@ -105,11 +129,11 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
 
       {/* Lightbox 效果 */}
       {activePhoto && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md cursor-pointer opacity-100 transition-opacity duration-300"
           onClick={() => setActivePhoto(null)}
         >
-          <div 
+          <div
             className="relative w-[90vw] h-[90vh] max-w-7xl max-h-[90vh] flex items-center justify-center cursor-default"
             onClick={(e) => e.stopPropagation()}
           >

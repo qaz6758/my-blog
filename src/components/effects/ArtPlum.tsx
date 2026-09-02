@@ -186,7 +186,11 @@ export function ArtPlum() {
           "radial-gradient(circle at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 100%)",
       }}
     >
-      <canvas ref={canvasRef} className="h-full w-full opacity-60 dark:opacity-80" />
+      <canvas
+        id="artplum-canvas"
+        ref={canvasRef}
+        className="h-full w-full opacity-15 sm:opacity-35 dark:opacity-60"
+      />
     </div>
   );
 }

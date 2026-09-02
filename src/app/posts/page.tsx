@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { fetchPostsFromNotion } from "@/lib/notion";
 import { PostsListClient, PostItem } from "@/components/post/PostsListClient";
 
-export const revalidate = 60;
+export const revalidate = 5;
 
 interface PostsPageProps {
   searchParams: Promise<{
@@ -46,7 +46,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
       <main className="relative z-10 min-h-screen px-5 pt-24 pb-20 sm:px-8 sm:pt-28">
-        <div className="slide-enter-content mx-auto w-full max-w-[760px]">
+        <div className="slide-enter-content mx-auto w-full max-w-[65ch]">
           {/* 页面头部标题 */}
           <header className="mb-8">
             <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-4xl">

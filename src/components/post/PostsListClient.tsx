@@ -177,8 +177,8 @@ export function PostsListClient({
         </div>
       </SlideEnter>
 
-      {/* 年份文章列表 */}
-      <div className="space-y-14">
+      {/* 年份文章列表 (分类切换时触发全站同款平滑淡入动效) */}
+      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content space-y-14">
         {years.map((year) => {
           const yearPosts = postsByYear[year];
 
@@ -295,12 +295,14 @@ export function PostsListClient({
 
       {/* 空状态 */}
       {filteredPosts.length === 0 && (
-        <SlideEnter
-          stage={4}
-          className="py-20 text-center text-sm text-neutral-400 dark:text-neutral-500"
-        >
-          {activeCategory || activeTag ? "该分类下暂无文章" : "暂无文章"}
-        </SlideEnter>
+        <div key={`empty-${activeCategory}-${activeTag}`} className="slide-enter-content">
+          <SlideEnter
+            stage={4}
+            className="py-20 text-center text-sm text-neutral-400 dark:text-neutral-500"
+          >
+            {activeCategory || activeTag ? "该分类下暂无文章" : "暂无文章"}
+          </SlideEnter>
+        </div>
       )}
     </>
   );
