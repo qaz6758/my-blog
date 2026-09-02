@@ -116,6 +116,16 @@
   --text-tertiary: #a3a3a3;
 }
 
+html.light {
+  color-scheme: only light !important;
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
+  --background: #ffffff !important;
+  --foreground: #171717 !important;
+  background-color: #ffffff !important;
+  color: #171717 !important;
+}
+
 /*
  * ============================================================
  * Dark Theme
@@ -123,7 +133,7 @@
  */
 
 html.dark {
-  color-scheme: dark;
+  color-scheme: dark !important;
 
   --background: #050505;
   --foreground: #f5f5f5;

@@ -64,13 +64,16 @@ export default function RootLayout({
                 try {
                   var saved = localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
                   var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var cl = document.documentElement.classList;
+                  var docEl = document.documentElement;
+                  var cl = docEl.classList;
                   if (isDark) {
                     cl.add('dark');
                     cl.remove('light');
+                    docEl.style.colorScheme = 'dark';
                   } else {
                     cl.remove('dark');
                     cl.add('light');
+                    docEl.style.colorScheme = 'only light';
                   }
                 } catch (e) {}
               })();

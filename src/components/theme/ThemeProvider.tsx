@@ -93,6 +93,27 @@ function persistTheme(target: Theme) {
   }
 }
 
+function updateMetaColorScheme(newTheme: Theme) {
+  if (typeof document === "undefined") return;
+  try {
+    let meta = document.querySelector('meta[name="color-scheme"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "color-scheme");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", newTheme === "dark" ? "dark" : "only light");
+
+    let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (!themeColorMeta) {
+      themeColorMeta = document.createElement("meta");
+      themeColorMeta.setAttribute("name", "theme-color");
+      document.head.appendChild(themeColorMeta);
+    }
+    themeColorMeta.setAttribute("content", newTheme === "dark" ? "#050505" : "#ffffff");
+  } catch {}
+}
+
 export function ThemeProvider({
   children,
   initialTheme = "light",
@@ -121,8 +142,9 @@ export function ThemeProvider({
       } else {
         root.classList.remove("dark");
         root.classList.add("light");
-        root.style.colorScheme = "light";
+        root.style.colorScheme = "only light";
       }
+      updateMetaColorScheme(newTheme);
     }
   }, []);
 
@@ -144,10 +166,11 @@ export function ThemeProvider({
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
-      root.style.colorScheme = "light";
+      root.style.colorScheme = "only light";
     }
     setThemeState(newTheme);
     persistTheme(newTheme);
+    updateMetaColorScheme(newTheme);
 
     transitionTimerRef.current = setTimeout(() => {
       root.classList.remove("theme-smooth-transition");
