@@ -3,11 +3,20 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { fetchThoughtDetailFromNotion } from "@/lib/notion";
+import { fetchThoughtDetailFromNotion, fetchThoughtsFromNotion } from "@/lib/notion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { Footer } from "@/components/layout/Footer";
 
 export const revalidate = 5;
+
+export async function generateStaticParams() {
+  try {
+    const thoughts = await fetchThoughtsFromNotion();
+    return (thoughts || []).map((t) => ({ id: String(t.id) }));
+  } catch {
+    return [];
+  }
+}
 
 export default async function ThoughtDetailPage({
   params,

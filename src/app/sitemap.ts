@@ -2,6 +2,7 @@
 import { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-static";
 export const revalidate = 3600; // 每小时重新生成一次 Sitemap
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

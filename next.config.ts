@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 静态 HTML 导出模式 (适配 Cloudflare Pages 静态托管，0 Worker 大小限制)
+  output: "export",
+
   // 1. 开启 React 严格模式，提高代码健壮性
   reactStrictMode: true,
 
@@ -12,6 +15,7 @@ const nextConfig: NextConfig = {
 
   // 4. 图片加载与 CDN 优化策略
   images: {
+    unoptimized: true,
     // 允许通过本地代理 / VPN（如 Clash/TUN 模式的 198.18.x.x 虚拟 IP）进行图片优化
     dangerouslyAllowLocalIP: true,
     formats: ["image/avif", "image/webp"],

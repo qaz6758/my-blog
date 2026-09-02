@@ -1,10 +1,7 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { cookies } from "next/headers";  
 import "@/app/globals.css";  
-
-export const runtime = "edge";  
 
 import { Suspense } from "react";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";  
@@ -44,16 +41,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();  
-  const savedTheme = cookieStore.get("theme")?.value;  
-  const initialTheme: "light" | "dark" =
-    savedTheme === "light" ? "light" : "dark";  
-
   return (
     <html
       lang="zh-CN"
@@ -88,7 +80,7 @@ export default async function RootLayout({
       </head>
 
       <body className="min-h-screen w-full font-sans bg-[#ffffff] text-neutral-900 selection:bg-neutral-200 dark:bg-[#050505] dark:text-neutral-100 dark:selection:bg-neutral-800 overflow-x-hidden antialiased">  
-        <ThemeProvider initialTheme={initialTheme}>  
+        <ThemeProvider>  
           {/* 全局极简顶部流体进度指示条 */}
           <Suspense fallback={null}>
             <TopProgressBar />

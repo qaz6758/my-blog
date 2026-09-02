@@ -8,16 +8,7 @@ import { PostsListClient, PostItem } from "@/components/post/PostsListClient";
 
 export const revalidate = 5;
 
-interface PostsPageProps {
-  searchParams: Promise<{
-    category?: string;
-    tag?: string;
-  }>;
-}
-
-export default async function PostsPage({ searchParams }: PostsPageProps) {
-  const { category, tag } = await searchParams;
-
+export default async function PostsPage() {
   // 并行获取 Notion 原创文章与 Supabase RSS 文章
   const [notionPosts, supabaseRes] = await Promise.all([
     fetchPostsFromNotion(),
@@ -58,11 +49,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
           </header>
 
           {/* 即时响应式文章分类过滤列表 */}
-          <PostsListClient
-            initialPosts={allPosts}
-            initialCategory={category}
-            initialTag={tag}
-          />
+          <PostsListClient initialPosts={allPosts} />
         </div>
       </main>
 
