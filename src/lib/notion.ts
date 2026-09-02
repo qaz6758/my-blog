@@ -4,6 +4,7 @@ import { Song } from "@/components/playlist/SongList";
 
 const NOTION_API_KEY = process.env.NOTION_API_KEY?.trim();
 const NOTION_VERSION = "2022-06-28";
+const REQUEST_TIMEOUT_MS = 10000; // 10秒安全超时保护
 
 export interface ThoughtMediaItem {
   id: string;
@@ -30,26 +31,39 @@ function extractDatabaseId(input?: string): string {
   return match ? match[0] : "";
 }
 
+/**
+ * 通用安全查询 Notion Database（内置 10s 超时、网络抖动容错与安全降级）
+ */
 async function queryNotionDatabase(rawDatabaseId: string, name: string) {
   const cleanId = extractDatabaseId(rawDatabaseId);
-  if (!cleanId) {
-    throw new Error(`环境变量中的 ${name} 无效，未能提取到 32 位 ID`);
+  if (!cleanId || !NOTION_API_KEY) {
+    return { results: [] };
   }
-  const res = await fetch(`https://api.notion.com/v1/databases/${cleanId}/query`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${NOTION_API_KEY}`,
-      "Notion-Version": NOTION_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({}),
-    next: { revalidate: 60 },
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(`Notion [${name}] 查询错误: ${data.message || JSON.stringify(data)}`);
+
+  try {
+    const res = await fetch(`https://api.notion.com/v1/databases/${cleanId}/query`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${NOTION_API_KEY}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      next: { revalidate: 0 },
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      console.warn(`[Notion Warning] ${name} 查询非 200:`, data.message || res.statusText);
+      return { results: [] };
+    }
+
+    return await res.json();
+  } catch (err: any) {
+    console.warn(`[Notion Timeout/Network Warning] ${name} 请求超时或网络波动，已安全降级:`, err.message || err);
+    return { results: [] };
   }
-  return data;
 }
 
 function findProp(props: any, ...keys: string[]) {
@@ -123,86 +137,135 @@ function formatThoughtDate(dateStr: string) {
   return `${year}年${month}月${day}日 ${days[date.getDay()]} ${hours}:${minutes}`;
 }
 
+function upgradeCoverToHighRes(url: string): string {
+  if (!url) return "";
+  // 如果是网易云原生 CDN 直链图片 (如 p1.music.126.net/xxx.jpg)
+  if (url.includes("music.126.net") || url.includes("163.com")) {
+    if (url.includes("?param=")) {
+      return url.replace(/\?param=\d+y\d+/, "?param=800y800");
+    }
+    const cleanUrl = url.split("?")[0];
+    return `${cleanUrl}?param=800y800`;
+  }
+  return url;
+}
+
 export async function fetchPlaylistsFromNotion(): Promise<PlaylistCategory[]> {
   const playlistDbId = process.env.NOTION_PLAYLIST_DB_ID;
   const songsDbId = process.env.NOTION_SONGS_DB_ID;
-  if (!playlistDbId || !songsDbId || !NOTION_API_KEY) throw new Error("Missing Notion Env");
-  const [playlistsRes, songsRes] = await Promise.all([
-    queryNotionDatabase(playlistDbId, "NOTION_PLAYLIST_DB_ID"),
-    queryNotionDatabase(songsDbId, "NOTION_SONGS_DB_ID"),
-  ]);
-  const allSongs: (Song & { playlistKey: string })[] = (songsRes.results || []).map((page: any) => {
-    const p = page.properties;
-    return {
-      id: page.id,
-      playlistKey: getText(findProp(p, "Playlist_Key", "PlaylistKey", "Playlist")),
-      title: getText(findProp(p, "Title", "Name", "Song", "歌曲")) || "未知歌曲",
-      artist: getText(findProp(p, "Artist", "Singer", "歌手")) || "未知歌手",
-      album: getText(findProp(p, "Album", "专辑")),
-      duration: getText(findProp(p, "Duration", "时长")) || "03:30",
-      audio_url: getUrl(findProp(p, "AudioUrl", "Audio", "音频")),
-      cover_url: getUrl(findProp(p, "Cover", "Pic", "封面")) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
-      links: { spotify: getUrl(findProp(p, "SpotifyUrl", "Spotify")), netease: getUrl(findProp(p, "NeteaseUrl", "Netease", "网易云")) },
-    };
-  });
-  return (playlistsRes.results || []).map((page: any) => {
-    const p = page.properties;
-    const key = getText(findProp(p, "ID_Key", "IDKey", "ID", "Slug")) || page.id;
-    const matchedSongs = allSongs.filter((s) => s.playlistKey && s.playlistKey === key);
-    return {
-      id: key,
-      title: getText(findProp(p, "Title", "Name", "歌单")) || "未命名歌单",
-      description: getText(findProp(p, "Description", "Desc", "简介")) || "精选私藏音乐",
-      cover: getUrl(findProp(p, "Cover", "Pic", "封面")) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
-      tag: getSelect(findProp(p, "Tag", "Category", "标签")) || "Music",
-      curatorNote: getText(findProp(p, "CuratorNote", "Note", "手记")) || "日常反复循环的旋律记录。",
-      songs: matchedSongs,
-    };
-  });
+  if (!playlistDbId || !songsDbId || !NOTION_API_KEY) return [];
+
+  try {
+    const [playlistsRes, songsRes] = await Promise.all([
+      queryNotionDatabase(playlistDbId, "NOTION_PLAYLIST_DB_ID"),
+      queryNotionDatabase(songsDbId, "NOTION_SONGS_DB_ID"),
+    ]);
+
+    interface NotionSongItem extends Song {
+      playlistKey: string;
+      createdTime: string;
+      order: number | null;
+    }
+
+    const allSongs: NotionSongItem[] = (songsRes.results || []).map(
+      (page: any): NotionSongItem => {
+        const p = page.properties;
+        const rawCover = getUrl(findProp(p, "Cover", "Pic", "封面"));
+        return {
+          id: page.id,
+          playlistKey: getText(findProp(p, "Playlist_Key", "PlaylistKey", "Playlist")),
+          title: getText(findProp(p, "Title", "Name", "Song", "歌曲")) || "未知歌曲",
+          artist: getText(findProp(p, "Artist", "Singer", "歌手")) || "未知歌手",
+          album: getText(findProp(p, "Album", "专辑")),
+          duration: getText(findProp(p, "Duration", "时长")) || "03:30",
+          audio_url: getUrl(findProp(p, "AudioUrl", "Audio", "音频")),
+          cover_url: upgradeCoverToHighRes(rawCover) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
+          createdTime: page.created_time || "",
+          order: getNumber(findProp(p, "Order", "序号", "No")),
+        };
+      }
+    );
+
+    return (playlistsRes.results || []).map((page: any) => {
+      const p = page.properties;
+      const key = getText(findProp(p, "ID_Key", "IDKey", "ID", "Slug")) || page.id;
+      
+      // 歌曲排列：严格按照网易云歌单中的序号 (1, 2, 3, 4, 5...) 顺序排列
+      const matchedSongs = allSongs
+        .filter((s: NotionSongItem) => s.playlistKey && s.playlistKey === key)
+        .sort((a: NotionSongItem, b: NotionSongItem) => {
+          if (a.order !== null && b.order !== null && a.order !== b.order) {
+            return a.order - b.order;
+          }
+          return new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime();
+        });
+
+      const rawCover = getUrl(findProp(p, "Cover", "Pic", "封面"));
+      // 歌单封面：自动获取该歌单中最新一首歌的高清封面
+      const latestSongCover = matchedSongs[0]?.cover_url;
+      const finalPlaylistCover = latestSongCover || upgradeCoverToHighRes(rawCover) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+
+      return {
+        id: key,
+        title: getText(findProp(p, "Title", "Name", "歌单")) || "未命名歌单",
+        description: getText(findProp(p, "Description", "Desc", "简介")) || "精选私藏音乐",
+        cover: finalPlaylistCover,
+        tag: getSelect(findProp(p, "Tag", "Category", "标签")) || "Apple Music",
+        curatorNote: getText(findProp(p, "CuratorNote", "Note", "手记")) || "日常反复循环的旋律记录。",
+        songs: matchedSongs,
+      };
+    });
+  } catch (error) {
+    console.warn("[Notion Playlists Warning] 抓取歌单失败，已安全降级:", error);
+    return [];
+  }
 }
 
 export async function fetchThoughtsFromNotion(): Promise<ThoughtMediaItem[]> {
   const thoughtsDbId = process.env.NOTION_THOUGHTS_DB_ID;
-  if (!thoughtsDbId || !NOTION_API_KEY) {
-    throw new Error("缺少 Notion 环境变量，请检查 .env.local 中的 NOTION_API_KEY / NOTION_THOUGHTS_DB_ID");
-  }
+  if (!thoughtsDbId || !NOTION_API_KEY) return [];
 
-  const thoughtsRes = await queryNotionDatabase(thoughtsDbId, "NOTION_THOUGHTS_DB_ID");
-  const items: ThoughtMediaItem[] = [];
+  try {
+    const thoughtsRes = await queryNotionDatabase(thoughtsDbId, "NOTION_THOUGHTS_DB_ID");
+    const items: ThoughtMediaItem[] = [];
 
-  (thoughtsRes.results || []).forEach((page: any) => {
-    const p = page.properties;
-    const publishedProp = findProp(p, "Published", "公开", "发布");
-    if (publishedProp && !getCheckbox(publishedProp)) return;
+    (thoughtsRes.results || []).forEach((page: any) => {
+      const p = page.properties;
+      const publishedProp = findProp(p, "Published", "公开", "发布");
+      if (publishedProp && !getCheckbox(publishedProp)) return;
 
-    const rawDate = getDate(findProp(p, "Date", "日期", "时间")) || page.created_time;
-    const ratingNum = getNumber(findProp(p, "Rating", "评分", "Score"));
-    const ratingText = ratingNum !== null ? ratingNum.toString() : getText(findProp(p, "Rating", "评分"));
-    const tagsList = getMultiSelect(findProp(p, "Tags", "Tag", "标签", "分类"));
+      const rawDate = getDate(findProp(p, "Date", "日期", "时间")) || page.created_time;
+      const ratingNum = getNumber(findProp(p, "Rating", "评分", "Score"));
+      const ratingText = ratingNum !== null ? ratingNum.toString() : getText(findProp(p, "Rating", "评分"));
+      const tagsList = getMultiSelect(findProp(p, "Tags", "Tag", "标签", "分类"));
 
-    items.push({
-      id: page.id,
-      author: getText(findProp(p, "Author", "作者")) || "theyole",
-      action: getSelect(findProp(p, "Action", "动态", "动作")) || "",
-      time: formatThoughtDate(rawDate),
-      type: getSelect(findProp(p, "Type", "类型")) || getText(findProp(p, "Type", "类型")) || "NOTE",
-      year: getText(findProp(p, "Year", "年份")) || getNumber(findProp(p, "Year", "年份"))?.toString() || "",
-      title: getText(findProp(p, "Title", "Name", "标题")) || "",
-      description: getText(findProp(p, "Content", "Description", "Desc", "内容", "正文")),
-      rating: ratingText || undefined,
-      tags: tagsList.length > 0 ? tagsList.join(", ") : getText(findProp(p, "Tags", "标签")) || undefined,
-      sourceUrl: getUrl(findProp(p, "SourceUrl", "Source", "来源", "链接")) || undefined,
-      posterUrl: getUrl(findProp(p, "Poster", "Cover", "海报", "封面", "Pic")) || undefined,
-      likes: getNumber(findProp(p, "Likes", "点赞")) || 0,
-      upvotes: getNumber(findProp(p, "Upvotes", "推荐")) || 0,
-      replies: getNumber(findProp(p, "Replies", "回复")) || 0,
+      items.push({
+        id: page.id,
+        author: getText(findProp(p, "Author", "作者")) || "Vince Ou",
+        action: getSelect(findProp(p, "Action", "动态", "动作")) || "",
+        time: formatThoughtDate(rawDate),
+        type: getSelect(findProp(p, "Type", "类型")) || getText(findProp(p, "Type", "类型")) || "NOTE",
+        year: getText(findProp(p, "Year", "年份")) || getNumber(findProp(p, "Year", "年份"))?.toString() || "",
+        title: getText(findProp(p, "Title", "Name", "标题")) || "",
+        description: getText(findProp(p, "Content", "Description", "Desc", "内容", "正文")),
+        rating: ratingText || undefined,
+        tags: tagsList.length > 0 ? tagsList.join(", ") : getText(findProp(p, "Tags", "标签")) || undefined,
+        sourceUrl: getUrl(findProp(p, "SourceUrl", "Source", "来源", "链接")) || undefined,
+        posterUrl: getUrl(findProp(p, "Poster", "Cover", "海报", "封面", "Pic")) || undefined,
+        likes: getNumber(findProp(p, "Likes", "点赞")) || 0,
+        upvotes: getNumber(findProp(p, "Upvotes", "推荐")) || 0,
+        replies: getNumber(findProp(p, "Replies", "回复")) || 0,
+      });
     });
-  });
 
-  return items;
+    return items;
+  } catch (error) {
+    console.warn("[Notion Thoughts Warning] 抓取随笔失败，已安全降级:", error);
+    return [];
+  }
 }
 
-// ================= 新增：抓取单条详情 =================
+// ================= 抓取单条随笔详情 =================
 export async function fetchThoughtDetailFromNotion(pageId: string): Promise<ThoughtMediaItem | null> {
   if (!NOTION_API_KEY) return null;
   try {
@@ -215,6 +278,7 @@ export async function fetchThoughtDetailFromNotion(pageId: string): Promise<Thou
         Authorization: `Bearer ${NOTION_API_KEY}`,
         "Notion-Version": NOTION_VERSION,
       },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       next: { revalidate: 60 },
     });
 
@@ -228,7 +292,7 @@ export async function fetchThoughtDetailFromNotion(pageId: string): Promise<Thou
 
     return {
       id: page.id,
-      author: getText(findProp(p, "Author", "作者")) || "theyole",
+      author: getText(findProp(p, "Author", "作者")) || "Vince Ou",
       action: getSelect(findProp(p, "Action", "动态", "动作")) || "",
       time: formatThoughtDate(rawDate),
       type: getSelect(findProp(p, "Type", "类型")) || getText(findProp(p, "Type", "类型")) || "NOTE",
@@ -244,7 +308,7 @@ export async function fetchThoughtDetailFromNotion(pageId: string): Promise<Thou
       replies: getNumber(findProp(p, "Replies", "回复")) || 0,
     };
   } catch (error) {
-    console.error("获取 Notion 单页失败:", error);
+    console.warn("[Notion ThoughtDetail Warning] 获取 Notion 单页失败，已安全降级:", error);
     return null;
   }
 }
@@ -303,6 +367,7 @@ async function fetchBlockChildren(blockId: string): Promise<any[]> {
         Authorization: `Bearer ${NOTION_API_KEY}`,
         "Notion-Version": NOTION_VERSION,
       },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
@@ -389,14 +454,13 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
       const p = page.properties;
       const status = getStatus(findProp(p, "状态", "Status", "State"));
       
-      // 仅展示已发布或准备发布的文章（或者不带状态过滤）
+      // 仅展示已发布或准备发布的文章
       const isPublished =
         status.includes("已发布") ||
         status.includes("准备发布") ||
         status.includes("Published") ||
         getCheckbox(findProp(p, "Published", "公开", "发布"));
 
-      // 允许显示带公开标记的文章，如果没有状态属性则默认展示
       if (status && !isPublished && !status.includes("发布")) {
         return;
       }
@@ -429,7 +493,7 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
 
     return items;
   } catch (error) {
-    console.error("抓取 Notion 博客文章列表失败:", error);
+    console.warn("[Notion Posts Warning] 抓取 Notion 博客文章列表失败，已安全降级:", error);
     return [];
   }
 }
@@ -447,6 +511,7 @@ export async function fetchPostDetailFromNotion(pageId: string): Promise<NotionP
           Authorization: `Bearer ${NOTION_API_KEY}`,
           "Notion-Version": NOTION_VERSION,
         },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         next: { revalidate: 60 },
       }),
       fetchBlockChildren(cleanId),
@@ -484,7 +549,7 @@ export async function fetchPostDetailFromNotion(pageId: string): Promise<NotionP
       content: markdownContent,
     };
   } catch (error) {
-    console.error("获取 Notion 博客详情失败:", error);
+    console.warn("[Notion PostDetail Warning] 获取 Notion 博客详情失败，已安全降级:", error);
     return null;
   }
 }

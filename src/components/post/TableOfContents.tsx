@@ -74,43 +74,37 @@ export function TableOfContents({
   return (
     <nav
       aria-label="文章目录大纲"
-      className={`rounded-2xl border border-black/[0.06] bg-white/70 p-4 shadow-sm backdrop-blur-xl dark:border-white/[0.08] dark:bg-[#111318]/70 ${className}`}
+      className={`select-none ${className}`}
     >
-      {/* 目录小标题 */}
-      <div className="mb-3 flex items-center gap-2 border-b border-black/[0.05] pb-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:border-white/[0.06] dark:text-neutral-400">
-        <AlignLeft className="h-3.5 w-3.5" />
-        <span>目录</span>
+      {/* 目录小标题 / 极简图标 */}
+      <div className="mb-3 flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500 opacity-60">
+        <AlignLeft className="h-4 w-4" />
       </div>
 
-      {/* 目录条目列表 */}
-      <ul className="max-h-[calc(100vh-12rem)] space-y-1 overflow-y-auto pr-1 text-[13px]">
+      {/* 目录条目列表（Anthony Fu 纯透明度悬停与高亮体系） */}
+      <ul className="max-h-[calc(100vh-14rem)] space-y-1.5 overflow-y-auto pr-2 text-[13px] font-normal">
         {list.map((item) => {
           const isActive = currentActiveId === item.id;
 
-          // 层级缩进规范：H1 无缩进，H2 缩进 12px，H3 缩进 24px
+          // 层级缩进规范：H1/H2 顶格，H3 缩进 12px，H4 缩进 20px
           const indentPx =
-            item.level <= 1 ? 0 : item.level === 2 ? 12 : 24;
+            item.level <= 2 ? 0 : item.level === 3 ? 12 : 20;
 
           return (
             <li
               key={item.id}
-              className="relative"
               style={{ paddingLeft: `${indentPx}px` }}
             >
               <a
                 href={`#${item.id}`}
                 onClick={(e) => handleItemClick(e, item.id)}
-                className={`group flex items-center py-1 transition-all duration-200 ${
+                className={`block py-0.5 line-clamp-1 transition-opacity duration-200 ${
                   isActive
-                    ? "font-medium text-sky-600 dark:text-sky-400"
-                    : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+                    ? "opacity-100 text-neutral-900 dark:text-white font-medium"
+                    : "opacity-45 hover:opacity-100 text-neutral-700 dark:text-neutral-300"
                 }`}
               >
-                {/* 活跃指示竖线 */}
-                {isActive && (
-                  <span className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full bg-sky-500 dark:bg-sky-400" />
-                )}
-                <span className="line-clamp-1 pl-2">{item.text}</span>
+                {item.text}
               </a>
             </li>
           );

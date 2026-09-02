@@ -90,7 +90,7 @@ export function MusicPlayer({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute bottom-16 right-0 sm:right-2 w-full sm:w-80 md:w-88 rounded-3xl border border-black/[0.08] bg-white/95 p-4 shadow-[0_20px_45px_rgba(0,0,0,0.12)] backdrop-blur-3xl text-neutral-900 transition-colors dark:border-white/[0.1] dark:bg-[#1a1a1c]/95 dark:text-white dark:shadow-[0_25px_50px_rgba(0,0,0,0.6)]"
+              className="absolute bottom-16 right-0 sm:right-2 w-full sm:w-80 md:w-88 rounded-3xl border border-black/[0.08] bg-white/95 p-4 shadow-[0_20px_45px_rgba(0,0,0,0.12)] backdrop-blur-3xl text-neutral-900 transition-colors dark:border-white/[0.1] dark:bg-[#0c0c0c]/95 dark:text-white dark:shadow-[0_25px_50px_rgba(0,0,0,0.6)]"
             >
               <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
                 <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export function MusicPlayer({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="will-change-transform flex h-12 sm:h-13 w-full items-center justify-between gap-2 sm:gap-4 rounded-full border border-black/[0.08] bg-white/85 px-3 sm:px-5 shadow-[0_16px_40px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-3xl transition-colors dark:border-white/[0.12] dark:bg-[#1c1c1e]/85 dark:shadow-[0_20px_45px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)]"
+          className="will-change-transform flex h-12 sm:h-13 w-full items-center justify-between gap-2 sm:gap-4 rounded-full border border-black/[0.08] bg-white/85 px-3 sm:px-5 shadow-[0_16px_40px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-3xl transition-colors dark:border-white/[0.12] dark:bg-[#0c0c0c]/85 dark:shadow-[0_20px_45px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.15)]"
         >
           {/* 左侧控制按钮 */}
           <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 text-neutral-700 dark:text-white/80">

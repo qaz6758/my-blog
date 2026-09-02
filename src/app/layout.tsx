@@ -4,16 +4,18 @@ import { Inter } from "next/font/google";
 import { cookies } from "next/headers";  
 import "@/app/globals.css";  
 
+import { Suspense } from "react";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";  
 import { Navbar } from "@/components/layout/Navbar";  
-import { BackgroundImage } from "@/components/layout/BackgroundImage";  
 import { MusicProvider } from "@/components/playlist/MusicContext";
+import { ArtPlum } from "@/components/effects/ArtPlum";
+import { TopProgressBar } from "@/components/layout/TopProgressBar";
 
-// 仅加载极速英文字体 Inter (体积仅 ~15KB)，中文由系统原生高清字体库接管 (0ms 阻塞)
+// 使用 display: "optional" 彻底消除字体加载完成时文字重排引发的二次“闪烁 (FOUT)”
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  display: "swap",
+  display: "optional",
   variable: "--font-inter",
   preload: true,
 });  
@@ -38,9 +40,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-};  
-
-import { NoiseOverlay } from "@/components/effects/NoiseOverlay";
+};
 
 export default async function RootLayout({
   children,
@@ -58,12 +58,43 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${initialTheme}`}  
     >
+      <head>
+        {/* 
+          首屏零毫秒同步锁定主题脚本：在浏览器绘制任何像素前极速生效，
+          彻底终结刷新时因主题/背景不匹配导致的瞬间黑白亮闪！
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var m = document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/);
+                  var t = m ? m[1] : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  var cl = document.documentElement.classList;
+                  if (t === 'dark') {
+                    cl.add('dark');
+                    cl.remove('light');
+                  } else {
+                    cl.remove('dark');
+                    cl.add('light');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+
       <body className="min-h-screen w-full font-sans bg-[#ffffff] text-neutral-900 selection:bg-neutral-200 dark:bg-[#050505] dark:text-neutral-100 dark:selection:bg-neutral-800 overflow-x-hidden antialiased">  
         <ThemeProvider initialTheme={initialTheme}>  
+          {/* 全局极简顶部流体进度指示条 */}
+          <Suspense fallback={null}>
+            <TopProgressBar />
+          </Suspense>
+
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
-            <BackgroundImage />  
-            <NoiseOverlay />
+            <ArtPlum />
             <Navbar />  
             <div className="relative z-10 w-full pb-4 sm:pb-6">
               {children}  

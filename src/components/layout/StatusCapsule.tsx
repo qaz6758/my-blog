@@ -34,7 +34,7 @@ interface StatusCapsuleProps {
 }
 
 export function StatusCapsule({
-  nickname = "Theyole",
+  nickname = "Vince Ou",
   variant = "capsule",
 }: StatusCapsuleProps) {
   const liveStatus = useLiveStatus();
@@ -310,7 +310,7 @@ export function StatusCapsule({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.985 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-2 w-[260px] sm:w-[280px] rounded-2xl border border-neutral-200/80 bg-white/95 p-3.5 sm:p-4 shadow-xl backdrop-blur-xl dark:border-neutral-800 dark:bg-[#18181b]/95 dark:shadow-2xl"
+            className="absolute left-0 top-full z-50 mt-2 w-[260px] sm:w-[280px] rounded-2xl border border-neutral-200/80 bg-white/95 p-3.5 sm:p-4 shadow-xl backdrop-blur-xl dark:border-neutral-800 dark:bg-[#0c0c0c]/95 dark:shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">

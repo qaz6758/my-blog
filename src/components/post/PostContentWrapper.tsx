@@ -144,16 +144,11 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="group relative my-6 overflow-hidden rounded-xl border border-neutral-200/80 bg-[#0d1117] dark:border-white/[0.08] shadow-sm">
+    <div className="group relative my-6 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-[#0a0a0a] shadow-sm">
       {/* 顶栏信息与复制按钮 */}
-      <div className="flex items-center justify-between border-b border-white/[0.06] bg-neutral-900/60 px-4 py-2 select-none backdrop-blur-sm">
+      <div className="flex items-center justify-between border-b border-neutral-200/60 dark:border-neutral-800/80 bg-neutral-100/60 dark:bg-neutral-900/60 px-4 py-2 select-none backdrop-blur-sm">
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 opacity-60">
-            <div className="h-2.5 w-2.5 rounded-full bg-rose-500/80" />
-            <div className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
-            <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-          </div>
-          <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-neutral-400">
+          <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             {language || "code"}
           </span>
         </div>
@@ -162,12 +157,12 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
           type="button"
           onClick={handleCopy}
           aria-label="copy"
-          className="flex items-center gap-1.5 rounded-md border border-neutral-700/60 bg-neutral-800/80 px-2.5 py-1 text-[11px] font-mono text-neutral-300 transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-700 hover:text-white cursor-pointer"
+          className="flex items-center gap-1.5 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-200/50 dark:bg-neutral-800/80 px-2 py-0.5 text-[11px] font-mono text-neutral-600 dark:text-neutral-300 transition-all duration-200 hover:border-neutral-400 dark:hover:border-neutral-500 hover:text-black dark:hover:text-white cursor-pointer"
         >
           {copied ? (
             <>
               <Check className="h-3.5 w-3.5 text-emerald-400" />
-              <span className="text-emerald-400">success!</span>
+              <span className="text-emerald-400">copied</span>
             </>
           ) : (
             <>
@@ -325,22 +320,23 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[14.5px] sm:text-[16px] leading-[1.8] text-neutral-800 dark:text-[#cbd5e1]
-    [&_p]:mb-4 sm:[&_p]:mb-5
-    [&_h1]:text-xl sm:[&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-8 [&_h1]:mb-3 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100
-    [&_h2]:text-lg sm:[&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:pb-1 [&_h2]:border-b [&_h2]:border-neutral-200 dark:[&_h2]:border-white/[0.06] [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100
-    [&_h3]:text-sm sm:[&_h3]:text-base [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2.5 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100
-    [&_h4]:text-sm sm:[&_h4]:text-sm [&_h4]:font-semibold [&_h4]:mt-5 [&_h4]:mb-2 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
-    [&_blockquote]:border-l-2 [&_blockquote]:border-sky-500/40 [&_blockquote]:bg-sky-500/[0.04] dark:[&_blockquote]:bg-sky-500/[0.06] [&_blockquote]:px-4 [&_blockquote]:py-2.5 [&_blockquote]:my-4 [&_blockquote]:rounded-r-lg [&_blockquote]:italic [&_blockquote]:text-neutral-700 dark:[&_blockquote]:text-neutral-300
-    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5
-    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5
+    text-[15px] sm:text-[16px] leading-[1.8] text-neutral-750 dark:text-[#a3a3a3]
+    [&_p]:mb-5
+    [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-10 [&_h1]:mb-4 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100 [&_h1]:tracking-tight
+    [&_h2]:text-xl sm:[&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h2]:tracking-tight
+    [&_h3]:text-lg sm:[&_h3]:text-lg [&_h3]:font-bold [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
+    [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
+    [&_strong]:font-semibold [&_strong]:text-neutral-950 dark:[&_strong]:text-white
+    [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:bg-neutral-500/[0.03] dark:[&_blockquote]:bg-neutral-800/[0.15] [&_blockquote]:px-4 [&_blockquote]:py-2.5 [&_blockquote]:my-6 [&_blockquote]:rounded-r-md [&_blockquote]:text-neutral-600 dark:[&_blockquote]:text-neutral-300
+    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-5 [&_ul]:space-y-2
+    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-5 [&_ol]:space-y-2
     [&_li]:leading-relaxed
-    [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-5 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.01]
-    [&_a]:text-sky-600 dark:[&_a]:text-sky-400 [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-sky-500
-    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block [&_table]:whitespace-nowrap sm:[&_table]:whitespace-normal [&_table]:my-5
-    [&_th]:border [&_th]:border-neutral-300 dark:[&_th]:border-neutral-700 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-neutral-50 dark:[&_th]:bg-neutral-800/50
-    [&_td]:border [&_td]:border-neutral-300 dark:[&_td]:border-neutral-700 [&_td]:px-4 [&_td]:py-2
-    [&_hr]:my-8 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
+    [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-6 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005]
+    [&_a]:prose-link
+    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block [&_table]:whitespace-nowrap sm:[&_table]:whitespace-normal [&_table]:my-6
+    [&_th]:border [&_th]:border-neutral-300 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-neutral-50 dark:[&_th]:bg-neutral-900/50
+    [&_td]:border [&_td]:border-neutral-300 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2
+    [&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
 
   return (

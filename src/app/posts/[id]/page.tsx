@@ -60,6 +60,7 @@ interface Post {
   source?: string | null;
   source_url?: string | null;
   author?: string | null;
+  post_type?: string | null;
 }
 
 /* ============================================================
@@ -184,14 +185,15 @@ export default async function PostDetailPage({ params }: PostPageProps) {
   const updatedDate = formatDate(currentPost.updated_at || currentPost.created_at);
   const readTime = calculateReadTime(rawContent);
   const postTags = normalizeTags(currentPost.tags);
+  const isRssPost = currentPost.post_type === "rss" || Boolean(currentPost.source_url) || Boolean(currentPost.source);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      <main className="relative z-10 px-5 pt-24 pb-20 sm:px-8 sm:pt-28">
+      <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28">
         <div className="relative w-full">
-          {/* 左侧悬浮目录 */}
+          {/* 左侧悬浮目录（Anthony Fu 纯净文本浮动大纲） */}
           {tocList.length > 0 && (
-            <div className="fixed left-6 top-24 hidden w-56 xl:block">
+            <div className="fixed left-8 top-28 hidden w-48 xl:block z-20">
               <LazyTableOfContents
                 tocList={tocList}
                 className="!w-full !static"
@@ -199,51 +201,66 @@ export default async function PostDetailPage({ params }: PostPageProps) {
             </div>
           )}
 
-          {/* 正文居中容器 */}
-          <div className="mx-auto w-full max-w-[760px]">
-            <header className="mb-12">
-              <h1 className="text-3xl font-semibold leading-[1.18] tracking-[-0.025em] text-neutral-900 dark:text-neutral-100 sm:text-4xl lg:text-[42px]">
+          {/* 正文居中容器 (黄金 65ch 比例) */}
+          <div className="slide-enter-content mx-auto w-full max-w-[680px]">
+            {/* 返回按钮 */}
+            <div className="mb-8">
+              <Link
+                href="/posts"
+                className="inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors cursor-pointer select-none"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                <span>cd ..</span>
+              </Link>
+            </div>
+
+            {/* 页面头部：标题与极简元信息 */}
+            <header className="mb-10">
+              <h1 className="text-3xl sm:text-4xl lg:text-[38px] font-bold tracking-tight text-neutral-900 dark:text-white leading-[1.25]">
                 {currentPost.title}
               </h1>
 
-              <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-400 dark:text-neutral-500">
-                {currentPost.category && (
-                  <Link
-                    href={`/posts?category=${encodeURIComponent(currentPost.category)}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-0.5 font-medium text-neutral-700 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                  >
-                    <FolderOpen className="h-3 w-3" />
-                    <span>{currentPost.category}</span>
-                  </Link>
-                )}
-
+              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-neutral-400 dark:text-[#888888] font-normal">
                 {publishDate && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    {publishDate}
-                  </span>
+                  <span>{publishDate}</span>
                 )}
 
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  {readTime} min read
-                </span>
+                {publishDate && readTime && (
+                  <span className="opacity-40">·</span>
+                )}
+
+                <span>{readTime} min read</span>
+
+                {currentPost.category && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <Link
+                      href={`/posts?category=${encodeURIComponent(currentPost.category)}`}
+                      className="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                    >
+                      {currentPost.category}
+                    </Link>
+                  </>
+                )}
 
                 {currentPost.source_url && (
-                  <a
-                    href={currentPost.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 transition-colors hover:text-neutral-900 dark:hover:text-white"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span>{currentPost.source || "Original source"}</span>
-                  </a>
+                  <>
+                    <span className="opacity-40">·</span>
+                    <a
+                      href={currentPost.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-neutral-900 dark:hover:text-white transition-colors inline-flex items-center gap-1"
+                    >
+                      <span>{currentPost.source || "Source"}</span>
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </a>
+                  </>
                 )}
               </div>
 
               {updatedDate && updatedDate !== publishDate && (
-                <p className="mt-2 text-[11px] text-neutral-400 dark:text-neutral-600">
+                <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-600">
                   Updated {updatedDate}
                 </p>
               )}
@@ -257,15 +274,15 @@ export default async function PostDetailPage({ params }: PostPageProps) {
               />
             </article>
 
-            {/* 标签列表（带双重防冲突 key） */}
+            {/* 标签列表 */}
             {postTags.length > 0 && (
-              <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-black/[0.06] pt-6 dark:border-white/[0.08]">
-                <TagIcon className="h-3.5 w-3.5 text-neutral-400" />
+              <div className="mt-12 flex flex-wrap items-center gap-2 border-t border-neutral-200 dark:border-neutral-800/80 pt-6">
+                <TagIcon className="h-3.5 w-3.5 text-neutral-400 opacity-60" />
                 {postTags.map((tag, index) => (
                   <Link
                     key={`${tag}-${index}`}
                     href={`/posts?tag=${encodeURIComponent(tag)}`}
-                    className="rounded-md bg-neutral-50 px-2 py-1 text-xs text-neutral-600 transition-colors hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                    className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
                   >
                     #{tag}
                   </Link>
@@ -275,8 +292,8 @@ export default async function PostDetailPage({ params }: PostPageProps) {
 
             {/* 移动端底部目录 */}
             {tocList.length > 0 && (
-              <div className="mt-14 border-t border-black/[0.06] pt-8 dark:border-white/[0.08] xl:hidden">
-                <div className="mb-4 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400 dark:text-neutral-500">
+              <div className="mt-12 border-t border-neutral-200 dark:border-neutral-800/80 pt-8 xl:hidden">
+                <div className="mb-4 text-xs font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                   On this page
                 </div>
                 <LazyTableOfContents
@@ -287,11 +304,11 @@ export default async function PostDetailPage({ params }: PostPageProps) {
             )}
 
             {/* 上一篇 / 下一篇导航 */}
-            <nav className="mt-16 grid grid-cols-2 gap-4 border-t border-black/[0.06] pt-6 dark:border-white/[0.08]">
+            <nav className="mt-12 grid grid-cols-2 gap-4 border-t border-neutral-200 dark:border-neutral-800/80 pt-8">
               <div>
                 {prevPost ? (
-                  <Link href={`/posts/${prevPost.id}`} prefetch={false} className="group block">
-                    <span className="flex items-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500">
+                  <Link href={`/posts/${prevPost.id}`} className="group block">
+                    <span className="flex items-center gap-1.5 text-xs text-neutral-400 dark:text-neutral-500">
                       <ArrowLeft className="h-3 w-3" />
                       Previous
                     </span>
@@ -300,7 +317,7 @@ export default async function PostDetailPage({ params }: PostPageProps) {
                     </span>
                   </Link>
                 ) : (
-                  <span className="text-[11px] text-neutral-300 dark:text-neutral-700">
+                  <span className="text-xs text-neutral-300 dark:text-neutral-700">
                     No newer post
                   </span>
                 )}
@@ -308,8 +325,8 @@ export default async function PostDetailPage({ params }: PostPageProps) {
 
               <div className="text-right">
                 {nextPost ? (
-                  <Link href={`/posts/${nextPost.id}`} prefetch={false} className="group block">
-                    <span className="flex items-center justify-end gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500">
+                  <Link href={`/posts/${nextPost.id}`} className="group block">
+                    <span className="flex items-center justify-end gap-1.5 text-xs text-neutral-400 dark:text-neutral-500">
                       Next
                       <ArrowRight className="h-3 w-3" />
                     </span>
@@ -318,17 +335,19 @@ export default async function PostDetailPage({ params }: PostPageProps) {
                     </span>
                   </Link>
                 ) : (
-                  <span className="text-[11px] text-neutral-300 dark:text-neutral-700">
+                  <span className="text-xs text-neutral-300 dark:text-neutral-700">
                     No older post
                   </span>
                 )}
               </div>
             </nav>
 
-            {/* 评论区 */}
-            <section className="mt-16">
-              <LazyCommentSection postId={currentPost.id} />
-            </section>
+            {/* 评论区：仅原创文章开放评论，RSS 订阅聚合文章不显示 */}
+            {!isRssPost && (
+              <section className="mt-16">
+                <LazyCommentSection postId={currentPost.id} />
+              </section>
+            )}
           </div>
         </div>
       </main>

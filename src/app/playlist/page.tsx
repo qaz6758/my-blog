@@ -6,7 +6,7 @@ import { Disc3, RefreshCw } from "lucide-react";
 import { Playlist, PlaylistCategory } from "@/components/playlist/Playlist";
 import { Song } from "@/components/playlist/SongList";
 import { useMusic } from "@/components/playlist/MusicContext";
-import PlaylistLoading from "./loading";
+import { Footer } from "@/components/layout/Footer";
 
 export default function PlaylistPage() {
   const [playlists, setPlaylists] = useState<PlaylistCategory[]>([]);
@@ -28,7 +28,7 @@ export default function PlaylistPage() {
         setErrorMsg(json.error || "未能获取到歌单数据");
       }
     } catch {
-      setErrorMsg("网络请求异常，请检查控制台");
+      setErrorMsg("网络请求异常，请稍后重试");
     } finally {
       setIsLoading(false);
     }
@@ -50,13 +50,16 @@ export default function PlaylistPage() {
   };
 
   if (isLoading) {
-    return <PlaylistLoading />;
+    return (
+      <div className="relative flex min-h-screen w-full flex-col justify-between bg-transparent px-6 sm:px-10 lg:px-16 pt-26 pb-20">
+        <main className="mx-auto w-full max-w-[1800px] flex-1" />
+      </div>
+    );
   }
 
   return (
-    /* 移除多余的 pb-20，保持紧凑自然 */
-    <div className="relative min-h-screen w-full bg-transparent px-4 pt-20 pb-4 transition-colors duration-300 sm:px-8 lg:px-10 xl:px-14">
-      <main className="mx-auto w-full max-w-[1800px]">
+    <div className="relative flex min-h-screen w-full flex-col justify-between bg-transparent px-6 sm:px-10 lg:px-16 pt-20 pb-20 antialiased">
+      <main className="slide-enter-content mx-auto w-full max-w-[1800px] flex-1">
         {errorMsg ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-500">
@@ -87,6 +90,10 @@ export default function PlaylistPage() {
           />
         )}
       </main>
+
+      <div className="mt-20 w-full">
+        <Footer />
+      </div>
     </div>
   );
 }

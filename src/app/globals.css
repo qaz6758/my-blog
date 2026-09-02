@@ -41,11 +41,62 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+::selection {
+  background: rgba(136, 136, 136, 0.25);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(136, 136, 136, 0.4);
+}
+
 /*
  * ============================================================
  * Root Theme (中性黑灰体系)
  * ============================================================
  */
+
+/*
+ * ============================================================
+ * Anthony Fu 同款超平滑发光文本链接 (Prose Link)
+ * ============================================================
+ */
+
+.prose-link {
+  color: #525252;
+  border-bottom: 1px solid rgba(120, 120, 120, 0.4);
+  padding-bottom: 2px;
+  text-decoration: none !important;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+.dark .prose-link {
+  color: #a3a3a3;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.prose-link:hover {
+  color: #000000 !important;
+  border-bottom-color: #000000 !important;
+}
+
+.dark .prose-link:hover {
+  color: #ffffff !important;
+  border-bottom-color: #ffffff !important;
+}
 
 :root {
   color-scheme: light;
@@ -74,12 +125,12 @@
 html.dark {
   color-scheme: dark;
 
-  --background: #111111;
+  --background: #050505;
   --foreground: #f5f5f5;
 
-  --surface: #181818;
-  --surface-secondary: #1c1c1c;
-  --surface-tertiary: #202020;
+  --surface: #0c0c0c;
+  --surface-secondary: #141414;
+  --surface-tertiary: #1c1c1c;
 
   --border: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.11);
@@ -151,9 +202,18 @@ body {
  * ============================================================
  */
 
-#__next,
-body > div {
+#__next {
   min-height: 100%;
+}
+
+#top-progress-bar,
+#top-progress-bar > div {
+  min-height: 0 !important;
+  max-height: 2px !important;
+  height: 2px !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  overflow: hidden !important;
 }
 
 /*
@@ -242,21 +302,7 @@ html.dark :focus-visible {
   outline-color: rgba(255, 255, 255, 0.35);
 }
 
-/*
- * ============================================================
- * Theme View Transition
- * ============================================================
- */
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none !important;
-  mix-blend-mode: normal !important;
-}
-
-::view-transition-new(root) {
-  z-index: 9999;
-}
 
 /*
  * ============================================================
@@ -313,38 +359,56 @@ html.dark :focus-visible {
 
 /*
  * ============================================================
- * SlideEnter Animation (Safe & Isolated)
+ * Anthony Fu 原版 SlideEnter 级联级联算法 (UnoCSS / antfu.me 同款)
  * ============================================================
  */
 
-.slide-enter {
-  --slide-enter-delay: 0ms;
-  --slide-enter-offset: 8px;
-  --slide-enter-duration: 400ms;
-
-  animation-name: slide-enter;
-  animation-duration: var(--slide-enter-duration);
-  animation-delay: var(--slide-enter-delay);
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  animation-fill-mode: both;
-}
-
 @keyframes slide-enter {
-  from {
+  0% {
     opacity: 0;
-    transform: translate3d(0, var(--slide-enter-offset), 0);
+    transform: translateY(10px);
   }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .slide-enter {
-    animation: none;
+  100% {
     opacity: 1;
     transform: none;
+  }
+}
+
+
+
+.slide-enter-content > * {
+  --enter-stage: 0;
+  animation: slide-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both 1;
+  animation-delay: calc(var(--enter-stage) * 50ms);
+}
+
+.slide-enter-content > *:nth-child(1) { --enter-stage: 1; }
+.slide-enter-content > *:nth-child(2) { --enter-stage: 2; }
+.slide-enter-content > *:nth-child(3) { --enter-stage: 3; }
+.slide-enter-content > *:nth-child(4) { --enter-stage: 4; }
+.slide-enter-content > *:nth-child(5) { --enter-stage: 5; }
+.slide-enter-content > *:nth-child(6) { --enter-stage: 6; }
+.slide-enter-content > *:nth-child(7) { --enter-stage: 7; }
+.slide-enter-content > *:nth-child(8) { --enter-stage: 8; }
+.slide-enter-content > *:nth-child(9) { --enter-stage: 9; }
+.slide-enter-content > *:nth-child(10) { --enter-stage: 10; }
+.slide-enter-content > *:nth-child(11) { --enter-stage: 11; }
+.slide-enter-content > *:nth-child(12) { --enter-stage: 12; }
+.slide-enter-content > *:nth-child(13) { --enter-stage: 13; }
+.slide-enter-content > *:nth-child(14) { --enter-stage: 14; }
+.slide-enter-content > *:nth-child(15) { --enter-stage: 15; }
+.slide-enter-content > *:nth-child(16) { --enter-stage: 16; }
+.slide-enter-content > *:nth-child(17) { --enter-stage: 17; }
+.slide-enter-content > *:nth-child(18) { --enter-stage: 18; }
+.slide-enter-content > *:nth-child(19) { --enter-stage: 19; }
+.slide-enter-content > *:nth-child(20) { --enter-stage: 20; }
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-enter,
+  .slide-enter-content > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
@@ -402,4 +466,58 @@ html.dark :focus-visible {
   /* 夜间模式保持原有的深色背景，仅保留撕裂边缘 */
   background-color: #18181a !important;
   background-image: none !important;
+}
+
+
+
+/*
+ * ============================================================
+ * 原生 View Transitions API (Anthony Fu 原版日光波纹过渡)
+ * ============================================================
+ */
+
+/* 彻底禁用浏览器跨页面跳转触发默认 View Transition（杜绝任何路由跳转闪烁） */
+@view-transition {
+  navigation: none;
+}
+
+::view-transition {
+  background: transparent !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/*
+ * ============================================================
+ * 顶部极简进度指示条流动动画 (Top Progress Bar)
+ * ============================================================
+ */
+
+@keyframes top-progress-indeterminate {
+  0% {
+    transform: translateX(-100%) scaleX(0.2);
+  }
+  50% {
+    transform: translateX(0%) scaleX(0.65);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.2);
+  }
+}
+
+.animate-top-progress {
+  transform-origin: 0% 50%;
+  animation: top-progress-indeterminate 1.4s infinite cubic-bezier(0.65, 0, 0.35, 1);
 }

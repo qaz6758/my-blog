@@ -1,5 +1,5 @@
 // lib/utils.ts
-// 全站公共工具函数库
+// 全站高内聚、零依赖公共工具函数库
 
 /**
  * 将日期字符串格式化为可读形式。
@@ -20,6 +20,45 @@ export function formatDate(
     month: "short",
     day: "numeric",
   });
+}
+
+/**
+ * 友好相对时间转换（带异常安全处理）
+ *
+ * @param dateString - ISO 日期字符串
+ * @returns 例：`刚刚`、`5 分钟前`、`2 小时前`、`3 天前`
+ */
+export function formatRelativeTime(dateString?: string | null): string {
+  if (!dateString) return "";
+  try {
+    const timestamp = new Date(dateString).getTime();
+    if (Number.isNaN(timestamp)) return "";
+
+    const diff = (Date.now() - timestamp) / 1000;
+    if (diff < 60) return "刚刚";
+    if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)} 天前`;
+
+    return new Date(dateString).toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * 安全校验网址链接，防止 javascript: 伪协议 XSS
+ */
+export function sanitizeWebsiteUrl(url?: string | null): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(trimmed)) return `https://${trimmed}`;
+  return null;
 }
 
 /**
@@ -85,17 +124,17 @@ export function normalizeTags(tags?: string[] | string | null): string[] {
 
 /**
  * 根据文章内容字符数估算阅读时长（分钟）。
- * 以 350 字/分钟为基准（中文混排场景合理值）。
+ * 优化单次复合正则匹配，减少大文本中间垃圾回收分配开销。
  *
  * @param content - 原始 HTML 或 Markdown 内容
  * @returns 最少 1 分钟的阅读时长
  */
-export function calculateReadTime(content: string): number {
-  const plainText = content
-    .replace(/<[^>]*>/g, "")
-    .replace(/[#>*_`~()[\]\\]/g, "")
+export function calculateReadTime(content?: string | null): number {
+  if (!content) return 1;
+  const plainLength = content
+    .replace(/<[^>]*>|[#>*_`~()[\]\\]/g, "")
     .replace(/\s+/g, " ")
-    .trim();
-  if (!plainText) return 1;
-  return Math.max(1, Math.ceil(plainText.length / 350));
+    .trim().length;
+  if (!plainLength) return 1;
+  return Math.max(1, Math.ceil(plainLength / 350));
 }

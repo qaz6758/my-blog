@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FolderOpen, Tag as TagIcon, X } from "lucide-react";
 import { SlideEnter } from "@/components/layout/SlideEnter";
-import { formatDate } from "@/lib/utils";
+import { formatDate, calculateReadTime } from "@/lib/utils";
 
 export interface PostItem {
   id: string | number;
@@ -31,15 +31,7 @@ function getYear(dateString: string) {
 function getReadTime(post: PostItem): number | null {
   const raw = post.content || post.summary || "";
   if (!raw.trim()) return null;
-
-  const text = raw
-    .replace(/<[^>]*>/g, "")
-    .replace(/[#>*_`~()[\]\\]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!text.length) return null;
-  return Math.max(1, Math.ceil(text.length / 350));
+  return calculateReadTime(raw);
 }
 
 export function PostsListClient({
@@ -126,34 +118,21 @@ export function PostsListClient({
 
   return (
     <>
-      {/* 分类 Tab 栏：精致胶囊与浮动平滑背景 */}
-      <SlideEnter stage={2} className="mb-12">
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-black/[0.06] pb-4 dark:border-white/[0.08]">
+      {/* 分类 Tab 栏：极简纯文字（灰转白过渡） */}
+      <SlideEnter stage={2} className="mb-10">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-b border-black/[0.06] pb-3.5 dark:border-white/[0.08]">
           {/* 全部 Tab */}
           <button
             type="button"
             onClick={() => handleCategoryChange("")}
-            className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer select-none ${
+            className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity duration-200 cursor-pointer select-none font-normal text-neutral-900 dark:text-white ${
               !activeCategory
-                ? "text-neutral-950 dark:text-white font-semibold"
-                : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                ? "opacity-100"
+                : "opacity-55 hover:opacity-100"
             }`}
           >
-            {!activeCategory && (
-              <motion.div
-                layoutId="activeTabPill"
-                className="absolute inset-0 rounded-lg bg-neutral-200/70 shadow-sm dark:bg-white/[0.12]"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              />
-            )}
-            <span className="relative z-10">全部</span>
-            <span
-              className={`relative z-10 font-mono text-[10px] tabular-nums ${
-                !activeCategory
-                  ? "text-neutral-700 dark:text-neutral-300"
-                  : "text-neutral-400 dark:text-neutral-500"
-              }`}
-            >
+            <span>全部</span>
+            <span className="font-mono text-[11px] tabular-nums opacity-60">
               {initialPosts.length}
             </span>
           </button>
@@ -168,28 +147,15 @@ export function PostsListClient({
                 key={cat}
                 type="button"
                 onClick={() => handleCategoryChange(cat)}
-                className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer select-none ${
+                className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity duration-200 cursor-pointer select-none font-normal text-neutral-900 dark:text-white ${
                   isCurrent
-                    ? "text-neutral-950 dark:text-white font-semibold"
-                    : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                    ? "opacity-100"
+                    : "opacity-55 hover:opacity-100"
                 }`}
               >
-                {isCurrent && (
-                  <motion.div
-                    layoutId="activeTabPill"
-                    className="absolute inset-0 rounded-lg bg-neutral-200/70 shadow-sm dark:bg-white/[0.12]"
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
-                <FolderOpen className="relative z-10 h-3 w-3 opacity-60" />
-                <span className="relative z-10">{cat}</span>
-                <span
-                  className={`relative z-10 font-mono text-[10px] tabular-nums ${
-                    isCurrent
-                      ? "text-neutral-700 dark:text-neutral-300"
-                      : "text-neutral-400 dark:text-neutral-500"
-                  }`}
-                >
+                <FolderOpen className={`h-3.5 w-3.5 transition-opacity duration-200 ${isCurrent ? "opacity-90" : "opacity-50 group-hover:opacity-100"}`} />
+                <span>{cat}</span>
+                <span className="font-mono text-[11px] tabular-nums opacity-60">
                   {count}
                 </span>
               </button>
@@ -201,7 +167,7 @@ export function PostsListClient({
             <button
               type="button"
               onClick={handleClearTag}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500/10 px-2.5 py-1.5 text-xs font-medium text-sky-600 transition-colors hover:bg-sky-500/20 dark:bg-sky-400/10 dark:text-sky-400 dark:hover:bg-sky-400/20"
+              className="inline-flex items-center gap-1.5 rounded border border-black/[0.08] px-2 py-0.5 text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950 dark:border-white/[0.1] dark:text-neutral-300 dark:hover:text-white cursor-pointer select-none"
             >
               <TagIcon className="h-3 w-3" />
               <span>#{activeTag}</span>
@@ -267,19 +233,16 @@ export function PostsListClient({
                     >
                       <Link
                         href={`/posts/${post.id}`}
-                        prefetch={false}
                         className="
                           group
-                          -mx-3
                           flex
                           items-baseline
                           justify-between
                           gap-4
-                          rounded-lg
-                          px-3
                           py-2.5
-                          hover:bg-black/[0.03]
-                          dark:hover:bg-white/[0.04]
+                          transition-all
+                          duration-200
+                          cursor-pointer
                         "
                       >
                         <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
@@ -288,11 +251,14 @@ export function PostsListClient({
                               text-[15px]
                               font-normal
                               leading-snug
-                              text-neutral-700
+                              text-neutral-900
+                              dark:text-white
+                              opacity-65
+                              group-hover:opacity-100
+                              transition-opacity
+                              duration-200
+                              ease-out
                               antialiased
-                              group-hover:text-neutral-950
-                              dark:text-neutral-300
-                              dark:group-hover:text-white
                               sm:text-[16px]
                               sm:leading-relaxed
                             "
@@ -301,19 +267,19 @@ export function PostsListClient({
                           </span>
 
                           {post.category && !activeCategory && (
-                            <span className="hidden shrink-0 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500 group-hover:text-neutral-700 dark:bg-neutral-800/80 dark:text-neutral-400 dark:group-hover:text-neutral-300 sm:inline">
+                            <span className="hidden shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-900 dark:text-white opacity-45 group-hover:opacity-80 transition-opacity duration-200 sm:inline">
                               {post.category}
                             </span>
                           )}
                         </div>
 
-                        <div className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-400 dark:text-neutral-500">
+                        <div className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-900 dark:text-white opacity-40 group-hover:opacity-75 transition-opacity duration-200 tabular-nums">
                           {readTime && (
-                            <span className="hidden opacity-60 tabular-nums sm:inline">
+                            <span className="hidden sm:inline">
                               {readTime}m
                             </span>
                           )}
-                          <span className="tabular-nums opacity-75">
+                          <span>
                             {formatDate(date, false)}
                           </span>
                         </div>

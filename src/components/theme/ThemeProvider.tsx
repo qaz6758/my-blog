@@ -75,7 +75,13 @@ export function ThemeProvider({
     }
 
     root.classList.add("theme-smooth-transition");
-    root.classList.toggle("dark", newTheme === "dark");
+    if (newTheme === "dark") {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    } else {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    }
     setThemeState(newTheme);
     saveTheme(newTheme);
 
@@ -89,7 +95,14 @@ export function ThemeProvider({
   const applyThemeDirect = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     if (typeof document !== "undefined") {
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
+      const root = document.documentElement;
+      if (newTheme === "dark") {
+        root.classList.add("dark");
+        root.classList.remove("light");
+      } else {
+        root.classList.remove("dark");
+        root.classList.add("light");
+      }
       saveTheme(newTheme);
     }
   }, []);
@@ -156,7 +169,7 @@ export function ThemeProvider({
 
       transition.ready
         .then(() => {
-          const anim = document.documentElement.animate(
+          document.documentElement.animate(
             {
               clipPath: [
                 `circle(0px at ${x}px ${y}px)`,
@@ -169,19 +182,13 @@ export function ThemeProvider({
               pseudoElement: "::view-transition-new(root)",
             }
           );
-
-          anim.onfinish = () => {
-            isTransitioningRef.current = false;
-          };
         })
         .catch(() => {
-          isTransitioningRef.current = false;
           applyThemeDirect(nextTheme);
+        })
+        .finally(() => {
+          isTransitioningRef.current = false;
         });
-
-      transition.finished.finally(() => {
-        isTransitioningRef.current = false;
-      });
     },
     [theme, applyThemeDirect, applyThemeWithSmoothTransition]
   );
