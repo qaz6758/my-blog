@@ -1,4 +1,5 @@
-import Parser from "rss-parser";
+// lib/rss.ts
+import { XMLParser } from "fast-xml-parser";
 import * as cheerio from "cheerio";
 
 export interface RSSItem {
@@ -14,27 +15,12 @@ export interface RSSItem {
   category: string;
 }
 
-type CustomItem = {
-  description?: string;
-  contentEncoded?: string;
-  "content:encoded"?: string;
-  media?: { $?: { url?: string } };
-  "media:content"?: { $?: { url?: string } };
-  "media:thumbnail"?: { $?: { url?: string } };
-  thumbnail?: { $?: { url?: string } } | string;
-  creator?: string;
-  author?: string;
-};
-
-const parser = new Parser<Record<string, unknown>, CustomItem>({
-  customFields: {
-    item: [
-      ["media:content", "media"],
-      ["media:thumbnail", "thumbnail"],
-      ["content:encoded", "contentEncoded"],
-      ["description", "description"],
-    ],
-  },
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+  textNodeName: "#text",
+  parseAttributeValue: true,
+  trimValues: true,
 });
 
 /**
@@ -43,10 +29,8 @@ const parser = new Parser<Record<string, unknown>, CustomItem>({
 function parseHtmlContent(html: string, baseUrl?: string) {
   if (!html) return { coverImage: null, cleanSummary: "" };
 
-  // 单次加载 DOM 树，节约内存开销
   const $ = cheerio.load(html);
 
-  // 1. 提取首张图片（兼容懒加载，并自动转换相对路径）
   let coverImage: string | null = null;
   const firstImg = $("img").first();
 
@@ -65,7 +49,6 @@ function parseHtmlContent(html: string, baseUrl?: string) {
     }
   }
 
-  // 2. 移除噪音标签，提取纯净摘要
   $("script, style, noscript, iframe, svg, pre, code").remove();
   const cleanSummary = $.text().replace(/\s+/g, " ").trim().slice(0, 180);
 
@@ -107,31 +90,46 @@ export async function fetchRSS(
     }
 
     const xmlText = await response.text();
-    const feed = await parser.parseString(xmlText);
+    const parsed = xmlParser.parse(xmlText);
 
-    return (feed.items || []).map((item, index) => {
+    // 兼容 RSS 2.0 (channel.item) 与 Atom (feed.entry)
+    const channel = parsed?.rss?.channel || parsed?.channel;
+    const feed = parsed?.feed;
+    const rawItems = channel?.item || feed?.entry || [];
+    const itemsArray = Array.isArray(rawItems) ? rawItems : [rawItems];
+    const feedTitle = channel?.title || feed?.title || "RSS";
+
+    return itemsArray.map((item: any, index: number) => {
+      const title =
+        typeof item.title === "object"
+          ? item.title["#text"] || ""
+          : item.title || "无标题文章";
+
+      let link = "#";
+      if (typeof item.link === "string") {
+        link = item.link;
+      } else if (item.link?.["@_href"]) {
+        link = item.link["@_href"];
+      } else if (item.link?.[0]?.["@_href"]) {
+        link = item.link[0]["@_href"];
+      }
+
       const rawContent =
-        item.contentEncoded ||
         item["content:encoded"] ||
         item.content ||
         item.description ||
+        item.summary ||
         "";
 
-      // 1. 优先提取 Feed 原生定义的封面图
       let image: string | null =
-        item.enclosure?.url ||
-        item.media?.$?.url ||
-        item["media:content"]?.$?.url ||
-        item["media:thumbnail"]?.$?.url ||
-        (typeof item.thumbnail === "string"
-          ? item.thumbnail
-          : item.thumbnail?.$?.url) ||
+        item.enclosure?.["@_url"] ||
+        item["media:content"]?.["@_url"] ||
+        item["media:thumbnail"]?.["@_url"] ||
         null;
 
-      // 2. 单次 Cheerio 解析正文提取图片与纯净摘要
       const { coverImage: extractedImage, cleanSummary } = parseHtmlContent(
-        rawContent,
-        item.link || feedUrl
+        typeof rawContent === "string" ? rawContent : "",
+        link || feedUrl
       );
 
       if (!image) {
@@ -139,28 +137,32 @@ export async function fetchRSS(
       }
 
       const description =
-        item.contentSnippet?.replace(/\s+/g, " ").trim().slice(0, 180) ||
         cleanSummary ||
-        "";
+        (typeof item.description === "string"
+          ? item.description.slice(0, 180)
+          : "");
 
-      const title = item.title?.trim() || "无标题文章";
-      const pubDate = normalizeDate(item.isoDate || item.pubDate);
-      const author = item.creator || item.author || null;
-      const finalSource = sourceName || feed.title || "RSS";
-      const category =
-        (item.categories && item.categories[0]) || finalSource || "Blog";
+      const pubDate = normalizeDate(
+        item.pubDate || item.published || item.updated || item.isoDate
+      );
+      const author =
+        item["dc:creator"] ||
+        item.author?.name ||
+        (typeof item.author === "string" ? item.author : null);
+      const finalSource = sourceName || feedTitle;
+      const category = item.category || finalSource || "Blog";
 
       return {
-        id: item.guid || item.link || `${finalSource}-${index}`,
-        title,
-        link: item.link || "#",
+        id: item.guid || link || `${finalSource}-${index}`,
+        title: title.trim(),
+        link: link || "#",
         description,
-        content: rawContent,
+        content: typeof rawContent === "string" ? rawContent : "",
         pubDate,
         author,
         image,
         source: finalSource,
-        category,
+        category: typeof category === "string" ? category : finalSource,
       };
     });
   } catch (error) {
