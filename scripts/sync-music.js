@@ -243,19 +243,25 @@ async function syncSinglePlaylist(playlistId, isAutoMode, forcedSyncMode) {
     console.warn("⚠️ 音频解析提示:", e.message);
   }
 
-  const existingTitles = new Set();
-  if (syncMode === "1") {
-    existingSongPages.forEach(p => {
-      const t = p.properties?.Title?.title?.[0]?.plain_text?.trim() || "";
-      const a = p.properties?.Artist?.rich_text?.[0]?.plain_text?.trim() || "";
-      if (t) {
-        existingTitles.add(`${a}_${t}`.toLowerCase());
-        existingTitles.add(t.toLowerCase());
-      }
-    });
-  }
+  const existingSongMap = new Map();
+  existingSongPages.forEach((p) => {
+    const t = p.properties?.Title?.title?.[0]?.plain_text?.trim() || "";
+    const a = p.properties?.Artist?.rich_text?.[0]?.plain_text?.trim() || "";
+    const audioUrl = p.properties?.AudioUrl?.url || "";
+    if (t) {
+      const info = { pageId: p.id, audioUrl };
+      existingSongMap.set(`${a}_${t}`.toLowerCase(), info);
+      existingSongMap.set(t.toLowerCase(), info);
+    }
+  });
+
+  const isPermanentR2 = (url) => {
+    if (!url) return false;
+    return url.includes("r2.dev") || url.includes(R2_PUBLIC_URL);
+  };
 
   let newSongsAdded = 0;
+  let repairedCount = 0;
   let skippedCount = 0;
 
   for (let idx = 0; idx < tracks.length; idx++) {
@@ -272,13 +278,31 @@ async function syncSinglePlaylist(playlistId, isAutoMode, forcedSyncMode) {
     const secs = totalSec % 60;
     const durationStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-    if (syncMode === "1" && (existingTitles.has(`${artist}_${title}`.toLowerCase()) || existingTitles.has(title.toLowerCase()))) {
+    const matchKey = `${artist}_${title}`.toLowerCase();
+    const existingEntry = existingSongMap.get(matchKey) || existingSongMap.get(title.toLowerCase());
+    const r2Key = `songs/${s.id}.mp3`;
+
+    // 智能检查：Notion 中已有该歌曲时，检查其音频直链是否是永久有效的 R2 CDN 直链
+    let needsAudioUpload = false;
+    let existingPageId = null;
+
+    if (existingEntry) {
+      existingPageId = existingEntry.pageId;
+      // 如果现有链接不是 R2 永久直链（比如之前旧的网易云临时直链，已过期失效），或者覆盖模式，必须补传修复！
+      if (syncMode === "2" || !isPermanentR2(existingEntry.audioUrl)) {
+        needsAudioUpload = true;
+      }
+    } else {
+      needsAudioUpload = true;
+    }
+
+    // 增量模式：只有既存在记录、且音频直链也是有效的 R2 永久链接时，才真正跳过！
+    if (syncMode === "1" && existingEntry && !needsAudioUpload) {
       skippedCount++;
       continue;
     }
 
     let finalPermanentUrl = "";
-    const r2Key = `songs/${s.id}.mp3`;
 
     const alreadyOnR2 = await checkR2Exists(r2Key);
     if (alreadyOnR2) {
@@ -299,6 +323,24 @@ async function syncSinglePlaylist(playlistId, isAutoMode, forcedSyncMode) {
       } else {
         finalPermanentUrl = `https://api.injahow.cn/meting/?server=netease&type=url&id=${s.id}`;
       }
+    }
+
+    // 如果 Notion 里已经有这条记录（只是旧直链失效或未存 R2），就地修复更新，不产生任何重复数据！
+    if (existingPageId && syncMode === "1") {
+      try {
+        await requestNotion(`https://api.notion.com/v1/pages/${existingPageId}`, {
+          properties: {
+            AudioUrl: { url: finalPermanentUrl },
+            Cover: { url: coverUrl },
+          },
+        }, "PATCH");
+        repairedCount++;
+        console.log(`  🛠️ [已修复补传 R2 永久直链]: ${artist} - ${title} (${durationStr})`);
+        await new Promise((r) => setTimeout(r, 120));
+      } catch (e) {
+        console.error(`  ❌ Notion 修复更新失败: ${e.message}`);
+      }
+      continue;
     }
 
     const songPayload = {
@@ -325,7 +367,7 @@ async function syncSinglePlaylist(playlistId, isAutoMode, forcedSyncMode) {
     }
   }
 
-  console.log(`\n🎉 歌单《${playlistTitle}》同步完成！新增: ${newSongsAdded} 首，跳过已有: ${skippedCount} 首。`);
+  console.log(`\n🎉 歌单《${playlistTitle}》同步完成！新增: ${newSongsAdded} 首，修复补传: ${repairedCount} 首，跳过已有: ${skippedCount} 首。`);
 }
 
 async function main() {
