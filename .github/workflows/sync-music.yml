@@ -1,0 +1,44 @@
+name: 🎵 Auto Sync NetEase Music to R2
+
+on:
+  schedule:
+    # 每天北京时间凌晨 04:00 (UTC 20:00) 自动静默检测并同步网易云新歌
+    - cron: '0 20 * * *'
+  workflow_dispatch:
+    # 支持在 GitHub 网页端或手机 GitHub App 一键手动触发
+    inputs:
+      playlist_id:
+        description: '指定网易云歌单 ID (留空默认同步默认歌单)'
+        required: false
+        default: ''
+
+jobs:
+  sync-music:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出博客仓库代码
+        uses: actions/checkout@v4
+
+      - name: ⚙️ 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 安装必要依赖
+        run: npm ci --legacy-peer-deps
+
+      - name: 🚀 执行网易云音乐 VIP 高保真解析与 R2 归档
+        run: node scripts/sync-music.js --auto ${{ github.event.inputs.playlist_id }}
+        env:
+          CI: true
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_PLAYLIST_DB_ID: ${{ secrets.NOTION_PLAYLIST_DB_ID }}
+          NOTION_SONGS_DB_ID: ${{ secrets.NOTION_SONGS_DB_ID }}
+          NETEASE_COOKIE: ${{ secrets.NETEASE_COOKIE }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          DEFAULT_PLAYLIST_ID: ${{ secrets.DEFAULT_PLAYLIST_ID }}
