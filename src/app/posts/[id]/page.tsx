@@ -38,7 +38,7 @@ export const revalidate = 5;
 export async function generateStaticParams() {
   const [notionPosts, { data: supabasePosts }] = await Promise.all([
     fetchPostsFromNotion(),
-    supabase.from("posts").select("id").limit(100),
+    supabase.from("posts").select("id").limit(1000),
   ]);
 
   const notionParams = (notionPosts || []).map((p) => ({ id: String(p.id) }));
