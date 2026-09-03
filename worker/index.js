@@ -1,0 +1,348 @@
+/**
+ * Cloudflare Worker: Notion Realtime API Gateway
+ * 专为 VinceOu's Blog 打造的免部署实时 Notion 数据网关
+ * 
+ * 作用：
+ * 1. 安全携带 NOTION_API_KEY，消除前端密钥泄露风险；
+ * 2. 完美解决跨域 (CORS) 问题；
+ * 3. 毫秒级边缘缓存 (30s 缓存，写完 Notion 最多 30 秒自动全网更新)；
+ * 4. 彻底终结前端手动构建与部署！
+ */
+
+const NOTION_VERSION = "2022-06-28";
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export default {
+  async fetch(request, env, ctx) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: CORS_HEADERS });
+    }
+
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
+    try {
+      // 1. 获取文章列表: GET /api/posts
+      if (pathname === "/api/posts" || pathname === "/posts") {
+        return await handleGetPosts(env);
+      }
+
+      // 2. 获取文章详情: GET /api/posts/:id
+      if (pathname.startsWith("/api/posts/") || pathname.startsWith("/posts/")) {
+        const id = pathname.replace(/^\/(api\/)?posts\//, "");
+        return await handleGetPostDetail(id, env);
+      }
+
+      // 3. 默认健康检查
+      return jsonResponse({
+        status: "ok",
+        message: "VinceOu Blog Notion Realtime API Gateway is running!",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      return jsonResponse(
+        { success: false, error: err.message || "Internal Server Error" },
+        500
+      );
+    }
+  },
+};
+
+/* ========================================================================= */
+/* 路由处理器                                                                */
+/* ========================================================================= */
+
+async function handleGetPosts(env) {
+  const postsDbId = env.NOTION_POSTS_DB_ID || "958002305c948374b96f0187a87dafcf";
+  const apiKey = env.NOTION_API_KEY;
+
+  if (!apiKey || !postsDbId) {
+    return jsonResponse({ success: false, error: "Missing Notion credentials in Worker env" }, 500);
+  }
+
+  const cleanDbId = postsDbId.replace(/-/g, "").trim();
+  const res = await fetch(`https://api.notion.com/v1/databases/${cleanDbId}/query`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Notion-Version": NOTION_VERSION,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ page_size: 100 }),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    return jsonResponse({ success: false, error: errData.message || res.statusText }, res.status);
+  }
+
+  const data = await res.json();
+  const items = [];
+
+  for (const page of data.results || []) {
+    const p = page.properties;
+    const status = getStatus(findProp(p, "状态", "Status", "State"));
+
+    // 发布判定：只要不是归档或废弃，默认均允许展示（支持已发布、准备发布、编辑、起草、创意等）
+    const isArchived =
+      status.includes("归档") ||
+      status.includes("废弃") ||
+      status.includes("Trash") ||
+      status.includes("Archived");
+
+    if (isArchived) {
+      continue;
+    }
+
+    const rawDate = getDate(findProp(p, "发布日期", "Date", "日期", "时间")) || page.created_time;
+    const title = getText(findProp(p, "文章标题", "Title", "Name", "标题")) || "未命名文章";
+    const category = getSelect(findProp(p, "主题/分类", "Category", "分类", "主题")) || "技术";
+    const tagsList = getMultiSelect(findProp(p, "主要SEO关键词", "Tags", "Tag", "标签", "关键词"));
+    const seoKeywords = getText(findProp(p, "主要SEO关键词", "Keywords", "摘要"));
+    const splitKeywords = seoKeywords
+      ? seoKeywords.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean)
+      : [];
+    const finalTags = Array.from(new Set([...tagsList, ...splitKeywords]));
+    const summary = getText(findProp(p, "Summary", "Description", "简介", "摘要")) || seoKeywords || "";
+
+    items.push({
+      id: page.id,
+      title,
+      created_at: new Date(rawDate).toISOString(),
+      published_at: new Date(rawDate).toISOString(),
+      summary,
+      category,
+      tags: finalTags,
+      source: "Notion 原创",
+      source_url: getUrl(findProp(p, "发布网址", "Url", "Link")) || undefined,
+      post_type: "original",
+      status: status || "已发布",
+    });
+  }
+
+  // 边缘缓存 20 秒，平滑刷新 60 秒
+  return jsonResponse({ success: true, data: items }, 200, {
+    "Cache-Control": "public, max-age=20, s-maxage=30, stale-while-revalidate=60",
+  });
+}
+
+async function handleGetPostDetail(pageId, env) {
+  const apiKey = env.NOTION_API_KEY;
+  if (!apiKey) {
+    return jsonResponse({ success: false, error: "Missing NOTION_API_KEY in Worker env" }, 500);
+  }
+
+  const cleanId = pageId.replace(/-/g, "").trim();
+  const [pageRes, blocksRes] = await Promise.all([
+    fetch(`https://api.notion.com/v1/pages/${cleanId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Notion-Version": NOTION_VERSION,
+      },
+    }),
+    fetch(`https://api.notion.com/v1/blocks/${cleanId}/children?page_size=100`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Notion-Version": NOTION_VERSION,
+      },
+    }),
+  ]);
+
+  if (!pageRes.ok) {
+    return jsonResponse({ success: false, error: "Post not found" }, 404);
+  }
+
+  const page = await pageRes.json();
+  const blocksData = blocksRes.ok ? await blocksRes.json() : { results: [] };
+  const p = page.properties;
+
+  const rawDate = getDate(findProp(p, "发布日期", "Date", "日期", "时间")) || page.created_time;
+  const title = getText(findProp(p, "文章标题", "Title", "Name", "标题")) || "未命名文章";
+  const category = getSelect(findProp(p, "主题/分类", "Category", "分类", "主题")) || "技术";
+  const tagsList = getMultiSelect(findProp(p, "主要SEO关键词", "Tags", "Tag", "标签", "关键词"));
+  const seoKeywords = getText(findProp(p, "主要SEO关键词", "Keywords", "摘要"));
+  const splitKeywords = seoKeywords
+    ? seoKeywords.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean)
+    : [];
+  const finalTags = Array.from(new Set([...tagsList, ...splitKeywords]));
+  const summary = getText(findProp(p, "Summary", "Description", "简介", "摘要")) || seoKeywords || "";
+  const status = getStatus(findProp(p, "状态", "Status", "State"));
+  const markdownContent = convertBlocksToMarkdown(blocksData.results || []);
+
+  const postDetail = {
+    id: page.id,
+    title,
+    created_at: new Date(rawDate).toISOString(),
+    published_at: new Date(rawDate).toISOString(),
+    summary,
+    category,
+    tags: finalTags,
+    source: "Notion 原创",
+    source_url: getUrl(findProp(p, "发布网址", "Url", "Link")) || undefined,
+    post_type: "original",
+    status: status || "已发布",
+    content: markdownContent,
+  };
+
+  return jsonResponse({ success: true, data: postDetail }, 200, {
+    "Cache-Control": "public, max-age=20, s-maxage=30, stale-while-revalidate=60",
+  });
+}
+
+/* ========================================================================= */
+/* Notion 数据解析工具函数                                                   */
+/* ========================================================================= */
+
+function findProp(props, ...keys) {
+  if (!props) return null;
+  const lowerKeys = keys.map((k) => k.toLowerCase().replace(/[\s_-]/g, ""));
+  for (const propKey of Object.keys(props)) {
+    const cleanPropKey = propKey.toLowerCase().replace(/[\s_-]/g, "");
+    if (lowerKeys.includes(cleanPropKey)) {
+      return props[propKey];
+    }
+  }
+  return null;
+}
+
+function getText(prop) {
+  if (!prop) return "";
+  if (prop.type === "title") return prop.title?.[0]?.plain_text || "";
+  if (prop.type === "rich_text") return prop.rich_text?.[0]?.plain_text || "";
+  return "";
+}
+
+function getUrl(prop) {
+  if (!prop) return "";
+  if (prop.type === "url") return prop.url || "";
+  if (prop.type === "files") return prop.files?.[0]?.file?.url || prop.files?.[0]?.external?.url || "";
+  return "";
+}
+
+function getSelect(prop) {
+  if (!prop) return "";
+  if (prop.type === "select") return prop.select?.name || "";
+  return "";
+}
+
+function getMultiSelect(prop) {
+  if (!prop) return [];
+  if (prop.type === "multi_select") return (prop.multi_select || []).map((item) => item.name);
+  return [];
+}
+
+function getCheckbox(prop) {
+  if (!prop) return false;
+  if (prop.type === "checkbox") return !!prop.checkbox;
+  return false;
+}
+
+function getDate(prop) {
+  if (!prop) return "";
+  if (prop.type === "date") return prop.date?.start || "";
+  return "";
+}
+
+function getStatus(prop) {
+  if (!prop) return "";
+  if (prop.type === "status") return prop.status?.name || "";
+  if (prop.type === "select") return prop.select?.name || "";
+  return "";
+}
+
+function richTextToMarkdown(richTextArray) {
+  if (!Array.isArray(richTextArray)) return "";
+  return richTextArray
+    .map((item) => {
+      let text = item.plain_text || "";
+      const ann = item.annotations;
+      if (!ann) return text;
+      if (ann.code) text = `\`${text}\``;
+      if (ann.bold) text = `**${text}**`;
+      if (ann.italic) text = `*${text}*`;
+      if (ann.strikethrough) text = `~~${text}~~`;
+      if (item.href) text = `[${text}](${item.href})`;
+      return text;
+    })
+    .join("");
+}
+
+function convertBlocksToMarkdown(blocks) {
+  const lines = [];
+  for (const block of blocks) {
+    const type = block.type;
+    const data = block[type];
+
+    switch (type) {
+      case "paragraph":
+        lines.push(richTextToMarkdown(data?.rich_text) + "\n");
+        break;
+      case "heading_1":
+        lines.push(`\n# ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "heading_2":
+        lines.push(`\n## ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "heading_3":
+        lines.push(`\n### ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "bulleted_list_item":
+        lines.push(`* ${richTextToMarkdown(data?.rich_text)}`);
+        break;
+      case "numbered_list_item":
+        lines.push(`1. ${richTextToMarkdown(data?.rich_text)}`);
+        break;
+      case "to_do":
+        lines.push(`* [${data?.checked ? "x" : " "}] ${richTextToMarkdown(data?.rich_text)}`);
+        break;
+      case "quote":
+        lines.push(`> ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "code":
+        const codeText = (data?.rich_text || []).map((t) => t.plain_text).join("");
+        const lang = data?.language || "";
+        lines.push(`\n\`\`\`${lang}\n${codeText}\n\`\`\`\n`);
+        break;
+      case "callout":
+        lines.push(`> 💡 ${richTextToMarkdown(data?.rich_text)}\n`);
+        break;
+      case "divider":
+        lines.push(`\n---\n`);
+        break;
+      case "image":
+        const imgUrl = data?.file?.url || data?.external?.url || "";
+        const caption = (data?.caption || []).map((t) => t.plain_text).join("") || "配图";
+        if (imgUrl) lines.push(`\n![${caption}](${imgUrl})\n`);
+        break;
+      case "bookmark":
+      case "link_preview":
+        const url = data?.url || "";
+        if (url) lines.push(`\n[${url}](${url})\n`);
+        break;
+      default:
+        if (data?.rich_text) {
+          lines.push(richTextToMarkdown(data.rich_text) + "\n");
+        }
+        break;
+    }
+  }
+  return lines.join("\n");
+}
+
+function jsonResponse(body, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      ...CORS_HEADERS,
+      ...extraHeaders,
+    },
+  });
+}

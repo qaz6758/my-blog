@@ -39,13 +39,42 @@ export function PostsListClient({
   initialCategory = "",
   initialTag = "",
 }: PostsListClientProps) {
+  const [posts, setPosts] = useState<PostItem[]>(initialPosts);
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeTag, setActiveTag] = useState<string>(initialTag);
+
+  // 毫秒级后台静默获取最新 Notion 文章（SWR 实时刷新策略，彻底免部署）
+  useEffect(() => {
+    const workerUrl =
+      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+      "https://notion-api.dedeboki123.workers.dev";
+
+    fetch(`${workerUrl}/api/posts`)
+      .then((res) => res.json())
+      .then((result) => {
+        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+          setPosts((prev) => {
+            const map = new Map<string | number, PostItem>();
+            // 先保留已有文章
+            prev.forEach((p) => map.set(String(p.id), p));
+            // 增量合并/更新最新 Notion 文章
+            result.data.forEach((p: PostItem) => map.set(String(p.id), p));
+
+            return Array.from(map.values()).sort((a, b) => {
+              const timeA = new Date(a.published_at || a.created_at).getTime();
+              const timeB = new Date(b.published_at || b.created_at).getTime();
+              return timeB - timeA;
+            });
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 1. 统计全量文章数与各分类数量
   const { categoryCounts, categories } = useMemo(() => {
     const counts: Record<string, number> = {};
-    initialPosts.forEach((post) => {
+    posts.forEach((post) => {
       const cat = post.category?.trim();
       if (cat) {
         counts[cat] = (counts[cat] || 0) + 1;
@@ -57,11 +86,11 @@ export function PostsListClient({
     );
 
     return { categoryCounts: counts, categories: sortedCats };
-  }, [initialPosts]);
+  }, [posts]);
 
   // 2. 内存秒级过滤文章
   const filteredPosts = useMemo(() => {
-    return initialPosts.filter((post) => {
+    return posts.filter((post) => {
       if (activeCategory && post.category !== activeCategory) {
         return false;
       }
@@ -75,7 +104,7 @@ export function PostsListClient({
       }
       return true;
     });
-  }, [initialPosts, activeCategory, activeTag]);
+  }, [posts, activeCategory, activeTag]);
 
   // 3. 按年份归并文章
   const { years, postsByYear } = useMemo(() => {
