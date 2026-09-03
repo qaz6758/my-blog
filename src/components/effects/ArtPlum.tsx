@@ -154,8 +154,18 @@ export function ArtPlum() {
       animationFrameId = requestAnimationFrame(frame);
     }
 
-    initCanvas();
-    start();
+    // 延迟到主线程空闲（或 500ms 后）才启动背景梅花绘制，彻底解放首屏 LCP 与消除强制重排
+    let idleId: any;
+    const startDelayed = () => {
+      initCanvas();
+      start();
+    };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = (window as any).requestIdleCallback(startDelayed, { timeout: 1000 });
+    } else {
+      idleId = setTimeout(startDelayed, 500);
+    }
 
     let resizeTimer: NodeJS.Timeout;
     const handleResize = () => {
@@ -169,6 +179,11 @@ export function ArtPlum() {
     window.addEventListener("resize", handleResize);
 
     return () => {
+      if (typeof window !== "undefined" && "cancelIdleCallback" in window && idleId) {
+        (window as any).cancelIdleCallback(idleId);
+      } else if (idleId) {
+        clearTimeout(idleId);
+      }
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
       clearTimeout(resizeTimer);

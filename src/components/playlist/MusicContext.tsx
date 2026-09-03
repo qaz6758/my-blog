@@ -2,7 +2,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import { Song } from "@/components/playlist/SongList";
 // ⚡ 懒加载桥接 — 播放器 JS 在用户点击播放前完全不下载
 import { LazyMusicPlayer } from "@/components/playlist/LazyMusicPlayer";
@@ -202,33 +201,31 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* 全局底部持久化浮动播放器 */}
-      <AnimatePresence>
-        {currentSong && (
-          <LazyMusicPlayer
-            currentSong={currentSong}
-            playlistSongs={playlistSongs}
-            isPlaying={isPlaying}
-            isShuffle={isShuffle}
-            repeatMode={repeatMode}
-            currentTime={currentTime}
-            duration={duration}
-            volume={volume}
-            isMuted={isMuted}
-            onTogglePlay={togglePlay}
-            onToggleShuffle={toggleShuffle}
-            onToggleRepeat={toggleRepeat}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onSeek={handleSeek}
-            onVolumeChange={handleVolumeChange}
-            onToggleMute={handleToggleMute}
-            onSelectSong={(song) => playSong(song)}
-            onClose={closePlayer}
-            formatTime={formatTime}
-          />
-        )}
-      </AnimatePresence>
+      {/* 全局底部持久化浮动播放器（用户未播放时零 JS 负担） */}
+      {currentSong && (
+        <LazyMusicPlayer
+          currentSong={currentSong}
+          playlistSongs={playlistSongs}
+          isPlaying={isPlaying}
+          isShuffle={isShuffle}
+          repeatMode={repeatMode}
+          currentTime={currentTime}
+          duration={duration}
+          volume={volume}
+          isMuted={isMuted}
+          onTogglePlay={togglePlay}
+          onToggleShuffle={toggleShuffle}
+          onToggleRepeat={toggleRepeat}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onSeek={handleSeek}
+          onVolumeChange={handleVolumeChange}
+          onToggleMute={handleToggleMute}
+          onSelectSong={(song) => playSong(song)}
+          onClose={closePlayer}
+          formatTime={formatTime}
+        />
+      )}
     </MusicContext.Provider>
   );
 }
