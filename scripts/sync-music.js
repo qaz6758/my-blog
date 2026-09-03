@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
-const { S3Client, PutObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { playlist_detail, playlist_track_all, song_url_v1, user_account, user_playlist } = require('NeteaseCloudMusicApi');
 
 // 1. 自动加载本地 .env.local 文件
@@ -118,6 +118,20 @@ async function uploadToR2(key, buffer) {
     ContentType: "audio/mpeg",
   }));
   return `${R2_PUBLIC_URL}/${key}`;
+}
+
+async function deleteFromR2(key) {
+  if (!s3 || !key) return false;
+  try {
+    await s3.send(new DeleteObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+    }));
+    return true;
+  } catch (err) {
+    console.warn(`  ⚠️ R2 物理删除提示 (${key}):`, err.message);
+    return false;
+  }
 }
 
 async function syncSinglePlaylist(playlistId, isAutoMode, forcedSyncMode) {
@@ -259,6 +273,46 @@ async function syncSinglePlaylist(playlistId, isAutoMode, forcedSyncMode) {
     if (!url) return false;
     return url.includes("r2.dev") || url.includes(R2_PUBLIC_URL);
   };
+
+  // 镜像修剪：如果用户在网易云 App 删除了某首歌，同步物理粉碎 R2 文件并移出 Notion
+  let prunedCount = 0;
+  if (tracks.length > 0 && existingSongPages.length > 0 && syncMode !== "2") {
+    const neteaseTrackIdSet = new Set(tracks.map((t) => String(t.id)));
+    const neteaseTitleSet = new Set();
+    tracks.forEach((t) => {
+      const title = (t.name || "").trim().toLowerCase();
+      const artist = (t.ar?.map((a) => a.name).join(" / ") || "").trim().toLowerCase();
+      neteaseTitleSet.add(`${artist}_${title}`);
+      neteaseTitleSet.add(title);
+    });
+
+    for (const page of existingSongPages) {
+      const title = (page.properties?.Title?.title?.[0]?.plain_text || "").trim();
+      const artist = (page.properties?.Artist?.rich_text?.[0]?.plain_text || "").trim();
+      const audioUrl = page.properties?.AudioUrl?.url || "";
+      const matchKey = `${artist.toLowerCase()}_${title.toLowerCase()}`;
+
+      let r2Key = "";
+      const idMatch = audioUrl.match(/songs\/(\d+)\.mp3/i);
+      if (idMatch) {
+        r2Key = `songs/${idMatch[1]}.mp3`;
+      }
+
+      const idInNetease = idMatch ? neteaseTrackIdSet.has(idMatch[1]) : false;
+      const titleInNetease = neteaseTitleSet.has(matchKey) || neteaseTitleSet.has(title.toLowerCase());
+
+      // 只要该歌曲已不在当前网易云清单中，执行双向镜像删除
+      if (!idInNetease && !titleInNetease) {
+        if (r2Key) {
+          await deleteFromR2(r2Key);
+          console.log(`  🗑️ [R2音频物理粉碎]: ${r2Key} (${artist} - ${title})`);
+        }
+        await requestNotion(`https://api.notion.com/v1/pages/${page.id}`, { archived: true }, "PATCH");
+        console.log(`  🗑️ [Notion同步移除]: ${artist} - ${title}`);
+        prunedCount++;
+      }
+    }
+  }
 
   let newSongsAdded = 0;
   let repairedCount = 0;
@@ -471,6 +525,46 @@ async function main() {
     const pl = playlistItemsToSync[i];
     console.log(`\n[歌单进度 ${i + 1}/${playlistItemsToSync.length}] 开始处理《${pl.name}》...`);
     await syncSinglePlaylist(pl.id, isAutoMode, forcedSyncMode);
+  }
+
+  // 歌单级镜像清理：如果在网易云把某个歌单整个删除了，同步清空 Notion 对应歌单及其所有歌曲与 R2 音频
+  if (!targetInput && playlistItemsToSync.length > 0) {
+    try {
+      const currentNotionPlaylists = await queryAllNotion(PLAYLIST_DB_ID);
+      const activeNetEasePlaylistIds = new Set(playlistItemsToSync.map((p) => String(p.id)));
+
+      for (const pl of currentNotionPlaylists) {
+        const idKey = pl.properties?.ID_Key?.rich_text?.[0]?.plain_text?.trim() || "";
+        const plTitle = pl.properties?.Title?.title?.[0]?.plain_text?.trim() || "未命名歌单";
+
+        // 仅比对网易云数字歌单 ID
+        if (idKey && /^\d+$/.test(idKey)) {
+          if (!activeNetEasePlaylistIds.has(idKey)) {
+            console.log(`\n🚨 [歌单清理] 检测到歌单《${plTitle}》(ID: ${idKey}) 已在网易云被删除，开始物理清理...`);
+
+            // 查出该歌单下的所有歌曲
+            const songsInPl = await queryAllNotion(SONGS_DB_ID, {
+              property: "Playlist_Key",
+              rich_text: { equals: idKey },
+            });
+
+            // 逐一物理删除 R2 文件和 Notion 记录
+            for (const s of songsInPl) {
+              const audioUrl = s.properties?.AudioUrl?.url || "";
+              const m = audioUrl.match(/songs\/(\d+)\.mp3/i);
+              if (m) await deleteFromR2(`songs/${m[1]}.mp3`);
+              await requestNotion(`https://api.notion.com/v1/pages/${s.id}`, { archived: true }, "PATCH");
+            }
+
+            // 删除歌单卡片本身
+            await requestNotion(`https://api.notion.com/v1/pages/${pl.id}`, { archived: true }, "PATCH");
+            console.log(`✅ [歌单已彻底物理粉碎销毁]: 《${plTitle}》`);
+          }
+        }
+      }
+    } catch (cleanErr) {
+      console.warn("⚠️ 歌单级镜像清理提示:", cleanErr.message);
+    }
   }
 
   console.log("\n" + "=".repeat(65));
