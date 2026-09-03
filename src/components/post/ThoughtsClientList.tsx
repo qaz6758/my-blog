@@ -16,7 +16,34 @@ export function ThoughtsClientList({
     Record<string, { liked?: boolean; upvoted?: boolean }>
   >({});
 
-  // 1. 初始化时向 Supabase 批量同步所有帖子的真实评论总数
+  // 1. 毫秒级后台静默获取最新 Notion 随想录（SWR 实时刷新，免部署）
+  useEffect(() => {
+    const workerUrl =
+      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+      "https://notion-api.dedeboki123.workers.dev";
+
+    fetch(`${workerUrl}/api/thoughts`)
+      .then((res) => res.json())
+      .then((result) => {
+        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+          setItems((prev) => {
+            const map = new Map<string, ThoughtMediaItem>();
+            prev.forEach((item) => map.set(item.id, item));
+            result.data.forEach((item: ThoughtMediaItem) => {
+              const existing = map.get(item.id);
+              map.set(item.id, {
+                ...item,
+                replies: existing?.replies || item.replies || 0,
+              });
+            });
+            return Array.from(map.values());
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // 2. 初始化时向 Supabase 批量同步所有帖子的真实评论总数
   useEffect(() => {
     async function fetchAllCommentCounts() {
       const ids = initialItems.map((item) => item.id);

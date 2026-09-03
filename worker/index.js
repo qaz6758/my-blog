@@ -38,7 +38,18 @@ export default {
         return await handleGetPostDetail(id, env);
       }
 
-      // 3. 默认健康检查
+      // 3. 获取随想录列表: GET /api/thoughts
+      if (pathname === "/api/thoughts" || pathname === "/thoughts") {
+        return await handleGetThoughts(env);
+      }
+
+      // 4. 获取随想录详情: GET /api/thoughts/:id
+      if (pathname.startsWith("/api/thoughts/") || pathname.startsWith("/thoughts/")) {
+        const id = pathname.replace(/^\/(api\/)?thoughts\//, "");
+        return await handleGetThoughtDetail(id, env);
+      }
+
+      // 5. 默认健康检查
       return jsonResponse({
         status: "ok",
         message: "VinceOu Blog Notion Realtime API Gateway is running!",
@@ -196,9 +207,132 @@ async function handleGetPostDetail(pageId, env) {
   });
 }
 
+async function handleGetThoughts(env) {
+  const thoughtsDbId = env.NOTION_THOUGHTS_DB_ID || "70c9f34b31154bd782dd24a9efba668a";
+  const apiKey = env.NOTION_API_KEY;
+
+  if (!apiKey || !thoughtsDbId) {
+    return jsonResponse({ success: false, error: "Missing Notion credentials in Worker env" }, 500);
+  }
+
+  const cleanDbId = thoughtsDbId.replace(/-/g, "").trim().replace(/https?:\/\/app\.notion\.com\/p\//, "").split("?")[0];
+  const res = await fetch(`https://api.notion.com/v1/databases/${cleanDbId}/query`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Notion-Version": NOTION_VERSION,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ page_size: 100 }),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    return jsonResponse({ success: false, error: errData.message || res.statusText }, res.status);
+  }
+
+  const data = await res.json();
+  const items = [];
+
+  for (const page of data.results || []) {
+    const p = page.properties;
+    const publishedProp = findProp(p, "Published", "公开", "发布");
+    if (publishedProp && !getCheckbox(publishedProp)) continue;
+
+    const rawDate = getDate(findProp(p, "Date", "日期", "时间")) || page.created_time;
+    const ratingNum = getNumber(findProp(p, "Rating", "评分", "Score"));
+    const ratingText = ratingNum !== null ? ratingNum.toString() : getText(findProp(p, "Rating", "评分"));
+    const tagsList = getMultiSelect(findProp(p, "Tags", "Tag", "标签", "分类"));
+
+    items.push({
+      id: page.id,
+      author: getText(findProp(p, "Author", "作者")) || "Vince Ou",
+      action: getSelect(findProp(p, "Action", "动态", "动作")) || "",
+      time: formatThoughtDate(rawDate),
+      type: getSelect(findProp(p, "Type", "类型")) || getText(findProp(p, "Type", "类型")) || "NOTE",
+      year: getText(findProp(p, "Year", "年份")) || getNumber(findProp(p, "Year", "年份"))?.toString() || "",
+      title: getText(findProp(p, "Title", "Name", "标题")) || "",
+      description: getText(findProp(p, "Content", "Description", "Desc", "内容", "正文")),
+      rating: ratingText || undefined,
+      tags: tagsList.length > 0 ? tagsList.join(", ") : getText(findProp(p, "Tags", "标签")) || undefined,
+      sourceUrl: getUrl(findProp(p, "SourceUrl", "Source", "来源", "链接")) || undefined,
+      posterUrl: getUrl(findProp(p, "Poster", "Cover", "海报", "封面", "Pic")) || undefined,
+      likes: getNumber(findProp(p, "Likes", "点赞")) || 0,
+      upvotes: getNumber(findProp(p, "Upvotes", "推荐")) || 0,
+      replies: getNumber(findProp(p, "Replies", "回复")) || 0,
+    });
+  }
+
+  return jsonResponse({ success: true, data: items }, 200, {
+    "Cache-Control": "public, max-age=20, s-maxage=30, stale-while-revalidate=60",
+  });
+}
+
+async function handleGetThoughtDetail(pageId, env) {
+  const apiKey = env.NOTION_API_KEY;
+  if (!apiKey) {
+    return jsonResponse({ success: false, error: "Missing NOTION_API_KEY in Worker env" }, 500);
+  }
+
+  const cleanId = pageId.replace(/-/g, "").trim();
+  const res = await fetch(`https://api.notion.com/v1/pages/${cleanId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Notion-Version": NOTION_VERSION,
+    },
+  });
+
+  if (!res.ok) {
+    return jsonResponse({ success: false, error: "Thought not found" }, 404);
+  }
+
+  const page = await res.json();
+  const p = page.properties;
+
+  const rawDate = getDate(findProp(p, "Date", "日期", "时间")) || page.created_time;
+  const ratingNum = getNumber(findProp(p, "Rating", "评分", "Score"));
+  const ratingText = ratingNum !== null ? ratingNum.toString() : getText(findProp(p, "Rating", "评分"));
+  const tagsList = getMultiSelect(findProp(p, "Tags", "Tag", "标签", "分类"));
+
+  const item = {
+    id: page.id,
+    author: getText(findProp(p, "Author", "作者")) || "Vince Ou",
+    action: getSelect(findProp(p, "Action", "动态", "动作")) || "",
+    time: formatThoughtDate(rawDate),
+    type: getSelect(findProp(p, "Type", "类型")) || getText(findProp(p, "Type", "类型")) || "NOTE",
+    year: getText(findProp(p, "Year", "年份")) || getNumber(findProp(p, "Year", "年份"))?.toString() || "",
+    title: getText(findProp(p, "Title", "Name", "标题")) || "",
+    description: getText(findProp(p, "Content", "Description", "Desc", "内容", "正文")),
+    rating: ratingText || undefined,
+    tags: tagsList.length > 0 ? tagsList.join(", ") : getText(findProp(p, "Tags", "标签")) || undefined,
+    sourceUrl: getUrl(findProp(p, "SourceUrl", "Source", "来源", "链接")) || undefined,
+    posterUrl: getUrl(findProp(p, "Poster", "Cover", "海报", "封面", "Pic")) || undefined,
+    likes: getNumber(findProp(p, "Likes", "点赞")) || 0,
+    upvotes: getNumber(findProp(p, "Upvotes", "推荐")) || 0,
+    replies: getNumber(findProp(p, "Replies", "回复")) || 0,
+  };
+
+  return jsonResponse({ success: true, data: item }, 200, {
+    "Cache-Control": "public, max-age=20, s-maxage=30, stale-while-revalidate=60",
+  });
+}
+
 /* ========================================================================= */
 /* Notion 数据解析工具函数                                                   */
 /* ========================================================================= */
+
+function formatThoughtDate(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${year}年${month}月${day}日 ${days[date.getDay()]} ${hours}:${minutes}`;
+}
 
 function findProp(props, ...keys) {
   if (!props) return null;
