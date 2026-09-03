@@ -377,6 +377,12 @@ function getMultiSelect(prop) {
   return [];
 }
 
+function getNumber(prop) {
+  if (!prop) return null;
+  if (prop.type === "number") return typeof prop.number === "number" ? prop.number : null;
+  return null;
+}
+
 function getCheckbox(prop) {
   if (!prop) return false;
   if (prop.type === "checkbox") return !!prop.checkbox;
@@ -477,8 +483,13 @@ function convertBlocksToMarkdown(blocks) {
 
 async function handleGetPlaylists(env) {
   const apiKey = env.NOTION_API_KEY;
-  const playlistDbId = (env.NOTION_PLAYLIST_DB_ID || "adca564c1bc649f887e90102230a00fd").replace(/-/g, "").trim();
-  const songsDbId = (env.NOTION_SONGS_DB_ID || "f1b05bf2cffb4e71a370f608b16c0e28").replace(/-/g, "").trim();
+  const extractId = (str) => {
+    if (!str) return "";
+    const m = str.replace(/-/g, "").match(/[a-f0-9]{32}/i);
+    return m ? m[0] : str.replace(/-/g, "").trim();
+  };
+  const playlistDbId = extractId(env.NOTION_PLAYLIST_DB_ID || "adca564c1bc649f887e90102230a00fd");
+  const songsDbId = extractId(env.NOTION_SONGS_DB_ID || "f1b05bf2cffb4e71a370f608b16c0e28");
 
   if (!apiKey) {
     return jsonResponse({ success: false, error: "Missing NOTION_API_KEY in Worker env" }, 500);
