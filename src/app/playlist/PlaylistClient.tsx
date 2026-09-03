@@ -24,9 +24,13 @@ export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClient
     if (playlists.length === 0) setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/playlist");
+      const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL;
+      const targetUrl = workerUrl
+        ? `${workerUrl.replace(/\/$/, "")}/api/playlists`
+        : "/api/playlist";
+      const res = await fetch(targetUrl);
       const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setPlaylists(json.data);
       } else if (playlists.length === 0) {
         setErrorMsg(json.error || "未能获取到歌单数据");
@@ -41,11 +45,9 @@ export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClient
   };
 
   useEffect(() => {
-    // 如果没有服务端直出数据，则客户端拉取
-    if (initialPlaylists.length === 0) {
-      loadNotionPlaylists();
-    }
-  }, [initialPlaylists]);
+    // 页面加载后立即在后台静默获取最新的实时歌单数据（SWR 机制，确保删歌/加歌秒级呈现）
+    loadNotionPlaylists();
+  }, []);
 
   const handlePlayAll = (playlist: PlaylistCategory) => {
     if (playlist.songs && playlist.songs.length > 0) {

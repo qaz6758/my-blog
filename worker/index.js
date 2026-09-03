@@ -49,7 +49,12 @@ export default {
         return await handleGetThoughtDetail(id, env);
       }
 
-      // 5. 默认健康检查
+      // 5. 获取歌单及歌曲列表: GET /api/playlists
+      if (pathname === "/api/playlists" || pathname === "/playlists" || pathname === "/api/playlist") {
+        return await handleGetPlaylists(env);
+      }
+
+      // 6. 默认健康检查
       return jsonResponse({
         status: "ok",
         message: "VinceOu Blog Notion Realtime API Gateway is running!",
@@ -468,6 +473,108 @@ function convertBlocksToMarkdown(blocks) {
     }
   }
   return lines.join("\n");
+}
+
+async function handleGetPlaylists(env) {
+  const apiKey = env.NOTION_API_KEY;
+  const playlistDbId = (env.NOTION_PLAYLIST_DB_ID || "adca564c1bc649f887e90102230a00fd").replace(/-/g, "").trim();
+  const songsDbId = (env.NOTION_SONGS_DB_ID || "f1b05bf2cffb4e71a370f608b16c0e28").replace(/-/g, "").trim();
+
+  if (!apiKey) {
+    return jsonResponse({ success: false, error: "Missing NOTION_API_KEY in Worker env" }, 500);
+  }
+
+  async function queryDb(dbId) {
+    let all = [];
+    let hasMore = true;
+    let cursor = undefined;
+    while (hasMore) {
+      const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Notion-Version": NOTION_VERSION,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ page_size: 100, start_cursor: cursor }),
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      all.push(...(data.results || []));
+      hasMore = !!data.has_more;
+      cursor = data.next_cursor || undefined;
+    }
+    return all;
+  }
+
+  const [playlistPages, songPages] = await Promise.all([
+    queryDb(playlistDbId),
+    queryDb(songsDbId),
+  ]);
+
+  const allSongs = songPages.map((page) => {
+    const p = page.properties;
+    const rawCover = getUrl(findProp(p, "Cover", "Pic", "封面"));
+    const cleanCover = rawCover
+      ? rawCover.split("?")[0] + "?param=800y800"
+      : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80";
+    return {
+      id: page.id,
+      playlistKey: getText(findProp(p, "Playlist_Key", "PlaylistKey", "Playlist")),
+      title: getText(findProp(p, "Title", "Name", "Song", "歌曲")) || "未知歌曲",
+      artist: getText(findProp(p, "Artist", "Singer", "歌手")) || "未知歌手",
+      album: getText(findProp(p, "Album", "专辑")),
+      duration: getText(findProp(p, "Duration", "时长")) || "03:30",
+      audio_url: getUrl(findProp(p, "AudioUrl", "Audio", "音频")),
+      cover_url: cleanCover,
+      order: getNumber(findProp(p, "Order", "序号", "No")),
+    };
+  });
+
+  const categories = playlistPages
+    .map((page) => {
+      const p = page.properties;
+      const key = getText(findProp(p, "ID_Key", "IDKey", "ID", "Slug")) || page.id;
+      const title = getText(findProp(p, "Title", "Name", "歌单名称", "歌单")) || "精选歌单";
+      const rawCover = getUrl(findProp(p, "Cover", "封面图", "Pic"));
+      const cleanCover = rawCover
+        ? rawCover.split("?")[0] + "?param=800y800"
+        : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+
+      const matchedSongs = allSongs
+        .filter((s) => s.playlistKey && (s.playlistKey === key || s.playlistKey === title))
+        .sort((a, b) => {
+          if (a.order !== null && b.order !== null) return a.order - b.order;
+          if (a.order !== null) return -1;
+          if (b.order !== null) return 1;
+          return 0;
+        });
+
+      return {
+        id: page.id,
+        title,
+        tag: getSelect(findProp(p, "Tag", "标签", "类型")) || "Apple Music",
+        description: getText(findProp(p, "Description", "简介", "描述")) || "",
+        curatorNote: getText(findProp(p, "CuratorNote", "手记", "推荐语", "Notes")),
+        cover: cleanCover,
+        order: getNumber(findProp(p, "Order", "排序", "权重")),
+        songs: matchedSongs,
+      };
+    })
+    .sort((a, b) => {
+      if (a.order !== null && b.order !== null) return a.order - b.order;
+      if (a.order !== null) return -1;
+      if (b.order !== null) return 1;
+      return 0;
+    });
+
+  return jsonResponse(
+    { success: true, data: categories },
+    200,
+    {
+      "Cache-Control": "public, max-age=15, s-maxage=30, stale-while-revalidate=60",
+    }
+  );
 }
 
 function jsonResponse(body, status = 200, extraHeaders = {}) {
