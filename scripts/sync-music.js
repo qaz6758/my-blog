@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const { S3Client, PutObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
-const { playlist_detail, playlist_track_all, song_url_v1, user_account } = require('NeteaseCloudMusicApi');
+const { playlist_detail, playlist_track_all, song_url_v1, user_account, user_playlist } = require('NeteaseCloudMusicApi');
 
 // 1. 自动加载本地 .env.local 文件
 function loadEnvLocal() {
@@ -366,14 +366,69 @@ async function main() {
     }
   }
 
-  // 默认支持同步多个歌单（可通过逗号分隔）
-  const rawList = targetInput || DEFAULT_PLAYLIST_ID;
-  const playlistIds = rawList.split(/[,，\s]+/).filter(Boolean);
+  // 识别歌单列表（支持手动传参，或自动扫描网易云 UID 下的所有歌单）
+  let playlistItemsToSync = [];
 
-  for (const pid of playlistIds) {
-    const idMatch = pid.match(/(?:id=)?(\d+)/);
-    const cleanId = idMatch ? idMatch[1] : pid;
-    await syncSinglePlaylist(cleanId, isAutoMode, forcedSyncMode);
+  if (targetInput) {
+    const ids = targetInput.split(/[,，\s]+/).filter(Boolean);
+    playlistItemsToSync = ids.map((id) => ({
+      id: id.match(/(?:id=)?(\d+)/)?.[1] || id,
+      name: `指定歌单_${id}`,
+    }));
+  } else {
+    // 方式二：全自动 UID 账号识别制（扫描名下所有歌单）
+    const userHomeUrl = process.env.NETEASE_PLAYLIST_ID || "";
+    const uidMatch = userHomeUrl.match(/[?&]id=(\d+)/) || userHomeUrl.match(/\/(\d+)/);
+    const userId = process.env.NETEASE_USER_ID || (uidMatch ? uidMatch[1] : "3359400050");
+
+    console.log(`\n🔍 [智能扫描] 正在读取网易云用户 (UID: ${userId}) 名下所有歌单...`);
+    try {
+      const userPlRes = await user_playlist({
+        uid: userId,
+        cookie: cookieArg ? `MUSIC_U=${cookieArg}` : '',
+        limit: 50,
+      });
+      const allUserPlaylists = userPlRes.body?.playlist || [];
+
+      // 自动过滤掉每日动态变动的算法雷达
+      const validPlaylists = allUserPlaylists.filter((p) => {
+        if (!p.name) return false;
+        if (p.name.includes("私人雷达") || p.name.includes("每日推荐")) return false;
+        return true;
+      });
+
+      if (validPlaylists.length > 0) {
+        playlistItemsToSync = validPlaylists.map((p) => ({
+          id: String(p.id),
+          name: p.name,
+          count: p.trackCount,
+        }));
+        console.log(`✅ 成功自动识别到 ${playlistItemsToSync.length} 个歌单：`);
+        playlistItemsToSync.forEach((p, i) =>
+          console.log(`   ${i + 1}. 《${p.name}》 (ID: ${p.id}, 共 ${p.count || 0} 首)`)
+        );
+      }
+    } catch (err) {
+      console.warn(`⚠️ 无法自动获取用户歌单列表 (${err.message})，回退到默认歌单`);
+    }
+
+    // 兜底方案
+    if (playlistItemsToSync.length === 0) {
+      const rawList = DEFAULT_PLAYLIST_ID || "18343980881";
+      playlistItemsToSync = rawList
+        .split(/[,，\s]+/)
+        .filter(Boolean)
+        .map((id) => ({
+          id: id.match(/(?:id=)?(\d+)/)?.[1] || id,
+          name: `默认歌单_${id}`,
+        }));
+    }
+  }
+
+  for (let i = 0; i < playlistItemsToSync.length; i++) {
+    const pl = playlistItemsToSync[i];
+    console.log(`\n[歌单进度 ${i + 1}/${playlistItemsToSync.length}] 开始处理《${pl.name}》...`);
+    await syncSinglePlaylist(pl.id, isAutoMode, forcedSyncMode);
   }
 
   console.log("\n" + "=".repeat(65));
