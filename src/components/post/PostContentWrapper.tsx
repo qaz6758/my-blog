@@ -1,15 +1,16 @@
+// src/components/post/PostContentWrapper.tsx
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Copy, Check } from "lucide-react";
+import { X, Copy, Check, Info } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Prism from "prismjs";
-import clsx from "clsx";
 import { slugifyHeading } from "@/lib/utils";
 
-// 常用语言语法支持
+// Prism 常用语言语法解析支持
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-jsx";
@@ -27,27 +28,40 @@ import "prismjs/components/prism-java";
 import "prismjs/components/prism-c";
 import "prismjs/components/prism-cpp";
 
-const COPY_SVG = `<svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
-const CHECK_SVG = `<svg class="h-3.5 w-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+const COPY_SVG = `<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>copy</span>`;
+const CHECK_SVG = `<svg class="h-3 w-3 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-emerald-500">copied</span>`;
 
-/**
- * 清洗并优化 HTML 正文：剥离外壳标签，将 <img> 转换为 WebP 代理格式
- */
 function processAndOptimizeHtml(rawHtml: string): string {
   if (!rawHtml) return "";
   let cleaned = rawHtml;
 
-  // 1. 提取 body 内容
+  // 1. 如果包含完整的 body 标签，优先提取 body 内部正文
   const bodyMatch = cleaned.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  if (bodyMatch) cleaned = bodyMatch[1];
+  if (bodyMatch) {
+    cleaned = bodyMatch[1];
+  }
 
-  // 2. 清除外层多余的 HTML 容器标签
+  // 2. 全面剥离外层 DOCTYPE、html、head、body 及其残存标签（支持跨行与各种 DTD 声明）
   cleaned = cleaned
     .replace(/<!DOCTYPE[\s\S]*?>/gi, "")
-    .replace(/<\/?(html|head|body)[^>]*>/gi, "")
+    .replace(/<head[\s\S]*?<\/head>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<\/?(html|head|body|meta|link)[^>]*>/gi, "")
     .trim();
 
-  // 3. 重构 <img> 标签：去除原生干扰属性，注入 WebP 代理与防盗链配置
+  // 3. 常见排版字符实体安全转码解码 (消除 don&rsquo;t 等丑陋实体源码)
+  cleaned = cleaned
+    .replace(/&rsquo;|&#8217;/gi, "'")
+    .replace(/&lsquo;|&#8216;/gi, "'")
+    .replace(/&rdquo;|&#8221;/gi, '"')
+    .replace(/&ldquo;|&#8220;/gi, '"')
+    .replace(/&mdash;|&#8212;/gi, "—")
+    .replace(/&ndash;|&#8211;/gi, "–")
+    .replace(/&hellip;|&#8230;/gi, "…")
+    .replace(/&nbsp;/gi, " ");
+
+  // 4. 图片优化 (WebP 代理与懒加载)
   cleaned = cleaned.replace(/<img\b([\s\S]*?)>/gi, (match, attrs) => {
     const srcMatch =
       attrs.match(/\bsrc=["'](.*?)["']/i) ||
@@ -58,7 +72,6 @@ function processAndOptimizeHtml(rawHtml: string): string {
     const rawSrc = srcMatch[1];
     let optimizedSrc = rawSrc;
 
-    // 仅对外链且未被代理的图片进行 CDN WebP 优化（跳过 AWS S3 / Notion 原生签名图，防止签名损坏）
     const isNotionOrAws =
       rawSrc.includes("amazonaws.com") ||
       rawSrc.includes("notion.so") ||
@@ -72,12 +85,36 @@ function processAndOptimizeHtml(rawHtml: string): string {
       optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`;
     }
 
-    // 彻底剔除 srcset、sizes 等干扰属性
     const cleanAttrs = attrs
       .replace(/\b(src|data-src|srcset|sizes|loading|decoding|referrerpolicy)=["'][^"']*["']/gi, "")
       .trim();
 
     return `<img ${cleanAttrs} src="${optimizedSrc}" data-original-src="${rawSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+  });
+
+  // 5. 将原生 <pre> 代码块转为 Mac 拟真终端窗口排版 (红黄绿三色控制圆点 + 顶部窗口栏)
+  cleaned = cleaned.replace(/<pre\b([^>]*)>([\s\S]*?)<\/pre>/gi, (match, attrs, innerCode) => {
+    if (attrs.includes("data-mac-styled")) return match;
+
+    const langMatch =
+      innerCode.match(/class=["'][^"']*language-([\w-]+)[^"']*["']/i) ||
+      attrs.match(/class=["'][^"']*language-([\w-]+)[^"']*["']/i);
+    const lang = langMatch ? langMatch[1] : "";
+
+    return `<div class="mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#121214] shadow-sm">
+  <div class="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-neutral-900/60 px-4 py-2.5 select-none">
+    <div class="flex items-center gap-2">
+      <span class="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50"></span>
+      <span class="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50"></span>
+      <span class="inline-block h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50"></span>
+    </div>
+    <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">${lang || "Terminal"}</span>
+    <button type="button" data-action="copy-code" aria-label="复制代码" class="flex items-center gap-1 rounded border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-neutral-800/70 px-2 py-0.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer select-none">
+      ${COPY_SVG}
+    </button>
+  </div>
+  <pre ${attrs} data-mac-styled="true" class="overflow-x-auto p-4 sm:p-5 text-xs sm:text-[13.5px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono">${innerCode}</pre>
+</div>`;
   });
 
   return cleaned;
@@ -98,9 +135,6 @@ function getNodeText(node: React.ReactNode): string {
   return "";
 }
 
-/**
- * 独立的 React 代码块组件（支持多语言语法高亮、顶栏 Mac 风格徽标、一键复制）
- */
 function CodeBlock({ language, code }: { language: string; code: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -144,39 +178,44 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="group relative my-6 overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-[#0a0a0a] shadow-sm">
-      {/* 顶栏信息与复制按钮 */}
-      <div className="flex items-center justify-between border-b border-neutral-200/60 dark:border-neutral-800/80 bg-neutral-100/60 dark:bg-neutral-900/60 px-4 py-2 select-none backdrop-blur-sm">
-        <div className="flex items-center gap-2.5">
-          <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-            {language || "code"}
-          </span>
+    <div className="mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#121214] shadow-sm">
+      <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-neutral-900/60 px-4 py-2.5 select-none">
+        {/* Mac 红黄绿三色控制点 */}
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50" />
+          <span className="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50" />
+          <span className="inline-block h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50" />
         </div>
 
+        {/* 语言标识 */}
+        <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">
+          {language || "code"}
+        </span>
+
+        {/* 复制按钮 */}
         <button
           type="button"
           onClick={handleCopy}
-          aria-label="copy"
-          className="flex items-center gap-1.5 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-200/50 dark:bg-neutral-800/80 px-2 py-0.5 text-[11px] font-mono text-neutral-600 dark:text-neutral-300 transition-all duration-200 hover:border-neutral-400 dark:hover:border-neutral-500 hover:text-black dark:hover:text-white cursor-pointer"
+          aria-label="复制代码"
+          className="flex items-center gap-1 rounded border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-neutral-800/70 px-2 py-0.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer select-none"
         >
           {copied ? (
             <>
-              <Check className="h-3.5 w-3.5 text-emerald-400" />
-              <span className="text-emerald-400">copied</span>
+              <Check className="h-3 w-3 text-emerald-500" />
+              <span className="text-emerald-500">copied</span>
             </>
           ) : (
             <>
-              <Copy className="h-3.5 w-3.5 text-neutral-400" />
+              <Copy className="h-3 w-3 text-neutral-400" />
               <span>copy</span>
             </>
           )}
         </button>
       </div>
 
-      {/* 代码内容 */}
       <pre
         suppressHydrationWarning
-        className="overflow-x-auto p-4 sm:p-5 font-mono text-xs sm:text-[13.5px] leading-relaxed text-neutral-200"
+        className="overflow-x-auto p-4 sm:p-5 text-xs sm:text-[13.5px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono"
       >
         {highlighted ? (
           <code
@@ -203,77 +242,74 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     setMounted(true);
   }, []);
 
-  // 缓存清洗与格式化后的 HTML 内容
   const cleanHtmlContent = useMemo(() => {
     return isHtml ? processAndOptimizeHtml(content) : content;
   }, [content, isHtml]);
 
-  // =======================================================
-  // 1. Prism.js 语法高亮与代码块顶栏注入（针对 HTML 模式）
-  // =======================================================
   useEffect(() => {
     if (!contentRef.current || !isHtml) return;
 
     const preElements = contentRef.current.querySelectorAll("pre");
 
     preElements.forEach((pre) => {
-      if (pre.getAttribute("data-code-ready") === "true") return;
-      pre.setAttribute("data-code-ready", "true");
-      pre.classList.add("relative", "group");
+      // 1. 如果没有在 mac-code-block 容器中，动态包裹为 Mac 样式
+      if (pre.parentElement && !pre.parentElement.classList.contains("mac-code-block")) {
+        const codeEl = pre.querySelector("code");
+        const match = (codeEl?.className || pre.className || "").match(/language-(\w+)/);
+        const lang = match ? match[1] : "";
 
+        const wrapper = document.createElement("div");
+        wrapper.className =
+          "mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#121214] shadow-sm";
+
+        const header = document.createElement("div");
+        header.className =
+          "flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-neutral-900/60 px-4 py-2.5 select-none";
+        header.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50"></span>
+            <span class="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50"></span>
+            <span class="inline-block h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50"></span>
+          </div>
+          <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">${lang || "Terminal"}</span>
+          <button type="button" data-action="copy-code" aria-label="复制代码" class="flex items-center gap-1 rounded border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-neutral-800/70 px-2 py-0.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer select-none">
+            ${COPY_SVG}
+          </button>
+        `;
+
+        pre.parentNode?.insertBefore(wrapper, pre);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+        pre.classList.add("overflow-x-auto", "p-4", "sm:p-5", "text-xs", "sm:text-[13.5px]", "leading-relaxed", "text-neutral-800", "dark:text-neutral-200", "font-mono");
+      }
+
+      // 2. 语法高亮
       const codeEl = pre.querySelector("code");
-      let lang = "";
-
-      if (codeEl) {
+      if (codeEl && pre.getAttribute("data-highlighted") !== "true") {
+        pre.setAttribute("data-highlighted", "true");
         const match = (codeEl.className || "").match(/language-(\w+)/);
-        lang = match ? match[1] : "";
-        Prism.highlightElement(codeEl);
+        if (match) {
+          Prism.highlightElement(codeEl);
+        }
       }
-
-      // 构建工具栏 DOM
-      const toolbar = document.createElement("div");
-      toolbar.className =
-        "absolute right-3 top-3 z-10 flex items-center gap-2 select-none pointer-events-auto";
-
-      if (lang) {
-        const langBadge = document.createElement("span");
-        langBadge.className =
-          "font-mono text-[10px] uppercase tracking-wider text-neutral-400 opacity-60";
-        langBadge.innerText = lang;
-        toolbar.appendChild(langBadge);
-      }
-
-      const copyBtn = document.createElement("button");
-      copyBtn.type = "button";
-      copyBtn.setAttribute("data-action", "copy-code");
-      copyBtn.setAttribute("aria-label", "复制代码");
-      copyBtn.className =
-        "flex h-7 w-7 items-center justify-center rounded-md border border-neutral-700/60 bg-neutral-800/80 text-neutral-400 backdrop-blur-sm transition-all duration-200 hover:border-neutral-600 hover:text-neutral-100 hover:bg-neutral-700 opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer";
-      copyBtn.innerHTML = COPY_SVG;
-
-      toolbar.appendChild(copyBtn);
-      pre.appendChild(toolbar);
     });
   }, [cleanHtmlContent, isHtml]);
 
-  // =======================================================
-  // 2. 统一事件委托处理（代码复制与图片灯箱）
-  // =======================================================
   const handleContentClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
 
-    // A. 处理 HTML 模式下的复制按钮点击
     const copyBtn = target.closest<HTMLButtonElement>('button[data-action="copy-code"]');
     if (copyBtn) {
       e.preventDefault();
       e.stopPropagation();
 
-      const pre = copyBtn.closest("pre");
-      const codeEl = pre?.querySelector("code") || pre;
+      const block = copyBtn.closest(".mac-code-block") || copyBtn.closest("pre");
+      const codeEl = block?.querySelector("code") || block?.querySelector("pre") || block;
       if (!codeEl) return;
 
       try {
-        await navigator.clipboard.writeText(codeEl.innerText);
+        const textToCopy = (codeEl as HTMLElement).innerText || codeEl.textContent || "";
+        await navigator.clipboard.writeText(textToCopy);
         copyBtn.innerHTML = CHECK_SVG;
         setTimeout(() => {
           if (copyBtn) copyBtn.innerHTML = COPY_SVG;
@@ -284,7 +320,6 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
       return;
     }
 
-    // B. 处理正文图片点击展开灯箱
     if (target.tagName === "IMG") {
       e.preventDefault();
       e.stopPropagation();
@@ -297,9 +332,6 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     }
   };
 
-  // =======================================================
-  // 3. 灯箱交互：ESC 键监听与页面滚动锁定
-  // =======================================================
   const closeLightbox = useCallback(() => setActiveImg(null), []);
 
   useEffect(() => {
@@ -327,33 +359,42 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     [&_h3]:text-lg sm:[&_h3]:text-lg [&_h3]:font-bold [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
     [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
     [&_strong]:font-semibold [&_strong]:text-neutral-950 dark:[&_strong]:text-white
-    [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:bg-neutral-500/[0.03] dark:[&_blockquote]:bg-neutral-800/[0.15] [&_blockquote]:px-4 [&_blockquote]:py-2.5 [&_blockquote]:my-6 [&_blockquote]:rounded-r-md [&_blockquote]:text-neutral-600 dark:[&_blockquote]:text-neutral-300
     [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-5 [&_ul]:space-y-2
     [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-5 [&_ol]:space-y-2
     [&_li]:leading-relaxed
     [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-6 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005]
     [&_a]:prose-link
-    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block [&_table]:whitespace-nowrap sm:[&_table]:whitespace-normal [&_table]:my-6
-    [&_th]:border [&_th]:border-neutral-300 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2 [&_th]:bg-neutral-50 dark:[&_th]:bg-neutral-900/50
-    [&_td]:border [&_td]:border-neutral-300 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2
+    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-6
+    [&_th]:border [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2.5 [&_th]:bg-neutral-100/70 dark:[&_th]:bg-neutral-900/70 [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
+    [&_td]:border [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2.5 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
+    [&_tr:nth-child(even)]:bg-neutral-500/[0.02] dark:[&_tr:nth-child(even)]:bg-neutral-800/[0.15]
     [&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
 
   return (
     <>
-      {/* 语法高亮配色主题 */}
       <style>{`
-        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #8b949e; font-style: italic; }
-        .token.punctuation { color: #c9d1d9; }
-        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol { color: #79c0ff; }
-        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: #a5d6ff; }
-        .token.operator, .token.entity, .token.url { color: #d2a8ff; }
-        .token.atrule, .token.attr-value, .token.keyword { color: #ff7b72; font-weight: 500; }
-        .token.function, .token.class-name { color: #d2a8ff; }
-        .token.regex, .token.important, .token.variable { color: #ffa657; }
+        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6a737d; font-style: italic; }
+        .dark .token.comment, .dark .token.prolog, .dark .token.doctype, .dark .token.cdata { color: #8b949e; }
+        .token.punctuation { color: #586069; }
+        .dark .token.punctuation { color: #c9d1d9; }
+        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol { color: #005cc5; }
+        .dark .token.property, .dark .token.tag, .dark .token.boolean, .dark .token.number, .dark .token.constant, .dark .token.symbol { color: #79c0ff; }
+        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: #032f62; }
+        .dark .token.selector, .dark .token.attr-name, .dark .token.string, .dark .token.char, .dark .token.builtin { color: #a5d6ff; }
+        .token.operator, .token.entity, .token.url { color: #6f42c1; }
+        .dark .token.operator, .dark .token.entity, .dark .token.url { color: #d2a8ff; }
+        .token.keyword { color: #d73a49; font-weight: 500; }
+        .dark .token.keyword { color: #ff7b72; font-weight: 500; }
+        .token.function, .token.class-name { color: #6f42c1; }
+        .dark .token.function, .dark .token.class-name { color: #d2a8ff; }
+        .mac-code-block pre {
+          margin: 0 !important;
+          background: transparent !important;
+          border: none !important;
+        }
       `}</style>
 
-      {/* 正文渲染容器 */}
       {isHtml ? (
         <div
           ref={contentRef}
@@ -370,7 +411,36 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
           className={proseClassName}
         >
           <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
             components={{
+              // Anthony Fu 风格引用卡片（自动识别 Note 提示框）
+              blockquote: ({ children, node, ...props }) => {
+                const text = getNodeText(children).trim();
+                const isNote = /^(\[!NOTE\]|Note:?|\(i\)\s*Note)/i.test(text);
+
+                if (isNote) {
+                  return (
+                    <div className="my-6 pl-4 py-1 border-l-2 border-sky-500 text-neutral-800 dark:text-neutral-200">
+                      <div className="flex items-center gap-1.5 text-[13.5px] font-medium text-sky-500 dark:text-sky-400 mb-1 select-none">
+                        <Info className="h-3.5 w-3.5" />
+                        <span>Note</span>
+                      </div>
+                      <div className="text-[14.5px] sm:text-[15px] leading-relaxed opacity-90 [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
+                        {children}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <blockquote
+                    className="my-6 border-l-2 border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-300 opacity-80"
+                    {...props}
+                  >
+                    {children}
+                  </blockquote>
+                );
+              },
               h1: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
@@ -412,7 +482,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
                 if (isInline) {
                   return (
                     <code
-                      className="rounded bg-neutral-200/60 px-1.5 py-0.5 font-mono text-[13px] text-neutral-800 dark:bg-neutral-800/80 dark:text-neutral-200"
+                      className="rounded bg-neutral-200/60 px-1.5 py-0.5 text-[13px] text-neutral-800 dark:bg-neutral-800/80 dark:text-neutral-200"
                       {...props}
                     >
                       {children}
@@ -476,7 +546,6 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
         </div>
       )}
 
-      {/* 全屏大图灯箱 */}
       {mounted &&
         createPortal(
           <AnimatePresence>

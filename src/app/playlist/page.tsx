@@ -1,6 +1,5 @@
-// app/playlist/page.tsx
 import React, { Suspense } from "react";
-import { fetchPlaylistsFromNotion } from "@/lib/notion";
+import { fetchPlaylists } from "@/lib/data";
 import PlaylistClient from "./PlaylistClient";
 import { PlaylistSkeleton } from "@/components/playlist/PlaylistSkeleton";
 import { Footer } from "@/components/layout/Footer";
@@ -10,12 +9,10 @@ export const metadata = {
   description: "Curated playlists & music collection",
 };
 
-export const revalidate = 5; // 智能 ISR 缓存：5秒极速同步，后台静默刷新
-
 export default async function PlaylistPage() {
   let initialPlaylists: any[] = [];
   try {
-    initialPlaylists = await fetchPlaylistsFromNotion();
+    initialPlaylists = await fetchPlaylists();
   } catch (err) {
     console.warn("[Playlist Server Error] 服务端预取降级:", err);
   }

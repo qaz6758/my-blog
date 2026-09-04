@@ -31,7 +31,16 @@ export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClient
       const res = await fetch(targetUrl);
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        setPlaylists(json.data);
+        setPlaylists((prev) => {
+          if (
+            prev.length === json.data.length &&
+            prev[0]?.id === json.data[0]?.id &&
+            prev[0]?.songs?.length === json.data[0]?.songs?.length
+          ) {
+            return prev;
+          }
+          return json.data;
+        });
       } else if (playlists.length === 0) {
         setErrorMsg(json.error || "未能获取到歌单数据");
       }

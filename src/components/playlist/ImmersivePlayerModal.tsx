@@ -132,11 +132,29 @@ export function ImmersivePlayerModal({
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 className="relative aspect-square w-full max-w-[480px] sm:max-w-[540px] rounded-[18px] sm:rounded-[22px] overflow-hidden shadow-[0_30px_80px_-15px_rgba(0,0,0,0.85)] ring-1 ring-white/15 justify-self-center"
               >
-                <img
-                  src={currentSong.cover_url}
-                  alt={currentSong.title}
-                  className="h-full w-full object-cover"
-                />
+                {(() => {
+                  const raw =
+                    currentSong.cover_url ||
+                    (currentSong as any).cover ||
+                    (currentSong as any).picUrl ||
+                    "";
+                  return (
+                    <img
+                      src={raw || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"}
+                      alt={currentSong.title}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (raw && raw.includes("music.126.net") && !target.src.includes("wsrv.nl")) {
+                          target.src = `https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=640&h=640&fit=cover`;
+                          return;
+                        }
+                        target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+                      }}
+                      className="h-full w-full object-cover"
+                    />
+                  );
+                })()}
               </motion.div>
 
               {/* 歌曲信息 (网格轨道 100% 等宽左对齐排版) */}

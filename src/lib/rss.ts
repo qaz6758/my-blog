@@ -24,6 +24,23 @@ const xmlParser = new XMLParser({
 });
 
 /**
+ * 辅助函数：从 XML 节点中安全提取文本（兼容带属性的 <content type="html"> 等节点）
+ */
+function extractXmlText(node: any): string {
+  if (!node) return "";
+  if (typeof node === "string") return node;
+  if (typeof node === "number") return String(node);
+  if (typeof node === "object") {
+    if (typeof node["#text"] === "string") return node["#text"];
+    if (typeof node["_text"] === "string") return node["_text"];
+    if (Array.isArray(node)) {
+      return node.map(extractXmlText).join("");
+    }
+  }
+  return "";
+}
+
+/**
  * 辅助函数：使用 Cheerio 单次解析提取 HTML 正文中的封面图与纯净文本摘要
  */
 function parseHtmlContent(html: string, baseUrl?: string) {
@@ -55,9 +72,6 @@ function parseHtmlContent(html: string, baseUrl?: string) {
   return { coverImage, cleanSummary };
 }
 
-/**
- * 辅助函数：标准化日期格式为 ISO 8601
- */
 function normalizeDate(rawDate?: string | null): string | null {
   if (!rawDate) return null;
   try {
@@ -66,6 +80,39 @@ function normalizeDate(rawDate?: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * 辅助函数：深度清洗 RSS HTML 正文，剥离外层 DOCTYPE、html、body 并解码实体
+ */
+function cleanRssContent(raw: string): string {
+  if (!raw || typeof raw !== "string") return "";
+  let text = raw.trim();
+
+  const bodyMatch = text.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch) {
+    text = bodyMatch[1];
+  }
+
+  text = text
+    .replace(/<!DOCTYPE[\s\S]*?>/gi, "")
+    .replace(/<head[\s\S]*?<\/head>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<\/?(html|head|body|meta|link)[^>]*>/gi, "")
+    .trim();
+
+  text = text
+    .replace(/&rsquo;|&#8217;/gi, "'")
+    .replace(/&lsquo;|&#8216;/gi, "'")
+    .replace(/&rdquo;|&#8221;/gi, '"')
+    .replace(/&ldquo;|&#8220;/gi, '"')
+    .replace(/&mdash;|&#8212;/gi, "—")
+    .replace(/&ndash;|&#8211;/gi, "–")
+    .replace(/&hellip;|&#8230;/gi, "…")
+    .replace(/&nbsp;/gi, " ");
+
+  return text;
 }
 
 export async function fetchRSS(
@@ -114,12 +161,13 @@ export async function fetchRSS(
         link = item.link[0]["@_href"];
       }
 
-      const rawContent =
+      const rawContent = extractXmlText(
         item["content:encoded"] ||
         item.content ||
         item.description ||
         item.summary ||
-        "";
+        ""
+      );
 
       let image: string | null =
         item.enclosure?.["@_url"] ||
@@ -128,7 +176,7 @@ export async function fetchRSS(
         null;
 
       const { coverImage: extractedImage, cleanSummary } = parseHtmlContent(
-        typeof rawContent === "string" ? rawContent : "",
+        rawContent,
         link || feedUrl
       );
 
@@ -157,7 +205,7 @@ export async function fetchRSS(
         title: title.trim(),
         link: link || "#",
         description,
-        content: typeof rawContent === "string" ? rawContent : "",
+        content: cleanRssContent(rawContent),
         pubDate,
         author,
         image,

@@ -17,6 +17,37 @@ import { Song } from "@/components/playlist/SongList";
 import { RepeatMode } from "@/components/playlist/MusicContext";
 import { ImmersivePlayerModal } from "@/components/playlist/ImmersivePlayerModal";
 
+const FALLBACK_COVER =
+  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80";
+
+function resolveMusicCover(url?: string, size = 120) {
+  if (!url) return FALLBACK_COVER;
+  let res = url;
+  if (res.includes("music.126.net")) {
+    res = res.includes("param=")
+      ? res.replace(/param=\d+y\d+/g, `param=${size}y${size}`)
+      : `${res}${res.includes("?") ? "&" : "?"}param=${size}y${size}`;
+  }
+  return res;
+}
+
+function handleMusicCoverError(
+  e: React.SyntheticEvent<HTMLImageElement, Event>,
+  originalUrl?: string,
+  size = 120
+) {
+  const target = e.target as HTMLImageElement;
+  if (
+    originalUrl &&
+    originalUrl.includes("music.126.net") &&
+    !target.src.includes("wsrv.nl")
+  ) {
+    target.src = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${size}&h=${size}&fit=cover`;
+    return;
+  }
+  target.src = FALLBACK_COVER;
+}
+
 interface MusicPlayerProps {
   currentSong: Song;
   playlistSongs?: Song[];
@@ -308,11 +339,22 @@ export function MusicPlayer({
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                          <img
-                            src={song.cover_url}
-                            alt={song.title}
-                            className="h-7 w-7 rounded-[4px] object-cover shrink-0"
-                          />
+                          {(() => {
+                            const raw =
+                              song.cover_url ||
+                              (song as any).cover ||
+                              (song as any).picUrl ||
+                              "";
+                            return (
+                              <img
+                                src={resolveMusicCover(raw, 120)}
+                                alt={song.title}
+                                referrerPolicy="no-referrer"
+                                onError={(e) => handleMusicCoverError(e, raw, 120)}
+                                className="h-7 w-7 rounded-[4px] object-cover shrink-0"
+                              />
+                            );
+                          })()}
                           <div className="min-w-0">
                             <p className="truncate text-xs font-medium">
                               {song.title}
@@ -383,13 +425,24 @@ export function MusicPlayer({
               }}
             >
               <div className="relative h-[44px] w-[44px] sm:h-[48px] sm:w-[48px] rounded-full overflow-hidden bg-black p-[2px] ring-1 ring-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.5)] flex items-center justify-center">
-                <img
-                  src={currentSong.cover_url}
-                  alt={currentSong.title}
-                  className={`h-full w-full rounded-full object-cover ${
-                    isPlaying ? "animate-spin [animation-duration:6s]" : ""
-                  }`}
-                />
+                {(() => {
+                  const raw =
+                    currentSong.cover_url ||
+                    (currentSong as any).cover ||
+                    (currentSong as any).picUrl ||
+                    "";
+                  return (
+                    <img
+                      src={resolveMusicCover(raw, 120)}
+                      alt={currentSong.title}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => handleMusicCoverError(e, raw, 120)}
+                      className={`h-full w-full rounded-full object-cover ${
+                        isPlaying ? "animate-spin [animation-duration:6s]" : ""
+                      }`}
+                    />
+                  );
+                })()}
                 <div className="absolute inset-0 m-auto h-[10px] w-[10px] rounded-full bg-white/90 border border-black/40 shadow-xs" />
                 <div className="absolute inset-0 m-auto h-[4px] w-[4px] rounded-full bg-neutral-900" />
               </div>
@@ -418,11 +471,22 @@ export function MusicPlayer({
                   className="group/cover relative h-8 w-8 rounded-[4.5px] overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-sm cursor-pointer active:scale-95 transition-transform"
                   title="点击展开全屏大屏沉浸界面"
                 >
-                  <img
-                    src={currentSong.cover_url}
-                    alt={currentSong.title}
-                    className="h-full w-full object-cover"
-                  />
+                  {(() => {
+                    const raw =
+                      currentSong.cover_url ||
+                      (currentSong as any).cover ||
+                      (currentSong as any).picUrl ||
+                      "";
+                    return (
+                      <img
+                        src={resolveMusicCover(raw, 120)}
+                        alt={currentSong.title}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => handleMusicCoverError(e, raw, 120)}
+                        className="h-full w-full object-cover"
+                      />
+                    );
+                  })()}
                   {/* 双箭头对向角全屏展开指示图标 */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-[0.5px] opacity-0 group-hover/cover:opacity-100 transition-opacity duration-200">
                     <svg
@@ -536,11 +600,22 @@ export function MusicPlayer({
                   className="group/cover relative h-8 w-8 rounded-[4.5px] overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-sm cursor-pointer transition-transform duration-200 hover:scale-110"
                   title="展开全屏大屏沉浸界面"
                 >
-                  <img
-                    src={currentSong.cover_url}
-                    alt={currentSong.title}
-                    className="h-full w-full object-cover"
-                  />
+                  {(() => {
+                    const raw =
+                      currentSong.cover_url ||
+                      (currentSong as any).cover ||
+                      (currentSong as any).picUrl ||
+                      "";
+                    return (
+                      <img
+                        src={resolveMusicCover(raw, 120)}
+                        alt={currentSong.title}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => handleMusicCoverError(e, raw, 120)}
+                        className="h-full w-full object-cover"
+                      />
+                    );
+                  })()}
                   {/* 双箭头对向角全屏展开指示图标 */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-[0.5px] opacity-0 group-hover/cover:opacity-100 transition-opacity duration-200">
                     <svg

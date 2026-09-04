@@ -98,18 +98,53 @@ export function SongList({
                   </span>
 
                   {/* 封面 (32x32 Apple 标准微倒角) */}
-                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-[5px] bg-neutral-900 ring-1 ring-black/10 dark:ring-white/10">
-                    <img
-                      src={song.cover_url || FALLBACK_SONG_COVER}
-                      alt={song.title}
-                      loading="lazy"
-                      decoding="async"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = FALLBACK_SONG_COVER;
-                      }}
-                      className="h-full w-full object-cover"
-                    />
+                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-[5px] bg-neutral-800/40 dark:bg-white/[0.06] ring-1 ring-black/10 dark:ring-white/10">
+                    {(() => {
+                      const rawCover =
+                        song.cover_url ||
+                        (song as any).cover ||
+                        (song as any).picUrl ||
+                        (song as any).coverUrl ||
+                        "";
+
+                      let initialCover = rawCover || FALLBACK_SONG_COVER;
+                      const isNetease = initialCover.includes("music.126.net");
+
+                      // 如果已知用户环境网易云直连不稳定，直接直出全球代理链接，彻底消除等待与黑块
+                      if (isNetease) {
+                        if (typeof window !== "undefined" && (window as any).__netease_direct_failed) {
+                          initialCover = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=120&h=120&fit=cover`;
+                        } else if (initialCover.includes("param=")) {
+                          initialCover = initialCover.replace(/param=\d+y\d+/g, "param=120y120");
+                        } else {
+                          initialCover = `${initialCover}${initialCover.includes("?") ? "&" : "?"}param=120y120`;
+                        }
+                      }
+
+                      return (
+                        <img
+                          src={initialCover}
+                          alt={song.title}
+                          loading={index < 25 ? "eager" : "lazy"}
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (isNetease) {
+                              if (typeof window !== "undefined") {
+                                (window as any).__netease_direct_failed = true;
+                              }
+                              if (!target.src.includes("wsrv.nl")) {
+                                target.src = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=120&h=120&fit=cover`;
+                                return;
+                              }
+                            }
+                            target.src = FALLBACK_SONG_COVER;
+                          }}
+                          className="h-full w-full object-cover transition-opacity duration-150"
+                        />
+                      );
+                    })()}
 
                     {/* 悬停/播放中半透明遮罩与播放图标 */}
                     <div

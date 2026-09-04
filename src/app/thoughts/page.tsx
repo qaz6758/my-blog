@@ -1,6 +1,6 @@
 // app/thoughts/page.tsx
 import React from "react";
-import { fetchThoughtsFromNotion } from "@/lib/notion";
+import { fetchThoughtsFromNotion } from "@/lib/data";
 import { Footer } from "@/components/layout/Footer";
 import { ThoughtsClientList } from "@/components/post/ThoughtsClientList";
 

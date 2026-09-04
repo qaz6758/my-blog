@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { fetchThoughtDetailFromNotion, fetchThoughtsFromNotion } from "@/lib/notion";
+import { fetchThoughtDetailFromNotion, fetchThoughtsFromNotion } from "@/lib/data";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { Footer } from "@/components/layout/Footer";
 

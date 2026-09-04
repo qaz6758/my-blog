@@ -12,7 +12,6 @@ export const LazyPostContent = dynamic(
       (m) => m.PostContentWrapper
     ),
   {
-    ssr: false,
-    loading: () => null,
+    ssr: true,
   }
 );

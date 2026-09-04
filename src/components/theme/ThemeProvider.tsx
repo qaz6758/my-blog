@@ -419,17 +419,22 @@ export function ThemeProvider({
         };
 
         /*
-         * ======================================================
-         * 启动 View Transition
-         * ======================================================
-         *
-         * flushSync 保证主题 DOM 在 snapshot 阶段立即完成。
+         * 在 View Transition 期间锁定全页面子元素的 CSS 过渡与复杂重绘，
+         * 消除文章列表等海量 DOM 节点上的 transition-all 引发的大面积掉帧。
          */
+        root.classList.add("view-transition-active");
+
         const transition = transitionDoc.startViewTransition(() => {
           flushSync(() => {
             applyThemeDirect(nextTheme);
           });
         });
+
+        transition.finished
+          .finally(() => {
+            root.classList.remove("view-transition-active");
+          })
+          .catch(() => {});
 
         /*
          * ======================================================

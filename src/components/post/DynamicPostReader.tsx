@@ -1,15 +1,19 @@
-// components/post/DynamicPostReader.tsx
+// src/components/post/DynamicPostReader.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ExternalLink, Tag as TagIcon, ArrowLeft } from "lucide-react";
+import { Tag as TagIcon, ArrowLeft, ArrowRight, Menu } from "lucide-react";
+import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { LazyPostContent } from "@/components/post/LazyPostContent";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
-import { ThoughtMediaItem } from "@/lib/notion";
-import { formatDate, calculateReadTime } from "@/lib/utils";
+import { TableOfContents } from "@/components/post/TableOfContents";
+import { LazyCommentSection } from "@/components/post/LazyCommentSection";
+import {Footer} from "@/components/layout/Footer";
+import { ThoughtMediaItem } from "@/lib/data";
+import { formatDate } from "@/lib/utils";
 
-interface PostDetail {
+export interface PostDetail {
   id: string;
   title: string;
   content?: string;
@@ -17,48 +21,65 @@ interface PostDetail {
   created_at?: string;
   published_at?: string;
   category?: string;
-  tags?: string[];
+  tags?: string[] | string;
   source?: string;
   source_url?: string;
+  slug?: string;
 }
 
-export function DynamicPostReader() {
-  const [loading, setLoading] = useState(true);
-  const [post, setPost] = useState<PostDetail | null>(null);
+export interface DynamicPostReaderProps {
+  post?: PostDetail | null;
+  prevPost?: PostDetail | null;
+  nextPost?: PostDetail | null;
+}
+
+// 标准自然减速曲线 (Apple / Antfu 同款 Smooth Easing)
+const SMOOTH_TRANSITION: Transition = {
+  duration: 0.45,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+
+export function DynamicPostReader({
+  post: initialPost,
+  prevPost,
+  nextPost,
+}: DynamicPostReaderProps) {
+  // 数据由服务端注入，无需客户端 loading 等待
+  const [loading, setLoading] = useState(false);
+  const [post, setPost] = useState<PostDetail | null>(initialPost || null);
   const [thought, setThought] = useState<ThoughtMediaItem | null>(null);
-  const [mode, setMode] = useState<"post" | "thought" | "404">("404");
+  const [mode, setMode] = useState<"post" | "thought" | "404">(
+    initialPost ? "post" : "404"
+  );
 
+  // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
+  const isHtmlContent = React.useMemo(() => {
+    if (!post) return false;
+    const raw = (post.content || post.summary || "").trim();
+    return /<\/?(p|div|h[1-6]|article|section|blockquote|pre|code|table|ul|ol|li|html|body|a)\b/i.test(raw);
+  }, [post]);
+
+  // 当 initialPost 更新时同步（例如客户端路由跳转）
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (initialPost) {
+      setPost(initialPost);
+      setMode("post");
+      setLoading(false);
+      return;
+    }
 
+    // 兜底：检查是否为 /thoughts 路由（思碎用的客户端动态加载）
+    if (typeof window === "undefined") return;
     const pathname = window.location.pathname;
-    const matchPost = pathname.match(/\/posts\/([^\/\?#]+)/);
     const matchThought = pathname.match(/\/thoughts\/([^\/\?#]+)/);
 
-    const workerUrl =
-      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-      "https://notion-api.dedeboki123.workers.dev";
-
-    if (matchPost) {
-      const id = matchPost[1];
-      setMode("post");
-      fetch(`${workerUrl}/api/posts/${id}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Not found");
-          return res.json();
-        })
-        .then((data) => {
-          if (data?.success && data.data) {
-            setPost(data.data);
-          } else {
-            setPost(null);
-          }
-        })
-        .catch(() => setPost(null))
-        .finally(() => setLoading(false));
-    } else if (matchThought) {
+    if (matchThought) {
       const id = matchThought[1];
       setMode("thought");
+      setLoading(true);
+      const workerUrl =
+        process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+        "https://notion-api.dedeboki123.workers.dev";
       fetch(`${workerUrl}/api/thoughts/${id}`)
         .then((res) => {
           if (!res.ok) throw new Error("Not found");
@@ -74,146 +95,254 @@ export function DynamicPostReader() {
         .catch(() => setThought(null))
         .finally(() => setLoading(false));
     } else {
+      // 没有 initialPost 且不是 /thoughts 路由，直接 404
       setLoading(false);
       setMode("404");
     }
-  }, []);
+  }, [initialPost]);
 
-  if (loading) {
-    return (
-      <div className="mx-auto w-full max-w-[65ch] px-6 pt-28 pb-20 sm:pt-32">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-neutral-200 dark:bg-neutral-800 rounded-md w-3/4" />
-          <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-1/3" />
-          <div className="space-y-3 pt-8">
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-full" />
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-5/6" />
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-4/6" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <AnimatePresence mode="wait">
+      {/* 1. 1:1 像素级仿真骨架屏 */}
+      {loading ? (
+        <motion.div
+          key="skeleton"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="relative min-h-screen w-full flex flex-col justify-between"
+        >
+          {/* 左侧固定 TOC 骨架：首屏直接占位，防止后续闪烁 */}
+          <aside className="hidden xl:block fixed top-28 left-6 sm:left-8 w-44 pointer-events-none opacity-40 select-none">
+            <div className="mb-3.5 flex items-center text-neutral-400 dark:text-neutral-500 opacity-60">
+              <Menu className="h-4 w-4" />
+            </div>
+            <div className="space-y-3">
+              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-28 animate-pulse" />
+              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-20 animate-pulse pl-3" />
+              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-32 animate-pulse" />
+              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-24 animate-pulse pl-3" />
+            </div>
+          </aside>
 
-  // 1. 随想录渲染
-  if (mode === "thought" && thought) {
-    return (
-      <div className="relative min-h-screen w-full bg-transparent px-4 pt-24 pb-16 sm:px-8 lg:px-12 antialiased">
-        <main className="mx-auto w-full max-w-[65ch]">
-          <header className="mb-10 pl-1">
-            <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-4xl">
-              思考
-            </h1>
-            <p className="mt-3 text-2xl text-neutral-500 dark:text-[#8e8e93] tracking-widest">
-              感君倾耳。
-            </p>
-          </header>
-
-          <div className="mb-6 pl-1">
-            <Link
-              href="/thoughts"
-              className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-[#71717a] dark:hover:text-[#f4f4f5] transition-colors"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              返回
-            </Link>
-          </div>
-
-          <ThoughtDetailClient item={thought} />
-        </main>
-      </div>
-    );
-  }
-
-  // 2. 博客文章渲染
-  if (mode === "post" && post) {
-    const publishDate = formatDate(post.published_at || post.created_at);
-    const readTime = calculateReadTime(post.content || post.summary || "");
-
-    return (
-      <div className="relative min-h-screen w-full overflow-hidden">
-        <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28">
-          <div className="slide-enter-content mx-auto w-full max-w-[65ch]">
-            <header className="mb-10">
-              <h1 className="text-3xl sm:text-4xl lg:text-[38px] font-bold tracking-tight text-neutral-900 dark:text-white leading-[1.25]">
-                {post.title}
-              </h1>
-
-              <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-neutral-400 dark:text-[#888888]">
-                {publishDate && <span>{publishDate}</span>}
-                {publishDate && readTime && <span className="opacity-40">·</span>}
-                <span>{readTime} min read</span>
-
-                {post.category && (
-                  <>
-                    <span className="opacity-40">·</span>
-                    <Link
-                      href={`/posts?category=${encodeURIComponent(post.category)}`}
-                      className="hover:text-neutral-900 dark:hover:text-white transition-colors"
-                    >
-                      {post.category}
-                    </Link>
-                  </>
-                )}
-
-                {post.source_url && (
-                  <>
-                    <span className="opacity-40">·</span>
-                    <a
-                      href={post.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-neutral-900 dark:hover:text-white transition-colors inline-flex items-center gap-1"
-                    >
-                      <span>{post.source || "Source"}</span>
-                      <ExternalLink className="h-3 w-3 opacity-60" />
-                    </a>
-                  </>
-                )}
+          {/* 正文版心骨架 */}
+          <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28 flex-1">
+            <div className="mx-auto w-full max-w-[65ch]">
+              {/* 标题与日期占位 */}
+              <div className="mb-8">
+                <div className="h-10 sm:h-11 bg-neutral-200/80 dark:bg-neutral-800/80 rounded-md w-4/5 animate-pulse" />
+                <div className="mt-3 h-3.5 bg-neutral-200/60 dark:bg-neutral-800/60 rounded w-24 animate-pulse" />
               </div>
+
+              {/* 首段正文占位 */}
+              <div className="space-y-3.5 mb-10">
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-full animate-pulse" />
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-[96%] animate-pulse" />
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-[90%] animate-pulse" />
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-3/5 animate-pulse" />
+              </div>
+
+              {/* 二级标题占位 */}
+              <div className="h-6 bg-neutral-200/80 dark:bg-neutral-800/80 rounded w-48 mb-5 animate-pulse" />
+
+              {/* 次段正文占位 */}
+              <div className="space-y-3.5 mb-10">
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-full animate-pulse" />
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-[92%] animate-pulse" />
+                <div className="h-4 bg-neutral-200/70 dark:bg-neutral-800/70 rounded w-4/5 animate-pulse" />
+              </div>
+
+              {/* 代码块占位 */}
+              <div className="h-48 bg-neutral-200/50 dark:bg-neutral-800/50 rounded-lg w-full animate-pulse" />
+            </div>
+          </main>
+          <Footer />
+        </motion.div>
+      ) : mode === "post" && post ? (
+        /* 2. 真实博客正文（平滑淡入） */
+        <motion.div
+          key={post.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={SMOOTH_TRANSITION}
+          className="relative min-h-screen w-full flex flex-col justify-between"
+        >
+          {/* 左侧固定目录 */}
+          <aside className="hidden xl:block fixed top-28 left-6 sm:left-8 w-44 pointer-events-auto z-20">
+            <TableOfContents />
+          </aside>
+
+          <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28 flex-1">
+            <div className="mx-auto w-full max-w-[65ch]">
+              {/* 顶部返回导航 */}
+              <div className="mb-6">
+                <Link
+                  href="/posts"
+                  className="group inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors cursor-pointer select-none"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
+                  <span>cd ..</span>
+                </Link>
+              </div>
+
+              {/* 头部大标题与极简单行日期 */}
+              <header className="mb-8">
+                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] leading-[1.2]">
+                  {post.title}
+                </h1>
+
+                {post.published_at || post.created_at ? (
+                  <p className="mt-2 text-sm text-neutral-400 dark:text-neutral-500 opacity-60">
+                    {formatDate(post.published_at || post.created_at || "")}
+                  </p>
+                ) : null}
+              </header>
+
+              {/* 正文渲染区 */}
+              <article className="post-article min-w-0">
+                <LazyPostContent
+                  content={post.content || post.summary || ""}
+                  isHtml={isHtmlContent}
+                />
+              </article>
+
+              {/* 标签列表 */}
+              {post.tags && (
+                <div className="mt-12 flex flex-wrap items-center gap-2 border-t border-black/[0.08] dark:border-white/[0.08] pt-6">
+                  <TagIcon className="h-3.5 w-3.5 text-neutral-400 opacity-60" />
+                  {(Array.isArray(post.tags)
+                    ? post.tags
+                    : String(post.tags).split(/[,，\s]+/).filter(Boolean)
+                  ).map((tag, index) => (
+                    <Link
+                      key={`${tag}-${index}`}
+                      href={`/posts?tag=${encodeURIComponent(tag)}`}
+                      className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                    >
+                      #{tag}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* 上一篇 / 下一篇 导航 */}
+              {(prevPost || nextPost) && (
+                <nav className="my-10 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-black/[0.08] dark:border-white/[0.08] py-5">
+                  {prevPost ? (
+                    <Link
+                      href={`/posts/${prevPost.slug || prevPost.id}`}
+                      className="group flex flex-col gap-1 text-left transition-colors"
+                    >
+                      <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+                        <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                        上一篇
+                      </span>
+                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white font-medium line-clamp-1">
+                        {prevPost.title}
+                      </span>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+
+                  {nextPost ? (
+                    <Link
+                      href={`/posts/${nextPost.slug || nextPost.id}`}
+                      className="group flex flex-col gap-1 text-right sm:items-end transition-colors"
+                    >
+                      <span className="text-[11px] text-neutral-400 flex items-center gap-1 justify-end">
+                        下一篇
+                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white font-medium line-clamp-1">
+                        {nextPost.title}
+                      </span>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+                </nav>
+              )}
+
+              {/* 底部返回 */}
+              <div className="mt-8 mb-4">
+                <Link
+                  href="/posts"
+                  className="group inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+                  <span>cd ..</span>
+                </Link>
+              </div>
+
+              {/* 评论区 */}
+              <div className="mt-12">
+                <LazyCommentSection postId={String(post.id)} />
+              </div>
+            </div>
+          </main>
+
+          <Footer />
+        </motion.div>
+      ) : mode === "thought" && thought ? (
+        /* 3. 随想录详情 */
+        <motion.div
+          key="thought"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={SMOOTH_TRANSITION}
+          className="relative min-h-screen w-full bg-transparent px-4 pt-24 pb-16 sm:px-8 lg:px-12 antialiased flex flex-col justify-between"
+        >
+          <main className="mx-auto w-full max-w-[65ch]">
+            <header className="mb-10 pl-1">
+              <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-4xl">
+                思考
+              </h1>
+              <p className="mt-3 text-2xl text-neutral-500 dark:text-[#8e8e93] tracking-widest">
+                感君倾耳。
+              </p>
             </header>
 
-            <article className="post-article min-w-0">
-              <LazyPostContent
-                content={post.content || post.summary || ""}
-                isHtml={false}
-              />
-            </article>
+            <div className="mb-6 pl-1">
+              <Link
+                href="/thoughts"
+                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-[#71717a] dark:hover:text-[#f4f4f5] transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                返回
+              </Link>
+            </div>
 
-            {post.tags && post.tags.length > 0 && (
-              <div className="mt-12 flex flex-wrap items-center gap-2 border-t border-neutral-200 dark:border-neutral-800/80 pt-6">
-                <TagIcon className="h-3.5 w-3.5 text-neutral-400 opacity-60" />
-                {post.tags.map((tag, index) => (
-                  <Link
-                    key={`${tag}-${index}`}
-                    href={`/posts?tag=${encodeURIComponent(tag)}`}
-                    className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-                  >
-                    #{tag}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // 3. 默认 404
-  return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center px-4">
-      <h1 className="text-4xl font-mono font-bold text-neutral-900 dark:text-white">
-        404
-      </h1>
-      <p className="mt-2 text-sm text-neutral-500">Page Not Found</p>
-      <Link
-        href="/"
-        className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        <span>返回首页</span>
-      </Link>
-    </div>
+            <ThoughtDetailClient item={thought} />
+          </main>
+          <Footer />
+        </motion.div>
+      ) : (
+        /* 4. 404 状态 */
+        <motion.div
+          key="404"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex min-h-[60vh] flex-col items-center justify-center text-center px-4"
+        >
+          <h1 className="text-4xl font-bold text-neutral-900 dark:text-white">
+            404
+          </h1>
+          <p className="mt-2 text-sm text-neutral-500">Page Not Found</p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>返回首页</span>
+          </Link>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

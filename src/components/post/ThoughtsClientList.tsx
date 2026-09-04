@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, HeartCrack, MessageSquare, Star, ArrowRightCircle } from "lucide-react";
-import { ThoughtMediaItem } from "@/lib/notion";
+import { ThoughtMediaItem } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
 export function ThoughtsClientList({

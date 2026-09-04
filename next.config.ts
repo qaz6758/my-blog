@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 静态 HTML 导出模式 (适配 Cloudflare Pages 静态托管，0 Worker 大小限制)
-  output: "export",
+  // 静态 HTML 导出模式 (若使用 Cloudflare Pages Edge 或 Node 运行时需关闭，以支持 Server Actions 与 API 路由)
+  // output: "export",
 
   // 1. 开启 React 严格模式，提高代码健壮性
   reactStrictMode: true,

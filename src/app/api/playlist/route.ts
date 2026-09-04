@@ -1,12 +1,12 @@
 // app/api/playlist/route.ts
 import { NextResponse } from "next/server";
-import { fetchPlaylistsFromNotion } from "@/lib/notion";
+import { fetchPlaylists } from "@/lib/data";
 
 export const dynamic = "force-static";
 
 export async function GET() {
   try {
-    const data = await fetchPlaylistsFromNotion();
+    const data = await fetchPlaylists();
     return NextResponse.json(
       { success: true, data },
       {

@@ -54,19 +54,26 @@ export function Playlist({
     };
   }, [selectedPlaylistId, onSelectPlaylist]);
 
+  const handleSelectPlaylist = (id: string | null) => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    onSelectPlaylist(id);
+  };
+
   const handleBackToList = () => {
     if (window.history.state?.playlistDetailOpen) {
       window.history.back();
     } else {
-      onSelectPlaylist(null);
+      handleSelectPlaylist(null);
     }
   };
 
   const activePlaylist = playlists.find((p) => p.id === selectedPlaylistId);
 
   return (
-    <div className="w-full">
-      <AnimatePresence mode="wait" initial={false}>
+    <div className="w-full relative">
+      <AnimatePresence mode="popLayout" initial={false}>
         {!selectedPlaylistId ? (
           /* ===================== 1. 宽屏画廊网格 ===================== */
           <motion.div
@@ -75,6 +82,7 @@ export function Playlist({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
+            className="w-full"
           >
 
             {/* Apple Music 标准 220px-240px 质感歌单网格 (单屏可轻松容纳 2 整行) */}
@@ -82,20 +90,38 @@ export function Playlist({
               {playlists.map((playlist) => (
                 <div
                   key={playlist.id}
-                  onClick={() => onSelectPlaylist(playlist.id)}
+                  onClick={() => handleSelectPlaylist(playlist.id)}
                   className="group flex cursor-pointer flex-col w-full max-w-[240px]"
                 >
                   {/* 歌单封面卡片 (Apple 官方标准 rounded-[5px] 微倒角 + ring-1 锐利细边框) */}
                   <div className="relative aspect-square w-full max-w-[240px] overflow-hidden rounded-[5px] bg-neutral-900 ring-1 ring-black/10 dark:ring-white/10 shadow-sm transition-all duration-300 group-hover:scale-[1.015] group-hover:shadow-md">
-                    <img
-                      src={playlist.cover || FALLBACK_COVER}
-                      alt={playlist.title}
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = FALLBACK_COVER;
-                      }}
-                      className="h-full w-full object-cover transition-transform duration-500"
-                    />
+                    {(() => {
+                      const rawCover =
+                        playlist.cover ||
+                        (playlist as any).cover_url ||
+                        (playlist as any).coverUrl ||
+                        "";
+                      return (
+                        <img
+                          src={rawCover || FALLBACK_COVER}
+                          alt={playlist.title}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (
+                              rawCover &&
+                              rawCover.includes("music.126.net") &&
+                              !target.src.includes("wsrv.nl")
+                            ) {
+                              target.src = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`;
+                              return;
+                            }
+                            target.src = FALLBACK_COVER;
+                          }}
+                          className="h-full w-full object-cover transition-transform duration-500"
+                        />
+                      );
+                    })()}
 
                     {/* Apple Music 同款精致右下角悬浮播放标 (不遮挡画面中心) */}
                     <div className="absolute inset-0 flex items-end justify-end p-2.5 bg-black/15 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
@@ -146,15 +172,33 @@ export function Playlist({
                 <div className="mb-5 sm:mb-7 flex flex-col md:flex-row items-stretch gap-8 sm:gap-10 pt-1 pb-2">
                   {/* 左侧封面 (Apple Music 同款 rounded-[6px] 锐利微倒角 + ring-1 边框) */}
                   <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-[6px] sm:rounded-[8px] bg-neutral-900 shadow-[0_12px_32px_rgba(0,0,0,0.18)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.55)] ring-1 ring-black/10 dark:ring-white/10">
-                    <img
-                      src={activePlaylist.cover || FALLBACK_COVER}
-                      alt={activePlaylist.title}
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = FALLBACK_COVER;
-                      }}
-                      className="h-full w-full object-cover"
-                    />
+                    {(() => {
+                      const rawHeroCover =
+                        activePlaylist.cover ||
+                        (activePlaylist as any).cover_url ||
+                        (activePlaylist as any).coverUrl ||
+                        "";
+                      return (
+                        <img
+                          src={rawHeroCover || FALLBACK_COVER}
+                          alt={activePlaylist.title}
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (
+                              rawHeroCover &&
+                              rawHeroCover.includes("music.126.net") &&
+                              !target.src.includes("wsrv.nl")
+                            ) {
+                              target.src = `https://wsrv.nl/?url=${encodeURIComponent(rawHeroCover)}&w=640&h=640&fit=cover`;
+                              return;
+                            }
+                            target.src = FALLBACK_COVER;
+                          }}
+                          className="h-full w-full object-cover"
+                        />
+                      );
+                    })()}
                   </div>
 
                   {/* 右侧信息排版 (与左侧封面等高，上下两端对齐，中间留白舒展) */}

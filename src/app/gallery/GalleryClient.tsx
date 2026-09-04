@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { X } from "lucide-react";
 import type { GalleryImage } from "@/types/gallery";
 
 export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
@@ -75,7 +76,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
       {isGrid ? (
         // 正方形网格 (gap-3 sm:gap-4，完美复刻图二通透呼吸感)
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {photos.map((photo) => (
+          {photos.map((photo, index) => (
             <div
               key={photo.id}
               className="relative aspect-square overflow-hidden group bg-neutral-100 dark:bg-[#0a0a0a] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500"
@@ -86,12 +87,12 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
               aria-label={`View ${photo.title || "image"}`}
             >
               <Image
-                src={photo.url}
+                src={photo.thumbnailUrl || photo.url}
                 alt={photo.title || "Gallery image"}
                 fill
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 sizes="(max-width: 768px) 50vw, 25vw"
-                priority={false}
+                priority={index < 4}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUCsA+sAAAAASUVORK5CYII="
               />
@@ -101,7 +102,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
       ) : (
         // 原比例错落排版 (Masonry / Columns)
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4">
-          {photos.map((photo) => (
+          {photos.map((photo, index) => (
             <div
               key={photo.id}
               className="relative overflow-hidden group bg-neutral-100 dark:bg-[#0a0a0a] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500"
@@ -112,13 +113,13 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
               aria-label={`View ${photo.title || "image"}`}
             >
               <Image
-                src={photo.url}
+                src={photo.thumbnailUrl || photo.url}
                 alt={photo.title || "Gallery image"}
                 width={photo.width || 800}
                 height={photo.height || 800}
                 className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                priority={false}
+                priority={index < 4}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUCsA+sAAAAASUVORK5CYII="
               />
@@ -130,22 +131,27 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
       {/* Lightbox 效果 */}
       {activePhoto && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md cursor-pointer opacity-100 transition-opacity duration-300"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md cursor-pointer opacity-100 transition-opacity duration-300 p-4 select-none touch-none"
           onClick={() => setActivePhoto(null)}
         >
+
+
+          {/* 图片展示区：手机端点击背景或直接点击浮层任意位置即可关闭 */}
           <div
-            className="relative w-[90vw] h-[90vh] max-w-7xl max-h-[90vh] flex items-center justify-center cursor-default"
-            onClick={(e) => e.stopPropagation()}
+            className="relative w-full h-full max-w-7xl max-h-[88vh] flex items-center justify-center pointer-events-none"
           >
             <Image
               src={activePhoto.url}
               alt={activePhoto.title || "Gallery image"}
               fill
-              className="object-contain"
+              className="object-contain pointer-events-auto cursor-pointer"
               quality={100}
               priority
+              onClick={() => setActivePhoto(null)}
             />
           </div>
+
+
         </div>
       )}
     </div>

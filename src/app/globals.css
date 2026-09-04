@@ -514,6 +514,16 @@ html.dark :focus-visible {
 }
 
 /*
+ * 在 View Transition 圆形波纹扩散期间，临时切断所有子元素的 CSS transition，
+ * 避免成百上千个 DOM 节点同时进行几何重排引发掉帧，将 GPU 算力完整释放给波纹裁切层。
+ */
+html.view-transition-active *,
+html.view-transition-active *::before,
+html.view-transition-active *::after {
+  transition: none !important;
+}
+
+/*
  * ============================================================
  * 顶部极简进度指示条流动动画 (Top Progress Bar)
  * ============================================================

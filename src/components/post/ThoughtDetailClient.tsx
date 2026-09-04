@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Heart, HeartCrack, MessageSquare, Star } from "lucide-react";
-import { ThoughtMediaItem } from "@/lib/notion";
+import { ThoughtMediaItem } from "@/lib/data";
 import { LazyCommentSection } from "@/components/post/LazyCommentSection";
 import { supabase } from "@/lib/supabase";
 

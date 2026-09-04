@@ -1,14 +1,15 @@
+// src/components/post/PostsListClient.tsx
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { FolderOpen, Tag as TagIcon, X } from "lucide-react";
 import { SlideEnter } from "@/components/layout/SlideEnter";
 import { formatDate, calculateReadTime } from "@/lib/utils";
 
 export interface PostItem {
   id: string | number;
+  slug?: string | null;
   title: string;
   created_at: string;
   published_at?: string | null;
@@ -35,7 +36,7 @@ function getReadTime(post: PostItem): number | null {
 }
 
 export function PostsListClient({
-  initialPosts,
+  initialPosts = [],
   initialCategory = "",
   initialTag = "",
 }: PostsListClientProps) {
@@ -43,73 +44,37 @@ export function PostsListClient({
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeTag, setActiveTag] = useState<string>(initialTag);
 
-  // 毫秒级后台静默获取最新 Notion 文章（SWR 实时刷新策略，彻底免部署）
   useEffect(() => {
-    const workerUrl =
-      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-      "https://notion-api.dedeboki123.workers.dev";
+    if (initialPosts) setPosts(initialPosts);
+  }, [initialPosts]);
 
-    fetch(`${workerUrl}/api/posts`)
-      .then((res) => res.json())
-      .then((result) => {
-        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
-          setPosts((prev) => {
-            const map = new Map<string | number, PostItem>();
-            // 先保留已有文章
-            prev.forEach((p) => map.set(String(p.id), p));
-            // 增量合并/更新最新 Notion 文章
-            result.data.forEach((p: PostItem) => map.set(String(p.id), p));
-
-            return Array.from(map.values()).sort((a, b) => {
-              const timeA = new Date(a.published_at || a.created_at).getTime();
-              const timeB = new Date(b.published_at || b.created_at).getTime();
-              return timeB - timeA;
-            });
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  // 1. 统计全量文章数与各分类数量
+  // 1. 统计分类与数量
   const { categoryCounts, categories } = useMemo(() => {
     const counts: Record<string, number> = {};
     posts.forEach((post) => {
       const cat = post.category?.trim();
-      if (cat) {
-        counts[cat] = (counts[cat] || 0) + 1;
-      }
+      if (cat) counts[cat] = (counts[cat] || 0) + 1;
     });
 
-    const sortedCats = Object.keys(counts).sort(
-      (a, b) => counts[b] - counts[a]
-    );
-
+    const sortedCats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
     return { categoryCounts: counts, categories: sortedCats };
   }, [posts]);
 
-  // 2. 内存秒级过滤文章
+  // 2. 过滤文章
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
-      if (activeCategory && post.category !== activeCategory) {
-        return false;
-      }
+      if (activeCategory && post.category !== activeCategory) return false;
       if (activeTag) {
-        const rawTags = Array.isArray(post.tags)
-          ? post.tags.join(",")
-          : post.tags || "";
-        if (!rawTags.toLowerCase().includes(activeTag.toLowerCase())) {
-          return false;
-        }
+        const rawTags = Array.isArray(post.tags) ? post.tags.join(",") : post.tags || "";
+        if (!rawTags.toLowerCase().includes(activeTag.toLowerCase())) return false;
       }
       return true;
     });
   }, [posts, activeCategory, activeTag]);
 
-  // 3. 按年份归并文章
+  // 3. 按年份归并
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
-
     filteredPosts.forEach((post) => {
       const date = post.published_at || post.created_at;
       const year = String(getYear(date));
@@ -117,19 +82,14 @@ export function PostsListClient({
       groups[year].push(post);
     });
 
-    const sortedYears = Object.keys(groups).sort(
-      (a, b) => Number(b) - Number(a)
-    );
-
+    const sortedYears = Object.keys(groups).sort((a, b) => Number(b) - Number(a));
     return { years: sortedYears, postsByYear: groups };
   }, [filteredPosts]);
 
-  // 4. 切换分类：即时响应并同步 URL
+  // 4. 切换分类与标签
   const handleCategoryChange = (cat: string) => {
     const nextCategory = activeCategory === cat ? "" : cat;
     setActiveCategory(nextCategory);
-
-    // 静默同步浏览器 URL，避免网络请求延迟
     const params = new URLSearchParams();
     if (nextCategory) params.set("category", nextCategory);
     if (activeTag) params.set("tag", activeTag);
@@ -147,26 +107,22 @@ export function PostsListClient({
 
   return (
     <>
-      {/* 分类 Tab 栏：极简纯文字（灰转白过渡） */}
+      {/* 分类 Tab 栏 (Stage 2) */}
       <SlideEnter stage={2} className="mb-10">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-b border-black/[0.06] pb-3.5 dark:border-white/[0.08]">
-          {/* 全部 Tab */}
           <button
             type="button"
             onClick={() => handleCategoryChange("")}
             className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity duration-200 cursor-pointer select-none font-normal text-neutral-900 dark:text-white ${
-              !activeCategory
-                ? "opacity-100"
-                : "opacity-55 hover:opacity-100"
+              !activeCategory ? "opacity-100 font-medium" : "opacity-55 hover:opacity-100"
             }`}
           >
             <span>全部</span>
             <span className="font-mono text-[11px] tabular-nums opacity-60">
-              {initialPosts.length}
+              {posts.length}
             </span>
           </button>
 
-          {/* 各分类 Tab */}
           {categories.map((cat) => {
             const isCurrent = activeCategory === cat;
             const count = categoryCounts[cat] || 0;
@@ -177,9 +133,7 @@ export function PostsListClient({
                 type="button"
                 onClick={() => handleCategoryChange(cat)}
                 className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity duration-200 cursor-pointer select-none font-normal text-neutral-900 dark:text-white ${
-                  isCurrent
-                    ? "opacity-100"
-                    : "opacity-55 hover:opacity-100"
+                  isCurrent ? "opacity-100 font-medium" : "opacity-55 hover:opacity-100"
                 }`}
               >
                 <FolderOpen className={`h-3.5 w-3.5 transition-opacity duration-200 ${isCurrent ? "opacity-90" : "opacity-50 group-hover:opacity-100"}`} />
@@ -191,7 +145,6 @@ export function PostsListClient({
             );
           })}
 
-          {/* 激活的标签徽章 */}
           {activeTag && (
             <button
               type="button"
@@ -206,18 +159,15 @@ export function PostsListClient({
         </div>
       </SlideEnter>
 
-      {/* 年份文章列表 (分类切换时触发全站同款平滑淡入动效) */}
+      {/* 年份文章列表 */}
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content space-y-14">
         {years.map((year) => {
           const yearPosts = postsByYear[year];
 
           return (
             <section key={year} className="relative">
-              {/* 年份背景水印与标题 */}
-              <SlideEnter
-                stage={3}
-                className="relative mb-6 flex items-center select-none"
-              >
+              {/* 年份背景水印与标题 (Stage 3) */}
+              <SlideEnter stage={3} className="relative mb-6 flex items-center select-none">
                 <span
                   aria-hidden="true"
                   className="
@@ -253,15 +203,12 @@ export function PostsListClient({
                   const date = post.published_at || post.created_at;
                   const readTime = getReadTime(post);
                   const postStage = Math.min(4 + index, 14);
+                  const targetLink = `/posts/${post.slug || post.id}`;
 
                   return (
-                    <SlideEnter
-                      key={post.id}
-                      stage={postStage}
-                      stagger={35}
-                    >
+                    <SlideEnter key={post.id} stage={postStage} stagger={35}>
                       <Link
-                        href={`/posts/${post.id}`}
+                        href={targetLink}
                         className="
                           group
                           flex
@@ -269,8 +216,6 @@ export function PostsListClient({
                           justify-between
                           gap-4
                           py-2.5
-                          transition-all
-                          duration-200
                           cursor-pointer
                         "
                       >
@@ -322,7 +267,7 @@ export function PostsListClient({
         })}
       </div>
 
-      {/* 空状态 */}
+      {/* 空状态 (Stage 4) */}
       {filteredPosts.length === 0 && (
         <div key={`empty-${activeCategory}-${activeTag}`} className="slide-enter-content">
           <SlideEnter
