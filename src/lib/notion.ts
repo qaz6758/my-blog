@@ -410,7 +410,15 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
         'Notion-Version': NOTION_VERSION,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ page_size: 100 }),
+      body: JSON.stringify({
+        page_size: 100,
+        sorts: [
+          {
+            timestamp: "created_time",
+            direction: "descending",
+          },
+        ],
+      }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       next: { revalidate: 60 },
     });
@@ -449,6 +457,7 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
       });
     }
 
+    items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
     return items;
   } catch {
     return [];

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, HeartCrack, MessageSquare, Star, ArrowRightCircle } from "lucide-react";
-import { ThoughtMediaItem, formatThoughtDate } from "@/lib/data";
+import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
 export function ThoughtsClientList({
@@ -13,11 +13,12 @@ export function ThoughtsClientList({
 }) {
   const [items, setItems] = useState<ThoughtMediaItem[]>(() => {
     const seen = new Set<string>();
-    return (initialItems || []).filter((item) => {
+    const list = (initialItems || []).filter((item) => {
       if (!item?.id || seen.has(item.id)) return false;
       seen.add(item.id);
       return true;
     });
+    return list.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
   });
   const [userReactions, setUserReactions] = useState<
     Record<string, { liked?: boolean; upvoted?: boolean }>
@@ -36,18 +37,29 @@ export function ThoughtsClientList({
           setItems((prev) => {
             const map = new Map<string, ThoughtMediaItem>();
             prev.forEach((item) => map.set(item.id, item));
-            result.data.forEach((item: ThoughtMediaItem) => {
+            result.data.forEach((item: ThoughtMediaItem, index: number) => {
               const existing = map.get(item.id);
-              const dateInfo = formatThoughtDate(item.time);
+              const dateInfo = formatThoughtDate(item.rawDate || item.time);
               map.set(item.id, {
                 ...item,
                 time: dateInfo.relative || existing?.time || item.time,
                 fullTime: dateInfo.full || existing?.fullTime,
+                rawDate: item.rawDate || item.time || existing?.rawDate,
                 year: item.year || existing?.year || (dateInfo.full ? dateInfo.full.slice(0, 4) : ""),
-                replies: existing?.replies || item.replies || 0,
-              });
+                replies: existing?.replies ?? item.replies ?? 0,
+                likes: existing?.likes ?? item.likes ?? 0,
+                upvotes: existing?.upvotes ?? item.upvotes ?? 0,
+                _order: index,
+              } as any);
             });
-            return Array.from(map.values());
+
+            const mergedList = Array.from(map.values());
+            mergedList.sort((a: any, b: any) => {
+              const diff = getThoughtTimestamp(b) - getThoughtTimestamp(a);
+              if (diff !== 0) return diff;
+              return (a._order ?? 0) - (b._order ?? 0);
+            });
+            return mergedList;
           });
         }
       })

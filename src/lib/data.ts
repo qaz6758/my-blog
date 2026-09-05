@@ -17,6 +17,7 @@ export interface ThoughtMediaItem {
   action: string;
   time: string;
   fullTime?: string;
+  rawDate?: string;
   type: string;
   year: string;
   title: string;
@@ -30,12 +31,28 @@ export interface ThoughtMediaItem {
   replies: number;
 }
 
-// 辅助函数：解析任意常见格式日期（包含中文字符串格式：2026年8月31日 星期一 00:00）
-function parseAnyDate(dateStr: string): Date | null {
+// 辅助函数：解析任意常见格式日期（包含 ISO、中文字符串、相对时间格式）
+export function parseAnyDate(dateStr: string): Date | null {
   if (!dateStr) return null;
   const direct = new Date(dateStr);
   if (!isNaN(direct.getTime())) return direct;
 
+  // 1. 处理常见相对时间：X分钟前、X小时前、X天前、昨天、刚刚
+  const relM = dateStr.match(/(\d+)\s*(分钟|小时|天|月|年)前/);
+  if (relM) {
+    const n = parseInt(relM[1], 10);
+    const unit = relM[2];
+    const now = Date.now();
+    if (unit === '分钟') return new Date(now - n * 60 * 1000);
+    if (unit === '小时') return new Date(now - n * 3600 * 1000);
+    if (unit === '天') return new Date(now - n * 86400 * 1000);
+    if (unit === '月') return new Date(now - n * 30 * 86400 * 1000);
+    if (unit === '年') return new Date(now - n * 365 * 86400 * 1000);
+  }
+  if (dateStr.includes('昨天')) return new Date(Date.now() - 86400 * 1000);
+  if (dateStr.includes('刚刚')) return new Date();
+
+  // 2. 中文格式：2026年8月31日 星期一 00:00 或 2026年9月5日 星期六
   const m = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日(?:\s+[^\s]+)?(?:\s+(\d{1,2}):(\d{1,2}))?/);
   if (m) {
     const year = m[1];
@@ -47,6 +64,24 @@ function parseAnyDate(dateStr: string): Date | null {
     if (!isNaN(parsed.getTime())) return parsed;
   }
   return null;
+}
+
+export function getThoughtTimestamp(
+  item: ThoughtMediaItem | { time?: string; fullTime?: string; rawDate?: string }
+): number {
+  if (item.rawDate) {
+    const d = parseAnyDate(item.rawDate);
+    if (d) return d.getTime();
+  }
+  if (item.fullTime) {
+    const d = parseAnyDate(item.fullTime);
+    if (d) return d.getTime();
+  }
+  if (item.time) {
+    const d = parseAnyDate(item.time);
+    if (d) return d.getTime();
+  }
+  return 0;
 }
 
 // 辅助函数：格式化时间（几天前 + 智能回退为 几年几月几日 星期几）
@@ -112,6 +147,7 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
         action: item.action || '',
         time: dateInfo.relative,
         fullTime: dateInfo.full,
+        rawDate: item.created_at,
         type: item.type || 'NOTE',
         year: item.year || new Date(item.created_at).getFullYear().toString(),
         title: item.title || '',
@@ -135,6 +171,7 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
           action: t.action,
           time: dateInfo.relative,
           fullTime: dateInfo.full,
+          rawDate: t.time,
           type: t.type,
           year: t.year,
           title: t.title,
@@ -153,9 +190,12 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
       const notionIds = new Set(formattedNotion.map((t) => t.id));
       const filteredSupabase = supabaseItems.filter((t) => !notionIds.has(t.id));
 
-      return [...formattedNotion, ...filteredSupabase];
+      const merged = [...formattedNotion, ...filteredSupabase];
+      merged.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
+      return merged;
     }
 
+    supabaseItems.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
     return supabaseItems;
   } catch (err) {
     console.warn('[Fetch Thoughts Error]:', err);
