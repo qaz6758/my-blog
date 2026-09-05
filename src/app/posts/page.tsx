@@ -3,7 +3,7 @@ import { fetchPosts } from '@/lib/data';
 import { PostsListClient, PostItem } from '@/components/post/PostsListClient';
 import { SlideEnter } from '@/components/layout/SlideEnter';
 
-export const dynamic = 'auto';
+export const dynamic = 'force-static';
 export const revalidate = 60;
 
 export default async function PostsPage() {

@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { fetchThoughtDetailFromNotion, fetchThoughtsFromNotion } from "@/lib/data";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 
+export const dynamicParams = false;
 export const revalidate = 5;
 
 export async function generateStaticParams() {

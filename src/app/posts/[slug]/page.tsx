@@ -4,8 +4,7 @@ import { fetchPosts, fetchPostDetail } from '@/lib/data';
 import PostDetailClient from './PostDetailClient';
 import { PostDetail } from '@/components/post/DynamicPostReader';
 
-// 允许动态渲染未在构建期列举的 slug（如 Notion 新发布的文章），防止 404
-export const dynamicParams = true;
+export const dynamicParams = false;
 export const revalidate = 60;
 
 // 1. 构建期提取所有已发布文章的 Slug（包含 Notion 原创与 Supabase 文章）
