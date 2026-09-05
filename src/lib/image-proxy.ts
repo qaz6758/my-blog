@@ -11,5 +11,5 @@ export function getProxyImageUrl(url?: string | null): string {
   if (trimmed.startsWith('data:')) return trimmed;
   if (trimmed.includes('/img/?url=')) return trimmed;
 
-  return `/img/?url=${encodeURIComponent(trimmed)}`;
+  return `https://cdn.vinceou.site/img/?url=${encodeURIComponent(trimmed)}`;
 }

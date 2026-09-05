@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play,
@@ -93,11 +94,16 @@ export function MusicPlayer({
   onSelectSong,
   formatTime,
 }: MusicPlayerProps) {
+  const [mounted, setMounted] = useState(false);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [showVolumeCapsule, setShowVolumeCapsule] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [collapsedDeltaX, setCollapsedDeltaX] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 动态计算收起状态下黑胶唱片平滑靠左吸附的 X 轴偏移量（考虑屏幕响应式安全边距）
   useEffect(() => {
@@ -264,11 +270,11 @@ export function MusicPlayer({
   const ringRadius = 13;
   const ringCircumference = 2 * Math.PI * ringRadius;
 
-  if (isDismissed) {
+  if (!mounted || isDismissed) {
     return null;
   }
 
-  return (
+  return createPortal(
     <>
       {/* Apple 大屏全屏沉浸播放界面 */}
       <ImmersivePlayerModal
@@ -293,11 +299,11 @@ export function MusicPlayer({
         formatTime={formatTime}
       />
 
-      {/* 底部浮动播放器 */}
+      {/* 底部浮动播放器 (Portaled 至 body 确保移动端全屏视口固定，适配 safe-area) */}
       <aside
         style={{
           position: "fixed",
-          bottom: "24px",
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)",
           left: 0,
           right: 0,
           top: "auto",
@@ -973,6 +979,7 @@ export function MusicPlayer({
           </motion.div>
         </div>
       </aside>
-    </>
+    </>,
+    document.body
   );
 }
