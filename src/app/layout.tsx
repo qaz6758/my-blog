@@ -49,6 +49,12 @@ export default function RootLayout({
       className={inter.variable}
     >
       <head>
+        {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
+          crossOrigin="anonymous"
+        />
         {/* 首屏零毫秒同步锁定主题脚本 */}
         <script
           dangerouslySetInnerHTML={{

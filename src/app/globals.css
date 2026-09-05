@@ -31,6 +31,21 @@
     "Liberation Mono",
     "Courier New",
     monospace;
+
+  --font-wenkai:
+    "LXGW WenKai Screen",
+    "LXGW WenKai Screen R",
+    "LXGW WenKai",
+    "霞鹜文楷",
+    "STKaiti",
+    "KaiTi",
+    "Kaiti SC",
+    serif;
+}
+
+/* 霞鹜文楷国风字体类 */
+.font-wenkai {
+  font-family: var(--font-wenkai), "LXGW WenKai Screen", "LXGW WenKai", "霞鹜文楷", "STKaiti", "KaiTi", "Kaiti SC", serif;
 }
 
 /*

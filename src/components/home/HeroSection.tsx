@@ -265,15 +265,15 @@ export function HeroSection() {
                 <div className="absolute inset-0 bg-gradient-to-b from-[#ede7dc]/80 via-[#ede7dc]/55 to-[#ede7dc]/80 dark:from-[#181614]/85 dark:via-[#181614]/60 dark:to-[#181614]/85 backdrop-blur-[0.3px]" />
               </div>
 
-              {/* 正文内容 (黄金阅读尺寸 690px，行高与海报画幅舒展和谐) */}
-              <div className="relative z-10 text-[15.5px] sm:text-[16px] leading-[1.92] sm:leading-[1.98] text-neutral-900 dark:text-[#eae5dc] space-y-6 sm:space-y-7 tracking-[0.012em]">
+              {/* 正文内容 (黄金阅读尺寸，霞鹜文楷水墨风，行高与画卷舒展和谐) */}
+              <div className="relative z-10 font-wenkai text-[16px] sm:text-[17px] leading-[2.0] sm:leading-[2.05] text-neutral-900 dark:text-[#eae5dc] space-y-6 sm:space-y-7 tracking-[0.025em]">
                 {/* 第一句：极简身份宣言 */}
                 <p>
                   嘿！我是{name}，一名热爱音乐以及网站开发的全栈初学者。
                 </p>
 
-                {/* 🌟 官方标准 SVG 图标 + 页面原字体排版 */}
-                <div className="my-7 sm:my-8 space-y-3 text-[14px] sm:text-[14.5px] leading-relaxed select-none">
+                {/* 🌟 官方标准 SVG 图标 + 页面原字体排版 (保持技术栈标签清晰工整) */}
+                <div className="my-7 sm:my-8 space-y-3 font-sans text-[13.5px] sm:text-[14px] leading-relaxed select-none tracking-normal">
                   {/* Focus on */}
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-neutral-500 dark:text-[#8c857b] w-26 shrink-0">Working with</span>
