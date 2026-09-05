@@ -186,29 +186,59 @@ export function HeroSection() {
             {isExpanded ? "卷收 · 藏" : "展卷 · 阅"}
           </span>
 
-          {/* 灵动下折箭头 (纯 CSS 合成器线程平滑旋转，彻底消除 Framer Motion JS fiber 重排抖动) */}
+          {/* 灵动下折箭头 (精确同步卷轴非对称开合时长与曲线，杜绝旋转与展开割裂脱节) */}
           <div className="w-4 h-4 flex items-center justify-center text-neutral-400 group-hover:text-[#dc2626] dark:text-neutral-500 dark:group-hover:text-white group-hover:translate-y-0.5 transition-colors duration-200 shrink-0">
             <ChevronDown
-              className={`h-4 w-4 stroke-[1.8] transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                isExpanded ? "rotate-180" : "rotate-0"
-              }`}
+              className="h-4 w-4 stroke-[1.8] transition-transform"
+              style={{
+                transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                transitionDuration: isExpanded ? "600ms" : "420ms",
+                transitionTimingFunction: isExpanded
+                  ? "cubic-bezier(0.25, 1, 0.35, 1)"
+                  : "cubic-bezier(0.36, 0, 0.16, 1)",
+              }}
             />
           </div>
         </button>
 
-        {/* ===================== 3. 仿古水墨画卷主体 (纯数值精确像素高度过渡，绝不使用 height: auto，根除结束帧重排抖动) ===================== */}
+        {/* ===================== 3. 仿古水墨画卷主体 (非对称自然物理缓动曲线：展卷从容舒展，收卷干净利落) ===================== */}
         <motion.div
           initial={false}
           animate={{
             height: isExpanded ? contentHeight : 0,
           }}
-          transition={{
-            height: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-          }}
+          transition={
+            isExpanded
+              ? {
+                  height: { duration: 0.6, ease: [0.25, 1, 0.35, 1] },
+                }
+              : {
+                  height: { duration: 0.42, ease: [0.36, 0, 0.16, 1] },
+                }
+          }
           className={`w-full relative overflow-hidden ${isExpanded ? "" : "pointer-events-none"}`}
           style={{ willChange: "height" }}
         >
-          <div ref={contentRef} className="w-full py-4">
+          <motion.div
+            ref={contentRef}
+            initial={false}
+            animate={{
+              opacity: isExpanded ? 1 : 0,
+              y: isExpanded ? 0 : -14,
+            }}
+            transition={
+              isExpanded
+                ? {
+                    opacity: { duration: 0.48, ease: [0.25, 1, 0.35, 1], delay: 0.05 },
+                    y: { duration: 0.58, ease: [0.25, 1, 0.35, 1] },
+                  }
+                : {
+                    opacity: { duration: 0.22, ease: "easeIn" },
+                    y: { duration: 0.38, ease: [0.36, 0, 0.16, 1] },
+                  }
+            }
+            className="w-full py-4"
+          >
             {/* 1. 顶端圆木天杆：始终保持固定在顶端 */}
             <AgedScrollRod type="top" />
 
@@ -322,7 +352,7 @@ export function HeroSection() {
 
           {/* 3. 底端圆木地轴：紧贴画芯底边，收卷时真实由下向上滚动，直至与顶端天杆合拢 */}
           <AgedScrollRod type="bottom" />
-        </div>
+        </motion.div>
       </motion.div>
 
         {/* ===================== 4. 联系方式 (自然平滑随画卷展开下移与回退) ===================== */}
