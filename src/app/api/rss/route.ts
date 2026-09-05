@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { fetchRSS, RSSItem } from "@/lib/rss";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const maxDuration = 60; // 允许长任务最长执行 60 秒
 
 const RSS_FEEDS = [
@@ -34,12 +34,17 @@ const RSS_FEEDS = [
 
 export async function GET(req: NextRequest) {
   try {
-    // 1. 安全鉴权：若配置了 CRON_SECRET 则必须携带鉴权头或 query token
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      const authHeader = req.headers.get("authorization");
-      const urlToken = req.nextUrl.searchParams.get("token");
+    const authHeader = req.headers.get("authorization");
+    const urlToken = req.nextUrl.searchParams.get("token");
 
+    // 静态预渲染阶段（无鉴权凭据）直接快速返回，杜绝 Cloudflare Pages 构建期外网爬虫阻塞
+    if (!authHeader && !urlToken) {
+      return NextResponse.json({ status: "RSS Service Ready" });
+    }
+
+    // 1. 安全鉴权：若配置了 CRON_SECRET 则必须携带鉴权头或 query token
+    if (cronSecret) {
       if (authHeader !== `Bearer ${cronSecret}` && urlToken !== cronSecret) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
