@@ -96,6 +96,26 @@ export function MusicPlayer({
   const [showVolumeCapsule, setShowVolumeCapsule] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [collapsedDeltaX, setCollapsedDeltaX] = useState(0);
+
+  // 动态计算收起状态下黑胶唱片平滑靠左吸附的 X 轴偏移量（考虑屏幕响应式安全边距）
+  useEffect(() => {
+    const updateDeltaX = () => {
+      if (typeof window === "undefined") return;
+      const padding = window.innerWidth < 640 ? 12 : 24;
+      const maxW = 700;
+      const availableWidth = window.innerWidth;
+      const containerWidth = Math.min(availableWidth - padding * 2, maxW);
+      const containerLeft = (availableWidth - containerWidth) / 2;
+      const targetLeft = padding;
+      // 居中容器的左边缘到视口最左侧安全 padding 的距离差
+      setCollapsedDeltaX(targetLeft - containerLeft);
+    };
+
+    updateDeltaX();
+    window.addEventListener("resize", updateDeltaX);
+    return () => window.removeEventListener("resize", updateDeltaX);
+  }, []);
 
   // CRT 示波器关机动画状态
   const [isDismissed, setIsDismissed] = useState(false);
@@ -376,26 +396,27 @@ export function MusicPlayer({
             )}
           </AnimatePresence>
 
-          {/* 播放器胶囊主体 (丝滑物理弹簧容器) */}
+          {/* 播放器胶囊主体 (丝滑物理弹簧容器：展开居中，收起时自动平滑滑向视口最左侧) */}
           <motion.div
             initial={false}
             animate={{
-              width: isCollapsed ? 56 : "100%",
+              width: isCollapsed
+                ? (typeof window !== "undefined" && window.innerWidth < 640 ? 54 : 60)
+                : "100%",
+              x: isCollapsed ? collapsedDeltaX : 0,
             }}
+            whileHover={isCollapsed ? { scale: 1.08 } : undefined}
+            whileTap={isCollapsed ? { scale: 0.93 } : undefined}
             transition={{
               type: "spring",
-              stiffness: 300,
-              damping: 27,
-              mass: 0.7,
+              stiffness: 260,
+              damping: 25,
+              mass: 0.8,
             }}
             style={{ willChange: "width, transform" }}
             className={`pointer-events-auto relative flex h-[54px] sm:h-[60px] items-center rounded-full border border-black/10 dark:border-white/[0.15] bg-white/90 dark:bg-[#18181a]/90 shadow-[0_15px_40px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.8)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-3xl overflow-hidden ${
               isCrtCollapsing ? "animate-crt-collapse" : ""
-            } ${
-              isCollapsed
-                ? "cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                : ""
-            }`}
+            } ${isCollapsed ? "cursor-pointer" : ""}`}
             onClick={(e) => {
               if (isCollapsed) {
                 e.stopPropagation();
