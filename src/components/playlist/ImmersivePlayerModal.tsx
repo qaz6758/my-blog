@@ -14,6 +14,7 @@ import {
 import { Song } from "@/components/playlist/SongList";
 import { RepeatMode } from "@/components/playlist/MusicContext";
 import { NeatFluidBackground } from "@/components/playlist/NeatFluidBackground";
+import { getProxyImageUrl } from "@/lib/image-proxy";
 
 export interface ImmersivePlayerModalProps {
   isOpen: boolean;
@@ -140,14 +141,17 @@ export function ImmersivePlayerModal({
                     "";
                   return (
                     <img
-                      src={raw || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"}
+                      src={getProxyImageUrl(raw) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80"}
                       alt={currentSong.title}
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (raw && raw.includes("music.126.net") && !target.src.includes("wsrv.nl")) {
-                          target.src = `https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=640&h=640&fit=cover`;
-                          return;
+                        if (raw && raw.includes("music.126.net")) {
+                          const fallbackUrl = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=640&h=640&fit=cover`);
+                          if (target.src !== fallbackUrl) {
+                            target.src = fallbackUrl;
+                            return;
+                          }
                         }
                         target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
                       }}

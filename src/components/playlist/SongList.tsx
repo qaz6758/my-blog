@@ -3,6 +3,7 @@
 
 import React, { useState } from "react";
 import { Play, Pause } from "lucide-react";
+import { getProxyImageUrl } from "@/lib/image-proxy";
 
 const FALLBACK_SONG_COVER =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80";
@@ -110,15 +111,16 @@ export function SongList({
                       let initialCover = rawCover || FALLBACK_SONG_COVER;
                       const isNetease = initialCover.includes("music.126.net");
 
-                      // 如果已知用户环境网易云直连不稳定，直接直出全球代理链接，彻底消除等待与黑块
+                      // 网易云音乐封面：添加 120px 紧凑参数，并经由 Worker 优选节点永久边缘缓存
                       if (isNetease) {
-                        if (typeof window !== "undefined" && (window as any).__netease_direct_failed) {
-                          initialCover = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=120&h=120&fit=cover`;
-                        } else if (initialCover.includes("param=")) {
+                        if (initialCover.includes("param=")) {
                           initialCover = initialCover.replace(/param=\d+y\d+/g, "param=120y120");
                         } else {
                           initialCover = `${initialCover}${initialCover.includes("?") ? "&" : "?"}param=120y120`;
                         }
+                        initialCover = getProxyImageUrl(initialCover);
+                      } else {
+                        initialCover = getProxyImageUrl(initialCover);
                       }
 
                       return (
@@ -130,12 +132,11 @@ export function SongList({
                           referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            if (isNetease) {
-                              if (typeof window !== "undefined") {
-                                (window as any).__netease_direct_failed = true;
-                              }
-                              if (!target.src.includes("wsrv.nl")) {
-                                target.src = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=120&h=120&fit=cover`;
+                            if (isNetease && rawCover) {
+                              const wsrvFallback = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=120&h=120&fit=cover`;
+                              const proxyFallback = getProxyImageUrl(wsrvFallback);
+                              if (target.src !== proxyFallback) {
+                                target.src = proxyFallback;
                                 return;
                               }
                             }

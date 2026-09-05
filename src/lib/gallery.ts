@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import type { GalleryImage } from "@/types/gallery";
+import { getProxyImageUrl } from "@/lib/image-proxy";
 
 interface PhotoRow {
   id: string;
@@ -41,34 +42,36 @@ export function getOptimizedThumbnailUrl(
     rawThumbnailUrl &&
     rawThumbnailUrl.trim() !== ""
   ) {
-    return rawThumbnailUrl;
+    return getProxyImageUrl(rawThumbnailUrl);
   }
   if (!url) return "";
 
-  // 1. Unsplash 图片利用其原生参数压缩为 800px WebP 缩略图
+  // 1. Unsplash 图片利用其原生参数压缩为 800px WebP 缩略图并经由 Worker 优选节点永久缓存
   if (url.includes("images.unsplash.com")) {
     const base = url.split("?")[0];
-    return `${base}?auto=format&fit=crop&w=800&q=75`;
+    return getProxyImageUrl(`${base}?auto=format&fit=crop&w=800&q=75`);
   }
 
   // 2. Supabase Storage 等海外超大原图（单张常达 5MB~10MB+）
-  // 经由全球边缘 CDN 动态转码压缩为 800px WebP 缩略图（体积锐减 99.5% 至 40~60KB，实现秒显）
-  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800&fit=cover&output=webp&q=75`;
+  // 经由全球边缘 CDN 动态转码压缩为 800px WebP 缩略图，再通过自建 Worker 优选节点永久边缘缓存（实现 30ms 秒显）
+  const wsrv = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800&fit=cover&output=webp&q=75`;
+  return getProxyImageUrl(wsrv);
 }
 
 /**
  * =========================================================
  * 高清大图预览 URL 解析器 (专供 Lightbox 弹窗秒显)
  * =========================================================
- * 原图 5MB~11MB 经由全球边缘 CDN 压缩为 2000px WebP (仅 ~100KB)，画质顶级且加载速度提升 50 倍
+ * 原图 5MB~11MB 经由全球边缘 CDN 压缩为 2000px WebP (仅 ~100KB)，并通过 Worker 优选节点永久缓存
  */
 export function getOptimizedHDUrl(url: string): string {
   if (!url) return "";
   if (url.includes("images.unsplash.com")) {
     const base = url.split("?")[0];
-    return `${base}?auto=format&fit=contain&w=2000&q=85`;
+    return getProxyImageUrl(`${base}?auto=format&fit=contain&w=2000&q=85`);
   }
-  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=2000&fit=contain&output=webp&q=85`;
+  const wsrv = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=2000&fit=contain&output=webp&q=85`;
+  return getProxyImageUrl(wsrv);
 }
 
 /**

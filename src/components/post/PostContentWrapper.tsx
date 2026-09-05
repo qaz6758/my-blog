@@ -9,6 +9,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Prism from "prismjs";
 import { slugifyHeading } from "@/lib/utils";
+import { getProxyImageUrl } from "@/lib/image-proxy";
 
 // Prism 常用语言语法解析支持
 import "prismjs/components/prism-javascript";
@@ -82,7 +83,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
       !rawSrc.includes("wsrv.nl") &&
       !isNotionOrAws
     ) {
-      optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`;
+      optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
     }
 
     const cleanAttrs = attrs
@@ -510,7 +511,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
                   !rawSrc.includes("wsrv.nl") &&
                   !isNotionOrAws
                 ) {
-                  optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`;
+                  optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
                 }
                 return (
                   <img

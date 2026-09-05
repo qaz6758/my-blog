@@ -16,6 +16,7 @@ import {
 import { Song } from "@/components/playlist/SongList";
 import { RepeatMode } from "@/components/playlist/MusicContext";
 import { ImmersivePlayerModal } from "@/components/playlist/ImmersivePlayerModal";
+import { getProxyImageUrl } from "@/lib/image-proxy";
 
 const FALLBACK_COVER =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80";
@@ -28,7 +29,7 @@ function resolveMusicCover(url?: string, size = 120) {
       ? res.replace(/param=\d+y\d+/g, `param=${size}y${size}`)
       : `${res}${res.includes("?") ? "&" : "?"}param=${size}y${size}`;
   }
-  return res;
+  return getProxyImageUrl(res);
 }
 
 function handleMusicCoverError(
@@ -42,7 +43,7 @@ function handleMusicCoverError(
     originalUrl.includes("music.126.net") &&
     !target.src.includes("wsrv.nl")
   ) {
-    target.src = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${size}&h=${size}&fit=cover`;
+    target.src = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${size}&h=${size}&fit=cover`);
     return;
   }
   target.src = FALLBACK_COVER;

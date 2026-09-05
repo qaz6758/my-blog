@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, ArrowLeft } from "lucide-react";
 import { Song, SongList } from "@/components/playlist/SongList";
+import { getProxyImageUrl } from "@/lib/image-proxy";
 
 const FALLBACK_COVER =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
@@ -103,18 +104,20 @@ export function Playlist({
                         "";
                       return (
                         <img
-                          src={rawCover || FALLBACK_COVER}
+                          src={getProxyImageUrl(rawCover) || FALLBACK_COVER}
                           alt={playlist.title}
                           referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             if (
                               rawCover &&
-                              rawCover.includes("music.126.net") &&
-                              !target.src.includes("wsrv.nl")
+                              rawCover.includes("music.126.net")
                             ) {
-                              target.src = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`;
-                              return;
+                              const fallbackUrl = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`);
+                              if (target.src !== fallbackUrl) {
+                                target.src = fallbackUrl;
+                                return;
+                              }
                             }
                             target.src = FALLBACK_COVER;
                           }}
@@ -180,18 +183,20 @@ export function Playlist({
                         "";
                       return (
                         <img
-                          src={rawHeroCover || FALLBACK_COVER}
+                          src={getProxyImageUrl(rawHeroCover) || FALLBACK_COVER}
                           alt={activePlaylist.title}
                           referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             if (
                               rawHeroCover &&
-                              rawHeroCover.includes("music.126.net") &&
-                              !target.src.includes("wsrv.nl")
+                              rawHeroCover.includes("music.126.net")
                             ) {
-                              target.src = `https://wsrv.nl/?url=${encodeURIComponent(rawHeroCover)}&w=640&h=640&fit=cover`;
-                              return;
+                              const fallbackUrl = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawHeroCover)}&w=640&h=640&fit=cover`);
+                              if (target.src !== fallbackUrl) {
+                                target.src = fallbackUrl;
+                                return;
+                              }
                             }
                             target.src = FALLBACK_COVER;
                           }}
