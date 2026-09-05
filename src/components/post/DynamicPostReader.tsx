@@ -7,9 +7,8 @@ import { Tag as TagIcon, ArrowLeft, ArrowRight, Menu } from "lucide-react";
 import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { LazyPostContent } from "@/components/post/LazyPostContent";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
-import { TableOfContents } from "@/components/post/TableOfContents";
+import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
 import { LazyCommentSection } from "@/components/post/LazyCommentSection";
-import {Footer} from "@/components/layout/Footer";
 import { ThoughtMediaItem } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 
@@ -51,6 +50,34 @@ export function DynamicPostReader({
   const [mode, setMode] = useState<"post" | "thought" | "404">(
     initialPost ? "post" : "404"
   );
+  // 鼠标悬停文章正文字体范围或目录自身时触发目录展开（Antfu 同款交互：严格限定正文列，两侧留白绝不触发）
+  const [isArticleHovered, setIsArticleHovered] = useState(false);
+  const leaveTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handlePointerEnter = () => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    setIsArticleHovered(true);
+  };
+
+  const handlePointerLeave = () => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+    }
+    leaveTimerRef.current = setTimeout(() => {
+      setIsArticleHovered(false);
+    }, 400);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (leaveTimerRef.current) {
+        clearTimeout(leaveTimerRef.current);
+      }
+    };
+  }, []);
 
   // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
   const isHtmlContent = React.useMemo(() => {
@@ -115,14 +142,8 @@ export function DynamicPostReader({
         >
           {/* 左侧固定 TOC 骨架：首屏直接占位，防止后续闪烁 */}
           <aside className="hidden xl:block fixed top-28 left-6 sm:left-8 w-44 pointer-events-none opacity-40 select-none">
-            <div className="mb-3.5 flex items-center text-neutral-400 dark:text-neutral-500 opacity-60">
-              <Menu className="h-4 w-4" />
-            </div>
-            <div className="space-y-3">
-              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-28 animate-pulse" />
-              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-20 animate-pulse pl-3" />
-              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-32 animate-pulse" />
-              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-24 animate-pulse pl-3" />
+            <div className="mb-3.5 flex items-center justify-start bg-transparent p-0 text-neutral-400 dark:text-neutral-500">
+              <TocIcon className="h-4.5 w-4.5" />
             </div>
           </aside>
 
@@ -157,7 +178,6 @@ export function DynamicPostReader({
               <div className="h-48 bg-neutral-200/50 dark:bg-neutral-800/50 rounded-lg w-full animate-pulse" />
             </div>
           </main>
-          <Footer />
         </motion.div>
       ) : mode === "post" && post ? (
         /* 2. 真实博客正文（平滑淡入） */
@@ -169,13 +189,23 @@ export function DynamicPostReader({
           transition={SMOOTH_TRANSITION}
           className="relative min-h-screen w-full flex flex-col justify-between"
         >
-          {/* 左侧固定目录 */}
-          <aside className="hidden xl:block fixed top-28 left-6 sm:left-8 w-44 pointer-events-auto z-20">
-            <TableOfContents />
+          {/* 左侧固定目录 (支持鼠标悬停正文字体范围淡入淡出，以及点击三条杠常驻，无背景纯净极简) */}
+          <aside
+            onMouseEnter={handlePointerEnter}
+            onMouseLeave={handlePointerLeave}
+            className="hidden xl:block fixed top-28 left-6 sm:left-8 w-44 pointer-events-auto z-20"
+          >
+            <TableOfContents isArticleHovered={isArticleHovered} />
           </aside>
 
+          {/* 主体容器：移除全屏 hover 监听，绝不在两侧留白区域误触发 */}
           <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28 flex-1">
-            <div className="mx-auto w-full max-w-[65ch]">
+            {/* 正文版心：仅当鼠标进入真实文章字体与阅读区域时才触发目录 */}
+            <div
+              onMouseEnter={handlePointerEnter}
+              onMouseLeave={handlePointerLeave}
+              className="mx-auto w-full max-w-[65ch]"
+            >
               {/* 顶部返回导航 */}
               <div className="mb-6">
                 <Link
@@ -283,8 +313,6 @@ export function DynamicPostReader({
               </div>
             </div>
           </main>
-
-          <Footer />
         </motion.div>
       ) : mode === "thought" && thought ? (
         /* 3. 随想录详情 */
@@ -318,7 +346,6 @@ export function DynamicPostReader({
 
             <ThoughtDetailClient item={thought} />
           </main>
-          <Footer />
         </motion.div>
       ) : (
         /* 4. 404 状态 */

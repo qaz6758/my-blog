@@ -16,6 +16,7 @@ export interface ThoughtMediaItem {
   author: string;
   action: string;
   time: string;
+  fullTime?: string;
   type: string;
   year: string;
   title: string;
@@ -29,17 +30,65 @@ export interface ThoughtMediaItem {
   replies: number;
 }
 
-// 辅助函数：格式化时间
-function formatThoughtDate(dateStr: string) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
+// 辅助函数：解析任意常见格式日期（包含中文字符串格式：2026年8月31日 星期一 00:00）
+function parseAnyDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const direct = new Date(dateStr);
+  if (!isNaN(direct.getTime())) return direct;
+
+  const m = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日(?:\s+[^\s]+)?(?:\s+(\d{1,2}):(\d{1,2}))?/);
+  if (m) {
+    const year = m[1];
+    const month = m[2].padStart(2, '0');
+    const day = m[3].padStart(2, '0');
+    const hour = (m[4] || '00').padStart(2, '0');
+    const min = (m[5] || '00').padStart(2, '0');
+    const parsed = new Date(`${year}-${month}-${day}T${hour}:${min}:00+08:00`);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+  return null;
+}
+
+// 辅助函数：格式化时间（几天前 + 智能回退为 几年几月几日 星期几）
+export function formatThoughtDate(dateStr: string): { relative: string; full: string } {
+  if (!dateStr) return { relative: '', full: '' };
+  const date = parseAnyDate(dateStr);
+  if (!date || isNaN(date.getTime())) return { relative: dateStr, full: dateStr };
+
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
   const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${year}年${month}月${day}日 ${days[date.getDay()]} ${hours}:${minutes}`;
+  const full = `${year}年${month}月${day}日 ${days[date.getDay()]}`;
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  // 未来时间或 5 分钟以内
+  if (diffMs < 5 * 60 * 1000) {
+    return { relative: '刚刚', full };
+  }
+
+  const diffMin = Math.floor(diffMs / (1000 * 60));
+  if (diffMin < 60) {
+    return { relative: `${diffMin}分钟前`, full };
+  }
+
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) {
+    return { relative: `${diffHour}小时前`, full };
+  }
+
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay === 1) {
+    return { relative: '昨天', full };
+  }
+  if (diffDay < 7) {
+    return { relative: `${diffDay}天前`, full };
+  }
+
+  // 超过 7 天，自动回退为完整日期（几年几月几日 星期几）
+  return { relative: full, full };
 }
 
 // ================= 随想录接口 (Notion CMS 优先 + Supabase 备份) =================
@@ -55,43 +104,56 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
         .order('created_at', { ascending: false }),
     ]);
 
-    const supabaseItems: ThoughtMediaItem[] = (supabaseRes.data || []).map((item) => ({
-      id: item.id,
-      author: item.author || 'Vince Ou',
-      action: item.action || '',
-      time: formatThoughtDate(item.created_at),
-      type: item.type || 'NOTE',
-      year: item.year || new Date(item.created_at).getFullYear().toString(),
-      title: item.title || '',
-      description: item.description || '',
-      rating: item.rating || undefined,
-      tags: Array.isArray(item.tags) ? item.tags.join(', ') : item.tags,
-      sourceUrl: item.source_url || undefined,
-      posterUrl: item.poster_url || undefined,
-      likes: item.likes || 0,
-      upvotes: item.upvotes || 0,
-      replies: item.replies || 0,
-    }));
+    const supabaseItems: ThoughtMediaItem[] = (supabaseRes.data || []).map((item) => {
+      const dateInfo = formatThoughtDate(item.created_at);
+      return {
+        id: item.id,
+        author: item.author || 'Vince Ou',
+        action: item.action || '',
+        time: dateInfo.relative,
+        fullTime: dateInfo.full,
+        type: item.type || 'NOTE',
+        year: item.year || new Date(item.created_at).getFullYear().toString(),
+        title: item.title || '',
+        description: item.description || '',
+        rating: item.rating || undefined,
+        tags: Array.isArray(item.tags) ? item.tags.join(', ') : item.tags,
+        sourceUrl: item.source_url || undefined,
+        posterUrl: item.poster_url || undefined,
+        likes: item.likes || 0,
+        upvotes: item.upvotes || 0,
+        replies: item.replies || 0,
+      };
+    });
 
     if (notionThoughts.length > 0) {
-      const formattedNotion: ThoughtMediaItem[] = notionThoughts.map((t) => ({
-        id: t.id,
-        author: t.author,
-        action: t.action,
-        time: formatThoughtDate(t.time),
-        type: t.type,
-        year: t.year,
-        title: t.title,
-        description: t.description,
-        rating: t.rating,
-        tags: t.tags,
-        sourceUrl: t.sourceUrl,
-        posterUrl: t.posterUrl,
-        likes: t.likes,
-        upvotes: t.upvotes,
-        replies: t.replies,
-      }));
-      return [...formattedNotion, ...supabaseItems];
+      const formattedNotion: ThoughtMediaItem[] = notionThoughts.map((t) => {
+        const dateInfo = formatThoughtDate(t.time);
+        return {
+          id: t.id,
+          author: t.author,
+          action: t.action,
+          time: dateInfo.relative,
+          fullTime: dateInfo.full,
+          type: t.type,
+          year: t.year,
+          title: t.title,
+          description: t.description,
+          rating: t.rating,
+          tags: t.tags,
+          sourceUrl: t.sourceUrl,
+          posterUrl: t.posterUrl,
+          likes: t.likes,
+          upvotes: t.upvotes,
+          replies: t.replies,
+        };
+      });
+
+      // 去重逻辑：以 Notion 为准，过滤掉 Supabase 中已有的相同 id 记录
+      const notionIds = new Set(formattedNotion.map((t) => t.id));
+      const filteredSupabase = supabaseItems.filter((t) => !notionIds.has(t.id));
+
+      return [...formattedNotion, ...filteredSupabase];
     }
 
     return supabaseItems;
@@ -114,11 +176,14 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
 
   if (error || !data) return null;
 
+  const dateInfo = formatThoughtDate(data.created_at);
+
   return {
     id: data.id,
     author: data.author,
     action: data.action,
-    time: formatThoughtDate(data.created_at),
+    time: dateInfo.relative,
+    fullTime: dateInfo.full,
     type: data.type,
     year: data.year,
     title: data.title,

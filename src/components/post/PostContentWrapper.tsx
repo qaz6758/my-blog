@@ -101,8 +101,8 @@ function processAndOptimizeHtml(rawHtml: string): string {
       attrs.match(/class=["'][^"']*language-([\w-]+)[^"']*["']/i);
     const lang = langMatch ? langMatch[1] : "";
 
-    return `<div class="mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#121214] shadow-sm">
-  <div class="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-neutral-900/60 px-4 py-2.5 select-none">
+    return `<div class="mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#232326] shadow-sm">
+  <div class="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-[#2c2c2e]/70 px-4 py-2.5 select-none">
     <div class="flex items-center gap-2">
       <span class="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50"></span>
       <span class="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50"></span>

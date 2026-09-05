@@ -43,8 +43,9 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   return (
     <>
       {/* 独立内容块 */}
-      <article className="relative rounded-none border border-black/[0.05] bg-[#fafafa] p-5 sm:p-6 shadow-sm dark:border-white/[0.05] dark:bg-[#18181a]">
-        <div className="mb-4 flex items-center gap-2 text-[13px]">
+      {/* 独立内容块 */}
+      <article className="relative rounded-none p-4 sm:p-5 shadow-sm torn-paper transition-all">
+        <div className="mb-3 flex items-center gap-2 text-xs">
           <span className="font-semibold text-neutral-900 dark:text-[#f4f4f5]">
             {item.author}
           </span>
@@ -53,16 +54,22 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
               {item.action}
             </span>
           )}
-          <span className="text-neutral-400 dark:text-[#71717a]">
+          <span
+            className="text-neutral-400 dark:text-[#71717a]"
+            title={item.fullTime || item.time}
+          >
             {item.time}
           </span>
         </div>
 
+        {/* 主体渲染 */}
         {isNote ? (
-          <div className="mb-5 text-[14.5px] leading-8 text-neutral-800 dark:text-[#d4d4d8] whitespace-pre-line text-justify">
-            {item.description}
+          <>
+            <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d4d4d8] whitespace-pre-line text-justify">
+              {item.description}
+            </div>
             {item.posterUrl && (
-              <div className="mt-4 max-h-96 w-full overflow-hidden rounded-none border border-black/[0.05] dark:border-white/[0.05]">
+              <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
                 <img
                   src={item.posterUrl}
                   alt={item.title || "随笔配图"}
@@ -70,55 +77,51 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
                 />
               </div>
             )}
-          </div>
+          </>
         ) : (
-          <>
-            <div className="mb-5 text-[14.5px] leading-8 text-neutral-800 dark:text-[#d4d4d8] whitespace-pre-line text-justify">
-              {item.description.split("\n\n")[0]}
-            </div>
-
-            <div className="mb-5 rounded-none border border-black/[0.05] bg-black/[0.02] p-4 dark:border-white/[0.05] dark:bg-white/[0.02] sm:flex sm:flex-row-reverse sm:gap-5 sm:p-5">
-              {item.posterUrl && (
-                <div className="mb-4 sm:mb-0 w-20 shrink-0 sm:w-28 self-start">
-                  <div className="aspect-[2/3] w-full overflow-hidden rounded-none bg-neutral-200 dark:bg-neutral-800">
-                    <img
-                      src={item.posterUrl}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+          <div className="mb-4 rounded-lg border border-black/[0.05] bg-black/[0.02] p-3 sm:p-3.5 dark:border-white/[0.05] dark:bg-white/[0.02] flex flex-row-reverse gap-3.5 sm:gap-4">
+            {item.posterUrl && (
+              <div className="w-16 sm:w-20 shrink-0 self-start">
+                <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
+                  <img
+                    src={item.posterUrl}
+                    alt={item.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-[#a1a1aa] uppercase">
+                {item.type} {item.year ? `· ${item.year}` : ""}
+              </div>
+              <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#f4f4f5] tracking-tight">
+                {item.title}
+              </h2>
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-[#a1a1aa] whitespace-pre-line text-justify">
+                {item.description}
+              </p>
+              
+              {(item.rating || item.tags || item.sourceUrl) && (
+                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#71717a]">
+                  {item.rating && (
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-current" />
+                      {item.rating}
+                    </span>
+                  )}
+                  {item.tags && <span>· {item.tags}</span>}
+                  {item.sourceUrl && (
+                    <span className="truncate">· {item.sourceUrl}</span>
+                  )}
                 </div>
               )}
-              
-              <div className="flex-1 min-w-0">
-                <div className="text-[11px] font-mono tracking-wider text-neutral-500 dark:text-[#a1a1aa] uppercase">
-                  {item.type} {item.year ? `· ${item.year}` : ""}
-                </div>
-                <h2 className="mt-1 text-base font-bold text-neutral-900 dark:text-[#f4f4f5] tracking-tight sm:text-lg">
-                  {item.title}
-                </h2>
-                <p className="mt-2 text-[14px] leading-7 text-neutral-700 dark:text-[#a1a1aa] line-clamp-3 text-justify">
-                  {item.description.split("\n\n").slice(1).join("\n\n")}
-                </p>
-                
-                {(item.rating || item.tags || item.sourceUrl) && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#71717a]">
-                    {item.rating && (
-                      <span className="inline-flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-current" />
-                        {item.rating}
-                      </span>
-                    )}
-                    {item.tags && <span>· {item.tags}</span>}
-                    {item.sourceUrl && (
-                      <span className="truncate">· {item.sourceUrl}</span>
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
-          </>
+          </div>
         )}
+
+        <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
 
         {/* 顶部互动栏（支持点击 + 与 Supabase 评论数联动） */}
         <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-[#71717a] select-none">

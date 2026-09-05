@@ -75,6 +75,10 @@ function getInitialTheme(defaultFallback: Theme = "light"): Theme {
   }
 
   try {
+    const search = window.location.search;
+    if (search.includes("theme=light")) return "light";
+    if (search.includes("theme=dark")) return "dark";
+
     const stored = getStoredTheme();
 
     if (stored) {
@@ -144,7 +148,7 @@ function updateMetaColorScheme(newTheme: Theme) {
 
     themeColorMeta.setAttribute(
       "content",
-      newTheme === "dark" ? "#050505" : "#ffffff"
+      newTheme === "dark" ? "#181614" : "#ede7dc"
     );
   } catch {
     // 忽略异常

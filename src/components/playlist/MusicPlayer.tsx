@@ -508,7 +508,11 @@ export function MusicPlayer({
 
                 <div className="flex flex-1 flex-col min-w-0">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="truncate font-semibold text-[13px] text-neutral-900 dark:text-white tracking-tight leading-none">
+                    <span className={`truncate font-semibold text-[13px] tracking-tight leading-none transition-colors duration-300 ${
+                      isPlaying
+                        ? "champloo-text-gold"
+                        : "text-neutral-900 dark:text-white"
+                    }`}>
                       {currentSong.title}
                     </span>
                     {currentSong.explicit && (
@@ -637,7 +641,11 @@ export function MusicPlayer({
 
                 <div className="flex flex-1 flex-col min-w-0 pr-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="truncate font-semibold text-[13px] text-neutral-900 dark:text-white tracking-tight leading-tight">
+                    <span className={`truncate font-semibold text-[13px] tracking-tight leading-tight transition-colors duration-300 ${
+                      isPlaying
+                        ? "champloo-text-gold"
+                        : "text-neutral-900 dark:text-white"
+                    }`}>
                       {currentSong.title}
                     </span>
                     {currentSong.explicit && (

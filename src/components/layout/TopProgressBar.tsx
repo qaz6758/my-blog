@@ -12,22 +12,14 @@ export function TopProgressLine() {
     <div
       id="top-progress-bar"
       aria-hidden="true"
-      className="fixed top-0 left-0 right-0 z-[99999] pointer-events-none overflow-hidden"
+      className="fixed top-0 left-0 right-0 z-[99999] pointer-events-none overflow-hidden h-[1.5px]"
       style={{
-        height: "2px",
-        maxHeight: "2px",
-        minHeight: "0px",
         lineHeight: 0,
         fontSize: 0,
       }}
     >
       <div
-        className="w-full bg-neutral-900 dark:bg-white shadow-[0_0_8px_rgba(0,0,0,0.3)] dark:shadow-[0_0_8px_rgba(255,255,255,0.7)] animate-top-progress"
-        style={{
-          height: "2px",
-          maxHeight: "2px",
-          minHeight: "0px",
-        }}
+        className="w-full h-full bg-gradient-to-r from-transparent via-[#8c7150] to-neutral-800 dark:via-[#c8ab83]/70 dark:to-[#ede7dc] animate-top-progress"
       />
     </div>
   );
@@ -36,7 +28,7 @@ export function TopProgressLine() {
 /**
  * TopProgressBar
  * 全局路由跳转顶部极简微光流体进度指示条
- * 严格锁定 2px 高度，绝不侵占页面主体空间
+ * 严格锁定 1.5px 发丝级高度，无感缝合进顶部导航
  */
 export function TopProgressBar() {
   const pathname = usePathname();
@@ -131,30 +123,27 @@ export function TopProgressBar() {
     <div
       id="top-progress-bar"
       aria-hidden="true"
-      className="fixed top-0 left-0 right-0 z-[99999] pointer-events-none overflow-hidden"
+      className="fixed top-0 left-0 right-0 z-[99999] pointer-events-none h-[1.5px]"
       style={{
-        height: "2px",
-        maxHeight: "2px",
-        minHeight: "0px",
         lineHeight: 0,
         fontSize: 0,
         opacity: visible ? 1 : 0,
-        transition: "opacity 200ms ease",
+        transition: "opacity 240ms ease",
       }}
     >
       <div
-        className="bg-neutral-900 dark:bg-white shadow-[0_0_8px_rgba(0,0,0,0.3)] dark:shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+        className="relative h-full bg-gradient-to-r from-transparent via-[#8c7150]/60 to-neutral-800 dark:via-[#c8ab83]/60 dark:to-[#ede7dc]"
         style={{
-          height: "2px",
-          maxHeight: "2px",
-          minHeight: "0px",
           width: `${progress}%`,
           transition:
             progress === 100
               ? "width 100ms ease-out"
               : "width 240ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
-      />
+      >
+        {/* 前端微光发丝光晕（极细柔和，绝无刺眼粗白雾） */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 h-[2px] w-8 bg-gradient-to-r from-transparent to-white/90 dark:to-[#ede7dc] blur-[0.5px]" />
+      </div>
     </div>
   );
 }

@@ -486,10 +486,18 @@ async function main() {
       });
       const allUserPlaylists = userPlRes.body?.playlist || [];
 
-      // 自动过滤掉每日动态变动的算法雷达
+      // 歌单排除黑名单（支持精准歌单 ID 或歌单名称排除）
+      const envExcludedIds = (process.env.EXCLUDED_PLAYLIST_IDS || "").split(/[,，\s]+/).filter(Boolean);
+      const EXCLUDED_PLAYLIST_IDS = ["13187432161", ...envExcludedIds]; // 排除 JAY (13187432161)
+      const EXCLUDED_PLAYLIST_NAMES = ["JAY", "Jay", "私人雷达", "每日推荐"];
+
+      // 自动过滤掉每日动态变动的算法雷达及黑名单排除歌单
       const validPlaylists = allUserPlaylists.filter((p) => {
         if (!p.name) return false;
-        if (p.name.includes("私人雷达") || p.name.includes("每日推荐")) return false;
+        const nameTrimmed = p.name.trim();
+        const idStr = String(p.id);
+        if (EXCLUDED_PLAYLIST_IDS.includes(idStr)) return false;
+        if (EXCLUDED_PLAYLIST_NAMES.some((exName) => nameTrimmed.toLowerCase() === exName.toLowerCase() || nameTrimmed.includes(exName))) return false;
         return true;
       });
 

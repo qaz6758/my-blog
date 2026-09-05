@@ -3,20 +3,22 @@
 
 import React, { Suspense } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { ArtPlum } from '@/components/effects/ArtPlum';
 import { TopProgressBar } from '@/components/layout/TopProgressBar';
+import { Footer } from '@/components/layout/Footer';
+import { SeasonalBackground } from '@/components/effects/SeasonalBackground';
 
 export function FrontendShell({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <div className="min-h-screen flex flex-col justify-between relative bg-inherit">
       <Suspense fallback={null}>
         <TopProgressBar />
       </Suspense>
-      <ArtPlum />
+      <SeasonalBackground />
       <Navbar />
-      <div className="relative z-10 w-full pb-4 sm:pb-6">
+      <div className="flex-1 relative z-10 w-full">
         {children}
       </div>
-    </>
+      <Footer />
+    </div>
   );
 }

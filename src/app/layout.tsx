@@ -19,8 +19,8 @@ const inter = Inter({
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#050505" },
+    { media: "(prefers-color-scheme: light)", color: "#ede7dc" },
+    { media: "(prefers-color-scheme: dark)", color: "#181614" },
   ],
   colorScheme: "light dark",
 };
@@ -55,7 +55,8 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var saved = localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
+                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
+                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\s*)theme=([^;]+)/) || [])[1];
                   var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var docEl = document.documentElement;
                   var cl = docEl.classList;
@@ -75,7 +76,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="min-h-screen w-full font-sans bg-[#ffffff] text-neutral-900 selection:bg-neutral-200 dark:bg-[#050505] dark:text-neutral-100 dark:selection:bg-neutral-800 overflow-x-hidden antialiased">
+      <body className="min-h-screen w-full font-sans bg-[#ede7dc] text-[#1e1b18] selection:bg-[#ded5c4] dark:bg-[#181614] dark:text-[#eae5dc] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
         <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>

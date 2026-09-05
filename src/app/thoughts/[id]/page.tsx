@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { fetchThoughtDetailFromNotion, fetchThoughtsFromNotion } from "@/lib/data";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
-import { Footer } from "@/components/layout/Footer";
 
 export const revalidate = 5;
 
@@ -37,13 +36,13 @@ export default async function ThoughtDetailPage({
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-transparent px-4 pt-24 pb-16 sm:px-8 lg:px-12 antialiased">
-      <main className="mx-auto w-full max-w-[65ch]">
-        <header className="mb-10 pl-1">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-4xl">
+    <div className="relative min-h-[100vh] w-full bg-transparent px-4 pt-24 pb-28 sm:pb-36 sm:px-6 antialiased flex flex-col">
+      <main className="mx-auto w-full max-w-[520px] flex-1">
+        <header className="mb-8 pl-1">
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-3xl">
             思考
           </h1>
-          <p className="mt-3 text-2xl text-neutral-500 dark:text-[#8e8e93] tracking-widest">
+          <p className="mt-2 text-xs text-neutral-500 dark:text-[#8e8e93] tracking-widest">
             感君倾耳。
           </p>
         </header>
@@ -61,10 +60,6 @@ export default async function ThoughtDetailPage({
         {/* 客户端交互流 */}
         <ThoughtDetailClient item={item} />
       </main>
-
-      <div className="mt-20 w-full">
-        <Footer />
-      </div>
     </div>
   );
 }

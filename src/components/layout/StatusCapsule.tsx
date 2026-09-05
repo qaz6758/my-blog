@@ -251,9 +251,9 @@ export function StatusCapsule({
       {/* 顶部胶囊 */}
       <div
         onClick={() => setIsHovered((prev) => !prev)}
-        className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e7ded4] bg-white/60 px-2 py-1 sm:px-2.5 sm:py-1.5 backdrop-blur-md transition-all duration-200 hover:bg-white/80 dark:border-neutral-800 dark:bg-neutral-900/60 dark:hover:bg-neutral-900/80"
+        className="flex cursor-pointer items-center gap-2 rounded-xl border border-black/[0.08] dark:border-white/15 bg-black/[0.02] dark:bg-neutral-900/80 px-2.5 py-1.5 backdrop-blur-md transition-all duration-200 hover:bg-black/[0.05] dark:hover:bg-neutral-800/90 shadow-xs"
       >
-        <div className="flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-black/[0.04] bg-white shadow-xs dark:border-white/10 dark:bg-neutral-800">
+        <div className="flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-xs dark:border-white/10 dark:bg-neutral-800">
           {isMusic && musicCover ? (
             <img
               src={musicCover}
@@ -277,18 +277,18 @@ export function StatusCapsule({
               }}
             />
           ) : hasApp ? (
-            <Laptop className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-neutral-600 dark:text-neutral-400" />
+            <Laptop className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-neutral-500 dark:text-neutral-400" />
           ) : (
             <Circle
               size={8}
               fill="currentColor"
-              className="text-neutral-400"
+              className="text-neutral-400 dark:text-neutral-500"
             />
           )}
         </div>
 
         <div className="flex min-w-0 max-w-[100px] sm:max-w-[140px] md:max-w-[180px] flex-col text-left leading-none">
-          <span className="truncate text-[10px] sm:text-[11px] text-neutral-400 dark:text-neutral-500">
+          <span className="truncate text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400">
             {isMusic
               ? `${musicIsPlaying ? "正在收听" : "已暂停"} · ${musicTitle}`
               : hasApp
@@ -310,7 +310,7 @@ export function StatusCapsule({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.985 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-2 w-[260px] sm:w-[280px] rounded-2xl border border-neutral-200/80 bg-white/95 p-3.5 sm:p-4 shadow-xl backdrop-blur-xl dark:border-neutral-800 dark:bg-[#0c0c0c]/95 dark:shadow-2xl"
+            className="absolute left-0 top-full z-50 mt-2 w-[260px] sm:w-[280px] rounded-2xl border border-neutral-200/80 bg-white/95 p-3.5 sm:p-4 shadow-xl backdrop-blur-xl dark:border-neutral-800 dark:bg-[#171717] dark:shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
