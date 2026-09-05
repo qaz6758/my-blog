@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { fetchRSS, RSSItem } from "@/lib/rss";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const maxDuration = 60; // 允许长任务最长执行 60 秒
 
 const RSS_FEEDS = [

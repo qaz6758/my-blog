@@ -240,16 +240,17 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
 
 // ================= 博客文章接口 (Notion CMS 优先 + Supabase 备份) =================
 
-export async function fetchPosts(): Promise<NotionPostItem[]> {
+export async function fetchPosts(limit: number = 60): Promise<NotionPostItem[]> {
   try {
-    // 1. 并行从 Notion 与 Supabase 拉取文章
+    // 1. 并行从 Notion 与 Supabase 拉取文章 (Notion 原创全量保留，Supabase 限制最新条目以极大加速 CI/CD 构建与部署)
     const [notionPosts, supabaseRes] = await Promise.all([
       fetchNotionPosts().catch(() => []),
       supabase
         .from('posts')
         .select('id, slug, title, summary, category, tags, cover_image, status, published_at, created_at')
         .eq('is_published', true)
-        .order('published_at', { ascending: false, nullsFirst: false }),
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(limit),
     ]);
 
     const supabaseItems: NotionPostItem[] = (supabaseRes.data || []).map((item) => ({
