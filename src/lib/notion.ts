@@ -463,3 +463,4 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
     return [];
   }
 }
+

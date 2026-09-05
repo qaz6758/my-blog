@@ -3,8 +3,9 @@ import type { GalleryImage } from "@/types/gallery";
 
 interface PhotoRow {
   id: string;
-  title: string;
   url: string;
+  created_at?: string | null;
+  title?: string | null;
 
   category?: string | null;
   location?: string | null;
@@ -22,9 +23,8 @@ interface PhotoRow {
   shutter_speed?: string | null;
 
   tags?: string[] | null;
-
-  created_at?: string | null;
 }
+
 
 /**
  * =========================================================
@@ -111,7 +111,7 @@ function normalizeGalleryImage(row: PhotoRow): GalleryImage {
 
     shutter_speed: row.shutter_speed ?? null,
 
-    takenAt: null,
+    takenAt: row.created_at ?? null,
 
     // =====================================================
     // 分类
@@ -137,7 +137,7 @@ function normalizeGalleryImage(row: PhotoRow): GalleryImage {
 
 /**
  * =========================================================
- * 获取 Gallery 图片 (毫秒级即时响应)
+ * 获取 Gallery 图片 (Supabase 驱动，按 created_at 日期由新到旧排序)
  * =========================================================
  */
 export async function getGalleryImages(
@@ -146,28 +146,29 @@ export async function getGalleryImages(
     limit?: number;
   }
 ): Promise<GalleryImage[]> {
-  const limit = options?.limit ?? 100;
+  try {
+    const limit = options?.limit ?? 100;
+    let query = supabase
+      .from("photos")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(limit);
 
-  let query = supabase
-    .from("photos")
-    .select("*")
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(limit);
+    if (options?.category && options.category !== "全部") {
+      query = query.eq("category", options.category);
+    }
 
-  if (options?.category && options.category !== "全部") {
-    query = query.eq("category", options.category);
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) {
+      return [];
+    }
+
+    const rows = (data as PhotoRow[]) ?? [];
+    return rows.map((row) => normalizeGalleryImage(row));
+  } catch (err) {
+    console.error("[Gallery] 查询 Supabase photos 失败:", err);
+    return [];
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("Gallery 查询失败:", error);
-    throw error;
-  }
-
-  const rows = (data as PhotoRow[]) ?? [];
-
-  return rows.map((row) => normalizeGalleryImage(row));
-}
+}

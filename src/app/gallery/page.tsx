@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { getGalleryImages } from "@/lib/gallery";
 import GalleryLoader from "./GalleryLoader";
 
+export const revalidate = 60;
+
 export const metadata = {
   title: "Gallery",
   description: "Photography Gallery",
