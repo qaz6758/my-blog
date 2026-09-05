@@ -9,6 +9,7 @@ import { Sun, Moon, Menu, X } from "lucide-react";
 
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { StatusCapsule } from "@/components/layout/StatusCapsule";
+import { useLiveStatus } from "@/hooks/useLiveStatus";
 
 const NAV_LINKS = [
   { name: "Blog", href: "/posts" },
@@ -44,6 +45,8 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const liveStatus = useLiveStatus();
+  const isOnline = (liveStatus.activity === "music" && liveStatus.music !== null) || liveStatus.app !== null;
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.08] bg-[#ede7dc]/80 dark:bg-[#181614]/80 backdrop-blur-md select-none transition-colors duration-200">
@@ -65,10 +68,12 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* 实时状态胶囊：仅 PC 端显示 */}
-          <div className="hidden md:flex items-center">
-            <StatusCapsule />
-          </div>
+          {/* 实时状态胶囊：仅在有状态信息（在线）时展示 */}
+          {isOnline && (
+            <div className="hidden md:flex items-center">
+              <StatusCapsule />
+            </div>
+          )}
         </div>
 
         {/* ===================== 居中：导航栏链接 (图一卡片胶囊风格) ===================== */}
@@ -126,9 +131,11 @@ export function Navbar() {
             transition={{ duration: 0.15 }}
             className="md:hidden border-b border-black/[0.06] dark:border-white/[0.08] bg-[#ede7dc]/95 dark:bg-[#181614]/95 px-6 py-4 shadow-xl backdrop-blur-2xl"
           >
-            <div className="mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.08]">
-              <StatusCapsule />
-            </div>
+            {isOnline && (
+              <div className="mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.08]">
+                <StatusCapsule />
+              </div>
+            )}
             <nav className="flex flex-col gap-1.5">
               {NAV_LINKS.map((link) => {
                 const isActive =

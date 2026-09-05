@@ -31,11 +31,13 @@ function getAppIconFallback(appName: string): string | null {
 interface StatusCapsuleProps {
   nickname?: string;
   variant?: "capsule" | "card";
+  hideWhenOffline?: boolean;
 }
 
 export function StatusCapsule({
   nickname = "Vince Ou",
   variant = "capsule",
+  hideWhenOffline = true,
 }: StatusCapsuleProps) {
   const liveStatus = useLiveStatus();
 
@@ -125,6 +127,11 @@ export function StatusCapsule({
   };
 
   const progressPercent = musicDuration > 0 ? Math.min(100, (localProgress / musicDuration) * 100) : 0;
+
+  // 离线状态（没有任何正在收听的音乐或运行中的应用）且开启离线隐藏时，静默不渲染
+  if (hideWhenOffline && !isOnline) {
+    return null;
+  }
 
   // 纯卡片内容渲染函数
   const renderCardContent = () => (
