@@ -1,7 +1,7 @@
 // src/components/post/PostsListClient.tsx
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { FolderOpen, Tag as TagIcon, X } from "lucide-react";
 import { SlideEnter } from "@/components/layout/SlideEnter";
@@ -34,7 +34,9 @@ function getReadTime(post: PostItem): number | null {
   if (!raw.trim()) return null;
   return calculateReadTime(raw);
 }
+
 const BATCH_SIZE = 30;
+
 export function PostsListClient({
   initialPosts = [],
   initialCategory = "",
@@ -44,18 +46,9 @@ export function PostsListClient({
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeTag, setActiveTag] = useState<string>(initialTag);
 
-  // 分批流式展示状态：初始 30 篇，触底自动追加
-  const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (initialPosts) setPosts(initialPosts);
   }, [initialPosts]);
-
-  // 分类或标签切换时，重置回到首批 30 篇
-  useEffect(() => {
-    setVisibleCount(BATCH_SIZE);
-  }, [activeCategory, activeTag]);
 
   // 1. 统计分类与数量
   const { categoryCounts, categories } = useMemo(() => {
@@ -81,15 +74,10 @@ export function PostsListClient({
     });
   }, [posts, activeCategory, activeTag]);
 
-  // 3. 截取当前可见文章（纯前端零延迟内存切片）
-  const displayedPosts = useMemo(() => {
-    return filteredPosts.slice(0, visibleCount);
-  }, [filteredPosts, visibleCount]);
-
-  // 4. 按年份归并（仅对当前可见批次进行归并，彻底控制 DOM 节点数）
+  // 3. 按年份归并
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
-    displayedPosts.forEach((post) => {
+    filteredPosts.forEach((post) => {
       const date = post.published_at || post.created_at;
       const year = String(getYear(date));
       if (!groups[year]) groups[year] = [];
@@ -98,25 +86,7 @@ export function PostsListClient({
 
     const sortedYears = Object.keys(groups).sort((a, b) => Number(b) - Number(a));
     return { years: sortedYears, postsByYear: groups };
-  }, [displayedPosts]);
-
-  // 5. 触底自动追加监听（提前 250px 预加载，无感衔接）
-  const hasMore = visibleCount < filteredPosts.length;
-  useEffect(() => {
-    if (!hasMore || !loadMoreRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filteredPosts.length));
-        }
-      },
-      { rootMargin: "250px" }
-    );
-
-    observer.observe(loadMoreRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, filteredPosts.length]);
+  }, [filteredPosts]);
 
   // 4. 切换分类与标签
   const handleCategoryChange = (cat: string) => {
@@ -213,10 +183,9 @@ export function PostsListClient({
                     text-7xl
                     font-bold
                     tracking-tighter
-                    hidden
-                    dark:block
+                    text-neutral-200/50
+                    opacity-80
                     dark:text-neutral-800/40
-                    dark:opacity-80
                     sm:-left-4
                     sm:-top-8
                     sm:text-8xl
@@ -299,25 +268,6 @@ export function PostsListClient({
           );
         })}
       </div>
-
-      {/* 底部触底探测哨兵与优雅的水墨底端提示 */}
-      {filteredPosts.length > 0 && (
-        <div
-          ref={loadMoreRef}
-          className="pt-12 pb-6 flex justify-center items-center text-xs text-neutral-400 dark:text-neutral-500 font-serif select-none"
-        >
-          {hasMore ? (
-            <div className="inline-flex items-center gap-2 opacity-60">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500 animate-pulse" />
-              <span>翻展余卷中…</span>
-            </div>
-          ) : filteredPosts.length > BATCH_SIZE ? (
-            <span className="opacity-40 tracking-wider">
-              — 已展全卷（共 {filteredPosts.length} 篇）—
-            </span>
-          ) : null}
-        </div>
-      )}
 
       {/* 空状态 (Stage 4) */}
       {filteredPosts.length === 0 && (
