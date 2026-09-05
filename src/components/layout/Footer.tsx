@@ -31,22 +31,23 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
       {/* 内容层：预留上方苍穹与巍峨远峰，文字如古典题跋置于云谷之间 */}
       <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pt-12 pb-10 sm:px-8 sm:pt-36 sm:pb-12">
         {/* ===================== 上半部分：品牌大字 + 3列导航 (融合浪客行/混沌武士主题) ===================== */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-center items-center gap-10 sm:gap-16 md:gap-24">
-          {/* 左侧：品牌名、名言宣言（手机端居中，电脑端左齐） */}
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-3 max-w-sm">
+                {/* ===================== 上半部分：品牌大字 + 3列导航 ===================== */}
+        <div className="flex flex-col sm:flex-row items-start justify-start sm:justify-center gap-10 sm:gap-16 md:gap-24">
+          {/* 左侧：品牌名、名言宣言（手机端靠左，电脑端保持左齐） */}
+          <div className="flex flex-col items-start text-left space-y-3 max-w-sm">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
               {siteConfig.name}
             </h2>
-            {/* 居中水墨引用块 */}
-            <blockquote className="my-1 mx-auto sm:mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-sans rounded-r-sm select-text">
+            {/* 水墨引用块（mx-0 贴左，取消手机端居中） */}
+            <blockquote className="my-1 mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-sans rounded-r-sm select-text">
               破碎重组，再破碎的循环，让自己成为自己。
             </blockquote>
             <div className="pt-0.5 text-xs leading-relaxed text-neutral-600 dark:text-[#b8b2a8] font-sans">
               <p>© 2026 - Present Powered by Next.js & React</p>
             </div>
           </div>
-          {/* 3列导航链接（整体居中，列内左齐） */}
-          <div className="flex items-start justify-center gap-8 sm:gap-10 md:gap-14 text-left shrink-0">
+          {/* 3列导航链接（手机端靠左，电脑端保持居中） */}
+          <div className="flex items-start justify-start sm:justify-center gap-8 sm:gap-10 md:gap-14 text-left shrink-0">
             {/* 第 1 列：关于 */}
             <div className="space-y-3">
               <h3 className="text-[13.5px] sm:text-sm font-semibold text-neutral-900 dark:text-white tracking-wide dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">
