@@ -1,26 +1,72 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ChevronLeft, ChevronRight, ExternalLink, Loader2 } from "lucide-react";
 import type { GalleryImage } from "@/types/gallery";
 
 export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
   const [isGrid, setIsGrid] = useState(true);
   const [activePhoto, setActivePhoto] = useState<GalleryImage | null>(null);
+  const [isHdLoaded, setIsHdLoaded] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Close lightbox on escape key
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeIndex = activePhoto
+    ? photos.findIndex((p) => p.id === activePhoto.id)
+    : -1;
+
+  const showPrev = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      if (photos.length === 0) return;
+      setIsHdLoaded(false);
+      if (activeIndex > 0) {
+        setActivePhoto(photos[activeIndex - 1]);
+      } else {
+        setActivePhoto(photos[photos.length - 1]);
+      }
+    },
+    [activeIndex, photos]
+  );
+
+  const showNext = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation();
+      if (photos.length === 0) return;
+      setIsHdLoaded(false);
+      if (activeIndex < photos.length - 1) {
+        setActivePhoto(photos[activeIndex + 1]);
+      } else {
+        setActivePhoto(photos[0]);
+      }
+    },
+    [activeIndex, photos]
+  );
+
+  // 键盘快捷键监听 (ESC 退出，左右箭头翻页)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActivePhoto(null);
+      if (e.key === "Escape") {
+        setActivePhoto(null);
+      } else if (e.key === "ArrowLeft") {
+        showPrev();
+      } else if (e.key === "ArrowRight") {
+        showNext();
+      }
     };
     if (activePhoto) {
       window.addEventListener("keydown", handleKeyDown);
     }
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePhoto]);
+  }, [activePhoto, showPrev, showNext]);
 
-  // Lock body scroll when lightbox is open
+  // 弹窗开启时锁定底层滚动
   useEffect(() => {
     if (activePhoto) {
       document.body.style.overflow = "hidden";
@@ -32,9 +78,14 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
     };
   }, [activePhoto]);
 
+  const handleOpenPhoto = (photo: GalleryImage) => {
+    setIsHdLoaded(false);
+    setActivePhoto(photo);
+  };
+
   return (
     <div className="w-full px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16 pt-20 sm:pt-24 pb-16">
-      {/* 布局切换按钮 (参考 Anthony Fu 极简无框半透明图标) */}
+      {/* 布局切换按钮 */}
       <div className="mb-3 sm:mb-4 flex items-center">
         <button
           onClick={() => setIsGrid(!isGrid)}
@@ -43,7 +94,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
           aria-label="Toggle gallery layout"
         >
           {isGrid ? (
-            // 6 宫格矩阵图标 (参考图二原生样式)
+            // 6 宫格矩阵图标
             <svg
               className="h-4 w-4"
               viewBox="0 0 24 24"
@@ -72,16 +123,16 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
         </button>
       </div>
 
-      {/* 照片画廊 */}
+      {/* 照片画廊网格 */}
       {isGrid ? (
-        // 正方形网格 (gap-3 sm:gap-4，完美复刻图二通透呼吸感)
+        // 正方形网格
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {photos.map((photo, index) => (
             <div
               key={photo.id}
-              className="relative aspect-square overflow-hidden group bg-neutral-100 dark:bg-[#252528] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500"
-              onClick={() => setActivePhoto(photo)}
-              onKeyDown={(e) => e.key === "Enter" && setActivePhoto(photo)}
+              className="relative aspect-square overflow-hidden group bg-neutral-100 dark:bg-[#252528] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
+              onClick={() => handleOpenPhoto(photo)}
+              onKeyDown={(e) => e.key === "Enter" && handleOpenPhoto(photo)}
               tabIndex={0}
               role="button"
               aria-label={`View ${photo.title || "image"}`}
@@ -105,9 +156,9 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
           {photos.map((photo, index) => (
             <div
               key={photo.id}
-              className="relative overflow-hidden group bg-neutral-100 dark:bg-[#252528] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500"
-              onClick={() => setActivePhoto(photo)}
-              onKeyDown={(e) => e.key === "Enter" && setActivePhoto(photo)}
+              className="relative overflow-hidden group bg-neutral-100 dark:bg-[#252528] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
+              onClick={() => handleOpenPhoto(photo)}
+              onKeyDown={(e) => e.key === "Enter" && handleOpenPhoto(photo)}
               tabIndex={0}
               role="button"
               aria-label={`View ${photo.title || "image"}`}
@@ -128,32 +179,125 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
         </div>
       )}
 
-      {/* Lightbox 效果 */}
-      {activePhoto && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md cursor-pointer opacity-100 transition-opacity duration-300 p-4 select-none touch-none"
-          onClick={() => setActivePhoto(null)}
-        >
+      {/* ========================================================
+          全屏 Lightbox 弹窗 (通过 Portal 脱离层级，覆盖全屏并绝对居中)
+          ======================================================== */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {activePhoto && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-8 select-none"
+                onClick={() => setActivePhoto(null)}
+              >
+                {/* 顶部控制栏 (原图链接 + 关闭按钮) */}
+                <div
+                  className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <a
+                    href={activePhoto.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs backdrop-blur-md transition-colors cursor-pointer border border-white/10"
+                    title="新窗口查看未经压缩的高清原图"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">原图</span>
+                  </a>
 
+                  <button
+                    type="button"
+                    onClick={() => setActivePhoto(null)}
+                    className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white backdrop-blur-md transition-colors cursor-pointer border border-white/10"
+                    aria-label="关闭预览"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
-          {/* 图片展示区：手机端点击背景或直接点击浮层任意位置即可关闭 */}
-          <div
-            className="relative w-full h-full max-w-7xl max-h-[88vh] flex items-center justify-center pointer-events-none"
-          >
-            <Image
-              src={activePhoto.url}
-              alt={activePhoto.title || "Gallery image"}
-              fill
-              className="object-contain pointer-events-auto cursor-pointer"
-              quality={100}
-              priority
-              onClick={() => setActivePhoto(null)}
-            />
-          </div>
+                {/* 上一张按钮 */}
+                {photos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={showPrev}
+                    className="absolute left-3 sm:left-6 z-40 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/40 hover:bg-black/70 text-white/70 hover:text-white backdrop-blur-md transition-all duration-200 cursor-pointer hover:scale-105 border border-white/10"
+                    aria-label="上一张图片"
+                  >
+                    <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                )}
 
+                {/* 下一张按钮 */}
+                {photos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={showNext}
+                    className="absolute right-3 sm:right-6 z-40 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/40 hover:bg-black/70 text-white/70 hover:text-white backdrop-blur-md transition-all duration-200 cursor-pointer hover:scale-105 border border-white/10"
+                    aria-label="下一张图片"
+                  >
+                    <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                )}
 
-        </div>
-      )}
+                {/* 核心大图展示区 (严格屏幕中心对齐) */}
+                <motion.div
+                  key={activePhoto.id}
+                  initial={{ scale: 0.96, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.96, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative flex items-center justify-center max-w-[90vw] max-h-[85vh]"
+                >
+                  {/* 1. 0ms 瞬间底图：复用已缓存的缩略图，杜绝黑屏等待 */}
+                  <img
+                    src={activePhoto.thumbnailUrl || activePhoto.url}
+                    alt=""
+                    aria-hidden="true"
+                    className={`max-h-[85vh] max-w-[90vw] object-contain rounded-lg transition-opacity duration-300 pointer-events-none select-none ${
+                      isHdLoaded ? "opacity-0 invisible" : "opacity-100 filter blur-[1px]"
+                    }`}
+                  />
+
+                  {/* 2. 高清大图：2000px WebP 边缘 CDN 秒级加载，加载完成后平滑淡入 */}
+                  <img
+                    src={activePhoto.hdUrl || activePhoto.url}
+                    alt={activePhoto.title || "Gallery photo"}
+                    onLoad={() => setIsHdLoaded(true)}
+                    className={`absolute inset-0 m-auto max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl transition-opacity duration-300 select-none ${
+                      isHdLoaded ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+
+                  {/* 高清加载微状态指示器 */}
+                  {!isHdLoaded && (
+                    <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs text-white/80 backdrop-blur-md border border-white/10">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>高清加载中...</span>
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* 底部指示器：页码计数 + 快捷键提示 */}
+                <div className="pointer-events-none absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-black/50 px-4 py-1.5 text-xs text-white/70 backdrop-blur-md border border-white/10">
+                  <span className="font-medium text-white/90">
+                    {activeIndex + 1} / {photos.length}
+                  </span>
+                  <span className="hidden sm:inline text-white/30">|</span>
+                  <span className="hidden sm:inline text-white/50">
+                    ← → 键翻页 · ESC 退出
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 }

@@ -75,16 +75,23 @@ async function syncPhotos() {
 
   console.log(`🚀 正在将 ${newPhotos.length} 张新图片批量写入 photos 数据表...`);
 
-  const { data: inserted, error: insertError } = await supabase
-    .from("photos")
-    .insert(newPhotos)
-    .select();
-
   if (insertError) {
     console.error("❌ 批量写入失败:", insertError.message);
-  } else {
-    console.log(`🎉 成功同步 ${inserted.length} 张图片到画廊数据表！`);
+    return;
   }
+
+  console.log(`🎉 成功同步 ${inserted.length} 张图片到画廊数据表！`);
+
+  // 4. 自动预热 CDN 边缘缓存（将 10MB 原图提前转码缓存为 50KB WebP）
+  console.log("⚡ 正在自动预热全球边缘 CDN 缓存以实现前台秒开...");
+  for (const p of inserted) {
+    const thumbUrl = `https://wsrv.nl/?url=${encodeURIComponent(p.url)}&w=800&fit=cover&output=webp&q=75`;
+    const hdUrl = `https://wsrv.nl/?url=${encodeURIComponent(p.url)}&w=2000&fit=contain&output=webp&q=85`;
+    fetch(thumbUrl).catch(() => {});
+    fetch(hdUrl).catch(() => {});
+  }
+  console.log("✨ 边缘 CDN 预热任务已触发！");
 }
 
 syncPhotos();
+
