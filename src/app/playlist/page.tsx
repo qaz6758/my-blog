@@ -8,6 +8,9 @@ export const metadata = {
   description: "Curated playlists & music collection",
 };
 
+export const dynamic = "force-static";
+export const revalidate = 60;
+
 export default async function PlaylistPage() {
   let initialPlaylists: any[] = [];
   try {

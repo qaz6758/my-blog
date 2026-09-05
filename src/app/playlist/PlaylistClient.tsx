@@ -24,25 +24,31 @@ export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClient
     if (playlists.length === 0) setIsLoading(true);
     setErrorMsg(null);
     try {
-      const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL;
-      const targetUrl = workerUrl
-        ? `${workerUrl.replace(/\/$/, "")}/api/playlists`
-        : "/api/playlist";
-      const res = await fetch(targetUrl);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        setPlaylists((prev) => {
-          if (
-            prev.length === json.data.length &&
-            prev[0]?.id === json.data[0]?.id &&
-            prev[0]?.songs?.length === json.data[0]?.songs?.length
-          ) {
-            return prev;
-          }
-          return json.data;
-        });
-      } else if (playlists.length === 0) {
-        setErrorMsg(json.error || "未能获取到歌单数据");
+      const workerUrl =
+        process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+        "https://notion-api.dedeboki123.workers.dev";
+      const targetUrl = `${workerUrl.replace(/\/$/, "")}/api/playlists`;
+
+      let res = await fetch(targetUrl, { cache: "no-store" }).catch(() => null);
+      if (!res || !res.ok) {
+        res = await fetch("/api/playlist", { cache: "no-store" }).catch(() => null);
+      }
+
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+          setPlaylists((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(json.data)) {
+              return prev;
+            }
+            return json.data;
+          });
+          return;
+        }
+      }
+
+      if (playlists.length === 0) {
+        setErrorMsg("未能获取到歌单数据");
       }
     } catch {
       if (playlists.length === 0) {

@@ -61,6 +61,8 @@ export type SlideEnterProps<T extends ElementType = "div"> = {
   children?: ReactNode;
 
   className?: string;
+
+  style?: CSSProperties;
 } & Omit<
   ComponentPropsWithoutRef<T>,
   "as" | "children" | "className" | "style"
@@ -107,9 +109,9 @@ export function SlideEnter<T extends ElementType = "div">({
    * 中的全局动画规则。
    */
   const animationStyle: CSSProperties = {
-    "--slide-enter-delay": `${Math.max(0, calculatedDelay)}ms`,
-    "--slide-enter-offset": `${offset}px`,
-    "--slide-enter-duration": `${duration}ms`,
+    ["--slide-enter-delay" as any]: `${Math.max(0, calculatedDelay)}ms`,
+    ["--slide-enter-offset" as any]: `${offset}px`,
+    ["--slide-enter-duration" as any]: `${duration}ms`,
     ...style,
   };
 

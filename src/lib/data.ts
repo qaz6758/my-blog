@@ -304,6 +304,26 @@ export interface PlaylistCategoryItem {
 }
 
 export async function fetchPlaylists(): Promise<PlaylistCategoryItem[]> {
+  // 1. 优先尝试从 Cloudflare Worker (Notion Gateway) 获取最新实时歌单
+  try {
+    const workerUrl =
+      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+      "https://notion-api.dedeboki123.workers.dev";
+    const res = await fetch(`${workerUrl.replace(/\/$/, "")}/api/playlists`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
+  } catch (workerErr) {
+    console.warn("[Fetch Playlists Worker Fallback]:", workerErr);
+  }
+
+  // 2. 降级备份：从 Supabase 获取歌单
   try {
     const { data: playlistsData, error: pErr } = await supabase
       .from('playlists')
