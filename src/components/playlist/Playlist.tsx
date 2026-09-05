@@ -229,7 +229,7 @@ export function Playlist({
                           className="inline-flex items-center justify-center gap-2 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 px-6 py-2.5 text-[13.5px] font-bold shadow-[0_4px_14px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_20px_rgba(255,255,255,0.2)] hover:opacity-90 transition-opacity duration-150 cursor-pointer select-none leading-none"
                         >
                           <Play className="h-3.5 w-3.5 fill-current shrink-0" />
-                          <span className="leading-none flex items-center">试听</span>
+                          <span className="leading-none flex items-center">播放</span>
                         </button>
                       </div>
                     </div>

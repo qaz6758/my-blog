@@ -224,6 +224,7 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
     action: data.action,
     time: dateInfo.relative,
     fullTime: dateInfo.full,
+    rawDate: data.created_at,
     type: data.type,
     year: data.year,
     title: data.title,

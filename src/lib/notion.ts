@@ -432,7 +432,21 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
       const isPublished = getCheckbox(findProp(p, 'Published', '公开', '发布'));
       if (!isPublished && findProp(p, 'Published')) continue;
 
-      const rawDate = getDate(findProp(p, 'Date', '日期', '时间')) || page.created_time;
+      const dateProp = findProp(p, 'Date', '日期', '时间');
+      const specifiedDate = getDate(dateProp);
+      let rawDate = page.created_time || '';
+      if (specifiedDate) {
+        if (specifiedDate.includes('T')) {
+          rawDate = specifiedDate;
+        } else if (page.created_time && page.created_time.startsWith(specifiedDate)) {
+          rawDate = page.created_time;
+        } else if (page.created_time) {
+          const timePart = page.created_time.split('T')[1];
+          rawDate = `${specifiedDate}T${timePart}`;
+        } else {
+          rawDate = specifiedDate;
+        }
+      }
       const title = getText(findProp(p, 'Title', '标题', 'Name')) || '';
       const content = getText(findProp(p, 'Content', 'Description', '内容', '正文')) || title;
       const tags = getText(findProp(p, 'Tags', '标签'));

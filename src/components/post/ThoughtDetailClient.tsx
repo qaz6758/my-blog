@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Heart, HeartCrack, MessageSquare, Star } from "lucide-react";
-import { ThoughtMediaItem } from "@/lib/data";
+import { ThoughtMediaItem, formatThoughtDate } from "@/lib/data";
 import { LazyCommentSection } from "@/components/post/LazyCommentSection";
 import { supabase } from "@/lib/supabase";
 
@@ -13,6 +13,17 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   const [upvotes, setUpvotes] = useState(item.upvotes || 0);
   const [commentCount, setCommentCount] = useState(0);
   const [reaction, setReaction] = useState<{ liked?: boolean; upvoted?: boolean }>({});
+  const [displayTime, setDisplayTime] = useState(item.time);
+
+  // 客户端挂载时动态计算相对时间，与列表页算法严格统一
+  useEffect(() => {
+    if (item.rawDate || item.time) {
+      const info = formatThoughtDate(item.rawDate || item.time);
+      if (info.relative) {
+        setDisplayTime(info.relative);
+      }
+    }
+  }, [item.rawDate, item.time]);
 
   const isNote = item.type.toUpperCase() === "NOTE";
 
@@ -58,7 +69,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             className="text-neutral-400 dark:text-[#71717a]"
             title={item.fullTime || item.time}
           >
-            {item.time}
+            {displayTime}
           </span>
         </div>
 

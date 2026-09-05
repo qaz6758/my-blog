@@ -39,12 +39,13 @@ export function ThoughtsClientList({
             prev.forEach((item) => map.set(item.id, item));
             result.data.forEach((item: ThoughtMediaItem, index: number) => {
               const existing = map.get(item.id);
-              const dateInfo = formatThoughtDate(item.rawDate || item.time);
+              const targetDate = existing?.rawDate || item.rawDate || item.time;
+              const dateInfo = formatThoughtDate(targetDate);
               map.set(item.id, {
                 ...item,
                 time: dateInfo.relative || existing?.time || item.time,
                 fullTime: dateInfo.full || existing?.fullTime,
-                rawDate: item.rawDate || item.time || existing?.rawDate,
+                rawDate: existing?.rawDate || item.rawDate || item.time,
                 year: item.year || existing?.year || (dateInfo.full ? dateInfo.full.slice(0, 4) : ""),
                 replies: existing?.replies ?? item.replies ?? 0,
                 likes: existing?.likes ?? item.likes ?? 0,
