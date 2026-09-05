@@ -6,7 +6,7 @@ export const dynamic = "force-static";
 export const revalidate = 3600; // 每小时重新生成一次 Sitemap
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vinceou.site";
 
   // 1. 查询数据库中所有文章的 ID 与更新/发布时间
   const { data: posts } = await supabase
