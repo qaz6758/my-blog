@@ -147,9 +147,10 @@ export function PostsListClient({
           <button
             type="button"
             onClick={() => handleCategoryChange("")}
-            className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity duration-200 cursor-pointer select-none font-normal text-neutral-900 dark:text-white ${
+            className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity cursor-pointer select-none font-normal text-neutral-900 dark:text-[#eae5dc] ${
               !activeCategory ? "opacity-100 font-medium" : "opacity-55 hover:opacity-100"
             }`}
+            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
             <span>全部</span>
             <span className="font-mono text-[11px] tabular-nums opacity-60">
@@ -166,11 +167,12 @@ export function PostsListClient({
                 key={cat}
                 type="button"
                 onClick={() => handleCategoryChange(cat)}
-                className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity duration-200 cursor-pointer select-none font-normal text-neutral-900 dark:text-white ${
+                className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity cursor-pointer select-none font-normal text-neutral-900 dark:text-[#eae5dc] ${
                   isCurrent ? "opacity-100 font-medium" : "opacity-55 hover:opacity-100"
                 }`}
+                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
               >
-                <FolderOpen className={`h-3.5 w-3.5 transition-opacity duration-200 ${isCurrent ? "opacity-90" : "opacity-50 group-hover:opacity-100"}`} />
+                <FolderOpen className={`h-3.5 w-3.5 transition-opacity ${isCurrent ? "opacity-90" : "opacity-50 group-hover:opacity-100"}`} style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
                 <span>{cat}</span>
                 <span className="font-mono text-[11px] tabular-nums opacity-60">
                   {count}
@@ -257,31 +259,37 @@ export function PostsListClient({
                         <span
                           className="
                             text-[15px]
-                            font-normal
+                            font-semibold
                             leading-snug
                             text-neutral-900
-                            dark:text-white
-                            opacity-65
-                            group-hover:opacity-100
-                            transition-opacity
-                            duration-200
+                            dark:text-[#eae5dc]
+                            group-hover:text-[#b91c1c]
+                            dark:group-hover:text-white
+                            transition-colors
                             ease-out
                             antialiased
                             sm:text-[16px]
                             sm:leading-relaxed
                           "
+                          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                         >
                           {post.title}
                         </span>
 
                         {post.category && !activeCategory && (
-                          <span className="hidden shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-900 dark:text-white opacity-45 group-hover:opacity-80 transition-opacity duration-200 sm:inline">
+                          <span 
+                            className="hidden shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-900 dark:text-[#eae5dc] opacity-45 group-hover:opacity-80 transition-opacity sm:inline"
+                            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                          >
                             {post.category}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-900 dark:text-white opacity-40 group-hover:opacity-75 transition-opacity duration-200 tabular-nums">
+                      <div 
+                        className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-900 dark:text-[#eae5dc] opacity-40 group-hover:opacity-75 transition-opacity tabular-nums"
+                        style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                      >
                         {readTime && (
                           <span className="hidden sm:inline">
                             {readTime}m

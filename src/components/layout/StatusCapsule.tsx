@@ -139,35 +139,32 @@ export function StatusCapsule({
     return null;
   }
 
-  // 纯卡片内容渲染函数
+  // 纯卡片内容渲染函数 (侧边栏模式)
   const renderCardContent = () => (
-    <div className="w-full select-none rounded-2xl border border-neutral-200/80 bg-neutral-50/80 p-3.5 dark:border-neutral-800 dark:bg-neutral-900/60">
-      {/* 顶部状态 */}
+    <div className="w-full select-none p-3.5 torn-paper">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
           LIVE DESK
         </span>
-
-        <span className="flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-300">
+        <span className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
           <span
-            className={`h-2 w-2 rounded-full ${
-              isOnline ? "bg-emerald-500" : "bg-neutral-400"
+            className={`h-1.5 w-1.5 rounded-none ${
+              isOnline ? "bg-neutral-800 dark:bg-[#eae5dc]" : "bg-neutral-300 dark:bg-neutral-700"
             }`}
           />
-          {isOnline ? "Online" : "Offline"}
+          {isOnline ? "ON" : "OFF"}
         </span>
       </div>
 
-      {/* 昵称 */}
-      <div className="mt-1 text-base font-semibold text-neutral-900 dark:text-neutral-100">
+      <div className="mt-1.5 text-[13px] font-semibold text-neutral-900 dark:text-[#eae5dc]">
         {nickname}
       </div>
 
-      {/* 音乐卡片 (横向布局) */}
+      {/* 音乐卡片 (横向版画风格) */}
       {isMusic && (
-        <div className="mt-3 flex flex-col rounded-xl border border-neutral-200/50 bg-neutral-100/50 p-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+        <div className="mt-4 flex flex-col border border-black/[0.06] dark:border-white/[0.08] p-2.5">
           <div className="flex gap-3">
-            <div className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-md bg-neutral-200 shadow-sm dark:bg-neutral-800">
+            <div className="h-11 w-11 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[20%]">
               {musicCover && !coverError ? (
                 <img
                   src={musicCover}
@@ -177,59 +174,56 @@ export function StatusCapsule({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <Music2 className="h-6 w-6 text-emerald-500" />
+                <div className="flex h-full w-full items-center justify-center bg-black/[0.02] dark:bg-white/[0.02]">
+                  <Music2 className="h-4 w-4 text-neutral-400" />
                 </div>
               )}
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col justify-center">
-              <div className="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              <div className="truncate text-xs font-bold text-neutral-900 dark:text-[#eae5dc]">
                 {musicTitle}
               </div>
-              <div className="mt-0.5 truncate text-[11px] text-neutral-500 dark:text-neutral-400">
+              <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-[#9d9589]">
                 {musicArtist}
-              </div>
-              <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
-                MoeKoe Music · {musicIsPlaying ? "" : "Paused"}
               </div>
             </div>
           </div>
 
           <div className="mt-3 flex items-center gap-2">
-            <div className="flex h-3 items-end gap-[2px]">
-              <span className={`w-[3px] rounded-sm bg-neutral-400 dark:bg-neutral-500 ${musicIsPlaying ? "h-2 animate-pulse" : "h-1"}`} />
-              <span className={`w-[3px] rounded-sm bg-neutral-400 dark:bg-neutral-500 ${musicIsPlaying ? "h-3 animate-pulse [animation-delay:120ms]" : "h-1"}`} />
-              <span className={`w-[3px] rounded-sm bg-neutral-400 dark:bg-neutral-500 ${musicIsPlaying ? "h-1.5 animate-pulse [animation-delay:240ms]" : "h-1"}`} />
+            <div className="flex h-2.5 items-end gap-[2px]">
+              <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
+              <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-2.5 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
+              <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
             </div>
 
-            <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+            <div className="relative h-[2px] flex-1 overflow-hidden bg-black/5 dark:bg-white/10">
               <div 
-                className="absolute left-0 top-0 h-full rounded-full bg-neutral-500 transition-all duration-1000 ease-linear dark:bg-neutral-400"
+                className="absolute left-0 top-0 h-full bg-[#b91c1c] dark:bg-white transition-all duration-1000 ease-linear"
                 style={{ width: `${progressPercent}%` }} 
               />
             </div>
 
-            <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
+            <span className="text-[9px] font-mono text-neutral-400 dark:text-[#777168]">
               {formatTime(localProgress)} / {formatTime(musicDuration)}
             </span>
           </div>
         </div>
       )}
 
-      {/* App 使用状态 (始终在底部) */}
+      {/* App 使用状态 */}
       {!isMusic && !hasApp && (
-        <div className="mt-3 text-xs text-neutral-500">No active status</div>
+        <div className="mt-3 text-[10px] font-mono text-neutral-400 dark:text-[#777168]">No active status</div>
       )}
       
       {hasApp && liveStatus.app?.name && (
-        <div className="mt-2.5 flex items-center gap-2.5 rounded-lg bg-neutral-100/70 p-2 dark:bg-neutral-800/40">
-          <div className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/10">
+        <div className="mt-3 flex items-center gap-2 border border-black/[0.04] dark:border-white/[0.05] p-1.5 grayscale-[50%] opacity-80">
+          <div className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden opacity-80">
             {liveStatus.app.icon || getAppIconFallback(liveStatus.app.name) ? (
               <img
                 src={liveStatus.app.icon || getAppIconFallback(liveStatus.app.name)!}
                 alt="app"
-                className="h-4 w-4 object-contain"
+                className="h-3 w-3 object-contain"
                 onError={(e) => {
                   const fallback = getAppIconFallback(liveStatus.app?.name || "");
                   if (fallback && e.currentTarget.src !== fallback) {
@@ -243,47 +237,49 @@ export function StatusCapsule({
               <Laptop className="h-3 w-3 text-neutral-500" />
             )}
           </div>
-          <span className="truncate text-xs text-neutral-600 dark:text-neutral-300">
-            Now using <span className="font-semibold text-neutral-900 dark:text-white">{liveStatus.app.name}</span>
+          <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
+            {liveStatus.app.name}
           </span>
         </div>
       )}
     </div>
   );
 
-  // 如果是移动端侧边栏卡片模式，直接静态渲染
   if (variant === "card") {
     return renderCardContent();
   }
 
-  // 默认胶囊模式（移除 hidden sm:block，全端自适应展示）
+  // 默认胶囊模式 (极轻量刻痕，去 SaaS 化)
   return (
     <div
       className="relative shrink-0 select-none"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* 顶部胶囊 */}
+      {/* 顶部印章 / 刻痕 */}
       <div
         onClick={() => setIsHovered((prev) => !prev)}
-        className="flex cursor-pointer items-center gap-2 rounded-xl border border-black/[0.08] dark:border-white/15 bg-black/[0.02] dark:bg-neutral-900/80 px-2.5 py-1.5 backdrop-blur-md transition-all duration-200 hover:bg-black/[0.05] dark:hover:bg-neutral-800/90 shadow-xs"
+        className="group flex cursor-pointer items-center gap-1.5 px-1 py-1 transition-colors"
       >
-        <div className="flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-xs dark:border-white/10 dark:bg-neutral-800">
+        <div 
+          className="flex h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 items-center justify-center overflow-hidden grayscale-0 opacity-100 dark:grayscale dark:opacity-60 transition-all group-hover:grayscale-0 group-hover:opacity-100"
+          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+        >
           {isMusic && musicCover && !coverError ? (
             <img
               src={musicCover}
               alt="music cover"
               referrerPolicy="no-referrer"
               onError={() => setCoverError(true)}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover rounded-[1px]"
             />
           ) : isMusic ? (
-            <Music2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-pulse text-emerald-500" />
+            <Music2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-pulse text-[#b91c1c] dark:text-[#eae5dc]" />
           ) : hasApp && (liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)) ? (
             <img
               src={liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)!}
               alt="status"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover rounded-[1px]"
               onError={(e) => {
                 const fallback = getAppIconFallback(liveStatus.app?.name || "");
                 if (fallback && e.currentTarget.src !== fallback) {
@@ -294,125 +290,115 @@ export function StatusCapsule({
               }}
             />
           ) : hasApp ? (
-            <Laptop className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-neutral-500 dark:text-neutral-400" />
+            <Laptop className="h-3 w-3 text-neutral-700 dark:text-neutral-400" />
           ) : (
             <Circle
-              size={8}
+              size={6}
               fill="currentColor"
-              className="text-neutral-400 dark:text-neutral-500"
+              className="text-neutral-700 dark:text-neutral-600"
             />
           )}
         </div>
 
-        <div className="flex min-w-0 max-w-[100px] sm:max-w-[140px] md:max-w-[180px] flex-col text-left leading-none">
-          <span className="truncate text-[10px] sm:text-[11px] text-neutral-500 dark:text-neutral-400">
+        <div className="flex min-w-0 max-w-[90px] sm:max-w-[120px] flex-col text-left leading-none">
+          <span 
+            className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-[#777168] dark:font-normal group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors"
+            style={{ transitionDuration: "var(--realm-motion-duration)" }}
+          >
             {isMusic
-              ? `${musicIsPlaying ? "正在收听" : "已暂停"} · ${musicTitle}`
+              ? musicTitle
               : hasApp
-                ? `使用中 · ${displayTitle}`
-                : "离线"}
-          </span>
-
-          <span className="mt-0.5 sm:mt-1 truncate text-[11px] sm:text-xs font-medium text-neutral-800 dark:text-neutral-200">
-            {displayApp}
+                ? liveStatus.app?.name
+                : "Offline"}
           </span>
         </div>
       </div>
 
-      {/* 悬浮/点击展开卡片 */}
+      {/* 悬浮/点击展开卡片 (纸墨版) */}
       <AnimatePresence>
         {isHovered && (
           <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.985 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-2 w-[260px] sm:w-[280px] rounded-2xl border border-neutral-200/80 bg-white/95 p-3.5 sm:p-4 shadow-xl backdrop-blur-xl dark:border-neutral-800 dark:bg-[#171717] dark:shadow-2xl"
+            className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] torn-paper p-3.5 shadow-sm"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+            <div className="flex items-center justify-between mb-3 border-b border-black/[0.04] dark:border-white/[0.04] pb-2">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
                 LIVE DESK
               </span>
-
-              <span className="flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-300">
+              <span className="flex items-center gap-1 text-[9px] font-mono text-neutral-500 dark:text-[#9d9589]">
                 <span
-                  className={`h-2 w-2 rounded-full ${
-                    isOnline ? "bg-emerald-500" : "bg-neutral-400"
+                  className={`h-1 w-1 rounded-none ${
+                    isOnline ? "bg-neutral-800 dark:bg-[#eae5dc]" : "bg-neutral-300 dark:bg-neutral-700"
                   }`}
                 />
-                {isOnline ? "Online" : "Offline"}
+                {isOnline ? "ON" : "OFF"}
               </span>
             </div>
 
-            <div className="mt-1 text-base font-semibold text-neutral-900 dark:text-neutral-100">
-              {nickname}
-            </div>
-
-            {/* 音乐卡片 (横向布局) */}
+            {/* 音乐卡片 (横向版画风格) */}
             {isMusic && (
-              <div className="mt-3.5 flex flex-col rounded-xl border border-neutral-200/50 bg-neutral-100/50 p-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
+              <div className="flex flex-col">
                 <div className="flex gap-3">
-                  <div className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-md bg-neutral-200 shadow-sm dark:bg-neutral-800">
+                  <div className="h-10 w-10 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[10%]">
                     {musicCover ? (
                       <img
                         src={musicCover}
                         alt={`${musicTitle} cover`}
-                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <Music2 className="h-6 w-6 text-emerald-500" />
+                      <div className="flex h-full w-full items-center justify-center bg-black/[0.02] dark:bg-white/[0.02]">
+                        <Music2 className="h-3.5 w-3.5 text-neutral-400" />
                       </div>
                     )}
                   </div>
 
                   <div className="flex min-w-0 flex-1 flex-col justify-center">
-                    <div className="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                    <div className="truncate text-xs font-bold text-neutral-900 dark:text-[#eae5dc]">
                       {musicTitle}
                     </div>
-                    <div className="mt-0.5 truncate text-[11px] text-neutral-500 dark:text-neutral-400">
+                    <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-[#9d9589]">
                       {musicArtist}
-                    </div>
-                    <div className="mt-0.5 text-[10px] text-neutral-400 dark:text-neutral-500">
-                      MoeKoe Music · {musicIsPlaying ? "播放中" : "Paused"}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex h-3 items-end gap-[2px]">
-                    <span className={`w-[3px] rounded-sm bg-neutral-400 dark:bg-neutral-500 ${musicIsPlaying ? "h-2 animate-pulse" : "h-1"}`} />
-                    <span className={`w-[3px] rounded-sm bg-neutral-400 dark:bg-neutral-500 ${musicIsPlaying ? "h-3 animate-pulse [animation-delay:120ms]" : "h-1"}`} />
-                    <span className={`w-[3px] rounded-sm bg-neutral-400 dark:bg-neutral-500 ${musicIsPlaying ? "h-1.5 animate-pulse [animation-delay:240ms]" : "h-1"}`} />
+                <div className="mt-2.5 flex items-center gap-2">
+                  <div className="flex h-2 items-end gap-[2px]">
+                    <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
+                    <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-2 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
+                    <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
                   </div>
 
-                  <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                  <div className="relative h-[2px] flex-1 overflow-hidden bg-black/5 dark:bg-white/10">
                     <div 
-                      className="absolute left-0 top-0 h-full rounded-full bg-neutral-500 transition-all duration-1000 ease-linear dark:bg-neutral-400"
+                      className="absolute left-0 top-0 h-full bg-[#b91c1c] dark:bg-white transition-all duration-1000 ease-linear"
                       style={{ width: `${progressPercent}%` }} 
                     />
                   </div>
 
-                  <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
-                    {formatTime(localProgress)} / {formatTime(musicDuration)}
+                  <span className="text-[9px] font-mono text-neutral-400 dark:text-[#777168]">
+                    {formatTime(localProgress)}
                   </span>
                 </div>
               </div>
             )}
 
-            {/* App 使用状态 (始终在底部) */}
             {!isMusic && !hasApp && (
-              <div className="mt-3.5 text-xs text-neutral-500">No active status</div>
+              <div className="text-[10px] font-mono text-neutral-400 dark:text-[#777168]">No active status</div>
             )}
             
             {hasApp && liveStatus.app?.name && (
-              <div className="mt-2.5 flex items-center gap-2.5 rounded-lg bg-neutral-100/70 p-2 dark:bg-neutral-800/40">
-                <div className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded bg-white dark:bg-neutral-900 border border-black/5 dark:border-white/10">
+              <div className="flex items-center gap-2 grayscale-[30%] opacity-90 mt-1">
+                <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center overflow-hidden">
                   {liveStatus.app.icon || getAppIconFallback(liveStatus.app.name) ? (
                     <img
                       src={liveStatus.app.icon || getAppIconFallback(liveStatus.app.name)!}
                       alt="app"
-                      className="h-4 w-4 object-contain"
+                      className="h-full w-full object-contain"
                       onError={(e) => {
                         const fallback = getAppIconFallback(liveStatus.app?.name || "");
                         if (fallback && e.currentTarget.src !== fallback) {
@@ -423,11 +409,11 @@ export function StatusCapsule({
                       }}
                     />
                   ) : (
-                    <Laptop className="h-3 w-3 text-neutral-500" />
+                    <Laptop className="h-3 w-3 text-neutral-400" />
                   )}
                 </div>
-                <span className="truncate text-xs text-neutral-600 dark:text-neutral-300">
-                  正在使用 <span className="font-semibold text-neutral-900 dark:text-white">{liveStatus.app.name}</span>
+                <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
+                  {liveStatus.app.name}
                 </span>
               </div>
             )}

@@ -41,7 +41,10 @@ export function TextLink({ href, children, external, className = "" }: TextLinkP
         className={`prose-link inline-flex items-center gap-0.5 group font-semibold text-neutral-900 dark:text-[#eae5dc] ${className}`}
       >
         <span>{children}</span>
-        <ArrowUpRight className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 group-hover:text-[#0284c7] dark:group-hover:text-white dark:group-hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+        <ArrowUpRight 
+          className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100 group-hover:text-[#b91c1c] dark:group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" 
+          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+        />
       </a>
     );
   }
@@ -118,23 +121,23 @@ function AgedScrollRod({ type }: AgedScrollRodProps) {
 
 interface StackItemProps {
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  iconClassName?: string;
-  hoverClassName?: string;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
 }
 
 function StackItem({
   label,
   icon: Icon,
-  iconClassName = "",
-  hoverClassName = "hover:text-neutral-900 dark:hover:text-white",
 }: StackItemProps) {
   return (
     <span
-      className={`group/stack inline-flex items-center gap-1.5 whitespace-nowrap text-neutral-900 transition-colors duration-200 dark:text-[#d6d0c7] ${hoverClassName}`}
+      className="group/stack inline-flex items-center gap-1.5 whitespace-nowrap text-neutral-600 dark:text-[#918a80] hover:text-[#b91c1c] dark:hover:text-white transition-colors cursor-default"
+      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
     >
-      <Icon className={`h-3.5 w-3.5 shrink-0 transition-all duration-200 ${iconClassName}`} />
-      <span>{label}</span>
+      <Icon 
+        className="h-[13px] w-[13px] shrink-0 opacity-60 group-hover/stack:opacity-100 transition-opacity" 
+        style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+      />
+      <span className="font-serif tracking-wide text-[12.5px]">{label}</span>
     </span>
   );
 }
@@ -377,52 +380,23 @@ export function HeroSection() {
                   </div>
 
                   <div className="space-y-3">
-                    <StackRow label="Working with">
+                    <StackRow label="Working">
                       <StackItem icon={SiVercel} label="Vercel" />
                       <span className="text-neutral-300 dark:text-[#4a4640]">/</span>
-                      <StackItem
-                        icon={SiCloudflare}
-                        label="Cloudflare"
-                        iconClassName="text-[#F38020] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
-                      />
+                      <StackItem icon={SiCloudflare} label="Cloudflare" />
                     </StackRow>
 
                     <StackRow label="Tech stack">
-                      <StackItem
-                        icon={SiReact}
-                        label="React 19"
-                        iconClassName="text-[#61DAFB] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
-                        hoverClassName="hover:text-[#0284c7] dark:hover:text-white"
-                      />
+                      <StackItem icon={SiReact} label="React 19" />
                       <StackItem icon={SiNextdotjs} label="Next.js 16" />
-                      <StackItem
-                        icon={SiTypescript}
-                        label="TypeScript"
-                        iconClassName="text-[#3178C6] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
-                        hoverClassName="hover:text-[#0284c7] dark:hover:text-white"
-                      />
-                      <StackItem
-                        icon={SiTailwindcss}
-                        label="Tailwind v4"
-                        iconClassName="text-[#06B6D4] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
-                        hoverClassName="hover:text-[#0284c7] dark:hover:text-white"
-                      />
+                      <StackItem icon={SiTypescript} label="TypeScript" />
+                      <StackItem icon={SiTailwindcss} label="Tailwind v4" />
                     </StackRow>
 
-                    <StackRow label="Backend">
-                      <StackItem
-                        icon={SiSupabase}
-                        label="Supabase"
-                        iconClassName="text-[#3ECF8E] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
-                        hoverClassName="hover:text-emerald-700 dark:hover:text-white"
-                      />
+                    <StackRow label="Backend& DB">
+                      <StackItem icon={SiSupabase} label="Supabase" />
                       <StackItem icon={SiNotion} label="Notion API" />
-                      <StackItem
-                        icon={SiCloudflare}
-                        label="Cloudflare R2"
-                        iconClassName="text-[#F38020] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
-                        hoverClassName="hover:text-[#d97706] dark:hover:text-white"
-                      />
+                      <StackItem icon={SiCloudflare} label="Cloudflare R2" />
                     </StackRow>
                   </div>
                 </div>
@@ -477,7 +451,7 @@ export function HeroSection() {
               rel="noopener noreferrer"
               className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiGithub className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-all duration-200" />
+              <SiGithub className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
               <span>GitHub</span>
             </a>
 
@@ -487,7 +461,7 @@ export function HeroSection() {
               rel="noopener noreferrer"
               className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiX className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:scale-110 transition-all duration-200" />
+              <SiX className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:scale-110 transition-transform" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
               <span>Twitter</span>
             </a>
 
@@ -495,9 +469,9 @@ export function HeroSection() {
               href="https://space.bilibili.com/520681544?spm_id_from=333.1007.0.0"
               target="_blank"
               rel="noopener noreferrer"
-              className="prose-link group inline-flex items-center gap-1 font-medium "
+              className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiBilibili className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-all duration-200" />
+              <SiBilibili className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
               <span>Bilibili</span>
             </a>
 
@@ -507,7 +481,7 @@ export function HeroSection() {
               rel="noopener noreferrer"
               className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiTelegram className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-all duration-200" />
+              <SiTelegram className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
               <span>Telegram</span>
             </a>
           </div>
@@ -517,7 +491,7 @@ export function HeroSection() {
             Or mail me at{" "}
             <a
               href="mailto:theyole114@outlook.com"
-              className="font-mono text-neutral-800 hover:text-[#d97706] dark:text-[#a8a29e] dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-200"
+              className="font-mono text-neutral-800 hover:text-[#d97706] dark:text-[#a8a29e] dark:hover:text-white transition-colors duration-200"
             >
               theyole114@outlook.com
             </a>

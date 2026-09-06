@@ -125,12 +125,12 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
 
       {/* 照片画廊网格 */}
       {isGrid ? (
-        // 正方形网格
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        // 正方形网格 (增加呼吸感)
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 lg:gap-10">
           {photos.map((photo, index) => (
             <div
               key={photo.id}
-              className="relative aspect-square overflow-hidden group bg-neutral-200/50 dark:bg-[#211f1c] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
+              className="relative aspect-square overflow-hidden group bg-neutral-200/50 dark:bg-[#1a1816] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#b91c1c] dark:focus:ring-white rounded-none border border-black/[0.04] dark:border-white/[0.05]"
               onClick={() => handleOpenPhoto(photo)}
               onKeyDown={(e) => e.key === "Enter" && handleOpenPhoto(photo)}
               tabIndex={0}
@@ -151,12 +151,12 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
           ))}
         </div>
       ) : (
-        // 原比例错落排版 (Masonry / Columns)
-        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4">
+        // 原比例错落排版 (增加呼吸感)
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 sm:gap-8 lg:gap-10">
           {photos.map((photo, index) => (
             <div
               key={photo.id}
-              className="relative overflow-hidden group bg-neutral-200/50 dark:bg-[#211f1c] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
+              className="relative overflow-hidden group bg-neutral-200/50 dark:bg-[#1a1816] cursor-pointer break-inside-avoid mb-4 sm:mb-8 lg:mb-10 focus:outline-none focus:ring-2 focus:ring-[#b91c1c] dark:focus:ring-white rounded-none border border-black/[0.04] dark:border-white/[0.05]"
               onClick={() => handleOpenPhoto(photo)}
               onKeyDown={(e) => e.key === "Enter" && handleOpenPhoto(photo)}
               tabIndex={0}
@@ -180,7 +180,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
       )}
 
       {/* ========================================================
-          全屏 Lightbox 弹窗 (通过 Portal 脱离层级，覆盖全屏并绝对居中)
+          全屏 Lightbox 弹窗 (深度沉浸)
           ======================================================== */}
       {mounted &&
         createPortal(
@@ -191,7 +191,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-8 select-none"
+                className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center bg-[#0a0a0a]/95 dark:bg-black backdrop-blur-2xl p-4 sm:p-8 select-none"
                 onClick={() => setActivePhoto(null)}
               >
                 {/* 顶部控制栏 (原图链接 + 关闭按钮) */}
@@ -259,7 +259,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
                     src={activePhoto.thumbnailUrl || activePhoto.url}
                     alt=""
                     aria-hidden="true"
-                    className={`max-h-[85vh] max-w-[90vw] object-contain rounded-lg transition-opacity duration-300 pointer-events-none select-none ${
+                    className={`max-h-[85vh] max-w-[90vw] object-contain rounded-none transition-opacity duration-300 pointer-events-none select-none ${
                       isHdLoaded ? "opacity-0 invisible" : "opacity-100 filter blur-[1px]"
                     }`}
                   />
@@ -269,7 +269,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
                     src={activePhoto.hdUrl || activePhoto.url}
                     alt={activePhoto.title || "Gallery photo"}
                     onLoad={() => setIsHdLoaded(true)}
-                    className={`absolute inset-0 m-auto max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl transition-opacity duration-300 select-none ${
+                    className={`absolute inset-0 m-auto max-h-[85vh] max-w-[90vw] object-contain rounded-none shadow-2xl dark:shadow-none transition-opacity duration-300 select-none ${
                       isHdLoaded ? "opacity-100" : "opacity-0"
                     }`}
                   />

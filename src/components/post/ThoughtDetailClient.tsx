@@ -57,16 +57,16 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
       {/* 独立内容块 */}
       <article className="relative rounded-none p-4 sm:p-5 shadow-sm torn-paper transition-all">
         <div className="mb-3 flex items-center gap-2 text-xs">
-          <span className="font-semibold text-neutral-900 dark:text-[#f4f4f5]">
+          <span className="font-semibold text-neutral-900 dark:text-[#eae5dc]">
             {item.author}
           </span>
           {item.action && (
-            <span className="text-neutral-500 dark:text-[#a1a1aa]">
+            <span className="text-neutral-500 dark:text-[#9d9589]">
               {item.action}
             </span>
           )}
           <span
-            className="text-neutral-400 dark:text-[#71717a]"
+            className="text-neutral-400 dark:text-[#777168]"
             title={item.fullTime || item.time}
           >
             {displayTime}
@@ -76,7 +76,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
         {/* 主体渲染 */}
         {isNote ? (
           <>
-            <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d4d4d8] whitespace-pre-line text-justify">
+            <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d6d0c7] whitespace-pre-line text-justify">
               {item.description}
             </div>
             {item.posterUrl && (
@@ -104,18 +104,18 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             )}
             
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-[#a1a1aa] uppercase">
+              <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-[#9d9589] uppercase">
                 {item.type} {item.year ? `· ${item.year}` : ""}
               </div>
-              <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#f4f4f5] tracking-tight">
+              <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#eae5dc] tracking-tight">
                 {item.title}
               </h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-[#a1a1aa] whitespace-pre-line text-justify">
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-[#9d9589] whitespace-pre-line text-justify">
                 {item.description}
               </p>
               
               {(item.rating || item.tags || item.sourceUrl) && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#71717a]">
+                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#777168]">
                   {item.rating && (
                     <span className="inline-flex items-center gap-1">
                       <Star className="h-3 w-3 fill-current" />
@@ -135,15 +135,16 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
         <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
 
         {/* 顶部互动栏（支持点击 + 与 Supabase 评论数联动） */}
-        <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-[#71717a] select-none">
+        <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-[#777168] select-none">
           <button
             type="button"
             onClick={() => toggleReaction("liked")}
             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
               reaction.liked
-                ? "text-rose-500"
-                : "hover:text-neutral-900 dark:hover:text-[#f4f4f5]"
+                ? "text-[#b91c1c] dark:text-white"
+                : "hover:text-[#b91c1c] dark:hover:text-white"
             }`}
+            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
             <Heart className={`h-3.5 w-3.5 ${reaction.liked ? "fill-current" : ""}`} />
             <span>{likes}</span>
@@ -154,15 +155,16 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             onClick={() => toggleReaction("upvoted")}
             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
               reaction.upvoted
-                ? "text-neutral-900 dark:text-[#f4f4f5]"
-                : "hover:text-neutral-900 dark:hover:text-[#f4f4f5]"
+                ? "text-neutral-900 dark:text-white"
+                : "hover:text-neutral-900 dark:hover:text-white"
             }`}
+            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
             <HeartCrack className={`h-3.5 w-3.5 ${reaction.upvoted ? "fill-current" : ""}`} />
             <span>{upvotes}</span>
           </button>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 opacity-80">
             <MessageSquare className="h-3.5 w-3.5" />
             <span>{commentCount}</span>
           </div>

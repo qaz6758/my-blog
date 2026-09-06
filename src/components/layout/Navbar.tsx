@@ -25,7 +25,8 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={(e) => toggleTheme(e)}
-      className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] active:scale-95 transition-all duration-200 cursor-pointer select-none ${className}`}
+      className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] active:scale-95 transition-all cursor-pointer select-none ${className}`}
+      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
       title="切换世界（昼行 / 夜行）"
       aria-label="切换世界（昼行 / 夜行）"
     >
@@ -49,7 +50,10 @@ export function Navbar() {
   const isOnline = (liveStatus.activity === "music" && liveStatus.music !== null) || liveStatus.app !== null;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.04] bg-[#ede7dc]/88 dark:bg-[#181614]/92 backdrop-blur-md select-none transition-colors duration-300">
+    <header 
+      className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.04] bg-[#ede7dc] dark:bg-[#181614] select-none transition-colors"
+      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+    >
       {/* 顶部适度收拢容器 (居中对称排版，微缩进) */}
       <div className="relative mx-auto flex h-full w-full max-w-5xl items-center justify-between px-4 sm:px-6 md:px-8">
         {/* ===================== 左侧：头像身份锚点 + 状态胶囊 ===================== */}
@@ -59,7 +63,10 @@ export function Navbar() {
             className="group flex items-center shrink-0 cursor-pointer select-none"
             aria-label="回到首页"
           >
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 overflow-hidden rounded-xl border border-black/[0.07] dark:border-white/10 bg-neutral-100 dark:bg-[#201e1b] shadow-2xs transition-all duration-200 group-hover:scale-105 group-hover:border-black/15 dark:group-hover:border-white/20">
+            <div 
+              className="relative h-9 w-9 sm:h-10 sm:w-10 overflow-hidden rounded-xl border border-black/[0.07] dark:border-white/10 bg-neutral-100 dark:bg-[#201e1b] shadow-2xs transition-all group-hover:scale-[1.03] group-hover:border-black/15 dark:group-hover:border-white/20"
+              style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+            >
               <img
                 src="/avatar.jpg"
                 alt="Avatar"
@@ -88,21 +95,23 @@ export function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`group relative text-[13px] sm:text-[14px] tracking-[0.02em] px-3 py-1.5 transition-colors duration-200 select-none cursor-pointer ${
+                  className={`group relative text-[13px] sm:text-[14px] tracking-[0.02em] px-3 py-1.5 transition-colors select-none cursor-pointer ${
                     isActive
                       ? "text-neutral-950 dark:text-[#eae5dc] font-semibold"
                       : "text-neutral-600 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] font-normal"
                   }`}
+                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                 >
                   <span>{link.name}</span>
                   {/* 昼行朱砂印痕 / 夜行素霜月白细痕（极细 1.5px，告别 SaaS 卡片底框） */}
                   <span
                     aria-hidden="true"
-                    className={`absolute bottom-0 inset-x-2.5 h-[1.5px] rounded-full transition-all duration-200 pointer-events-none ${
+                    className={`absolute bottom-0 inset-x-2.5 h-[1.5px] rounded-full transition-all pointer-events-none ${
                       isActive
                         ? "bg-[#b91c1c] dark:bg-white/45 opacity-100 scale-x-100"
                         : "bg-[#b91c1c]/0 dark:bg-white/0 opacity-0 scale-x-75 group-hover:bg-black/15 dark:group-hover:bg-white/20 group-hover:opacity-60"
                     }`}
+                    style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                   />
                 </Link>
               );
@@ -138,7 +147,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden border-b border-black/[0.06] dark:border-white/[0.04] bg-[#ede7dc]/96 dark:bg-[#181614]/96 px-6 py-4 shadow-xl backdrop-blur-2xl"
+            className="md:hidden border-b border-black/[0.06] dark:border-white/[0.04] bg-[#ede7dc] dark:bg-[#181614] px-6 py-4 shadow-md"
           >
             {isOnline && (
               <div className="mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.06]">
@@ -156,11 +165,12 @@ export function Navbar() {
                     key={link.name}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`px-3 py-2 text-sm rounded-md transition-colors duration-200 cursor-pointer ${
+                    className={`px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
                       isActive
                         ? "border-l-2 border-l-[#b91c1c] dark:border-l-white/45 text-neutral-950 dark:text-[#eae5dc] font-semibold bg-black/[0.025] dark:bg-white/[0.03] pl-2.5"
                         : "text-neutral-600 hover:text-neutral-900 dark:text-[#9d9589] dark:hover:text-[#eae5dc]"
                     }`}
+                    style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                   >
                     {link.name}
                   </Link>

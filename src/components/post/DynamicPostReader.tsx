@@ -210,21 +210,22 @@ export function DynamicPostReader({
               <div className="mb-6">
                 <Link
                   href="/posts"
-                  className="group inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors cursor-pointer select-none"
+                  className="group inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-[#b91c1c] dark:text-[#777168] dark:hover:text-white transition-colors cursor-pointer select-none"
+                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                 >
-                  <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
                   <span>cd ..</span>
                 </Link>
               </div>
 
               {/* 头部大标题与极简单行日期 */}
               <header className="mb-8">
-                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] leading-[1.2]">
+                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-neutral-900 dark:text-[#eae5dc] leading-[1.2]">
                   {post.title}
                 </h1>
 
                 {post.published_at || post.created_at ? (
-                  <p className="mt-2 text-sm text-neutral-400 dark:text-neutral-500 opacity-60">
+                  <p className="mt-2 text-sm text-neutral-400 dark:text-[#9d9589] opacity-60">
                     {formatDate(post.published_at || post.created_at || "")}
                   </p>
                 ) : null}
@@ -249,7 +250,8 @@ export function DynamicPostReader({
                     <Link
                       key={`${tag}-${index}`}
                       href={`/posts?tag=${encodeURIComponent(tag)}`}
-                      className="text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                      className="text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
+                      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                     >
                       #{tag}
                     </Link>
@@ -263,13 +265,14 @@ export function DynamicPostReader({
                   {prevPost ? (
                     <Link
                       href={`/posts/${prevPost.slug || prevPost.id}`}
-                      className="group flex flex-col gap-1 text-left transition-colors"
+                      className="group flex flex-col gap-1 text-left transition-colors hover:text-[#b91c1c] dark:hover:text-white"
+                      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                     >
-                      <span className="text-[11px] text-neutral-400 flex items-center gap-1">
-                        <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                      <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                        <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" style={{ transitionDuration: "var(--realm-motion-duration)" }} />
                         上一篇
                       </span>
-                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white font-medium line-clamp-1">
+                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-1 transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                         {prevPost.title}
                       </span>
                     </Link>
@@ -280,13 +283,14 @@ export function DynamicPostReader({
                   {nextPost ? (
                     <Link
                       href={`/posts/${nextPost.slug || nextPost.id}`}
-                      className="group flex flex-col gap-1 text-right sm:items-end transition-colors"
+                      className="group flex flex-col gap-1 text-right sm:items-end transition-colors hover:text-[#b91c1c] dark:hover:text-white"
+                      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                     >
-                      <span className="text-[11px] text-neutral-400 flex items-center gap-1 justify-end">
+                      <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 justify-end group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                         下一篇
-                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" style={{ transitionDuration: "var(--realm-motion-duration)" }} />
                       </span>
-                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white font-medium line-clamp-1">
+                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-1 transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                         {nextPost.title}
                       </span>
                     </Link>
@@ -300,9 +304,10 @@ export function DynamicPostReader({
               <div className="mt-8 mb-4">
                 <Link
                   href="/posts"
-                  className="group inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                  className="group inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
+                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                 >
-                  <ArrowLeft className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+                  <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" style={{ transitionDuration: "var(--realm-motion-duration)" }} />
                   <span>cd ..</span>
                 </Link>
               </div>
@@ -326,10 +331,10 @@ export function DynamicPostReader({
         >
           <main className="mx-auto w-full max-w-[65ch]">
             <header className="mb-10 pl-1">
-              <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#f4f4f5] sm:text-4xl">
+              <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#eae5dc] sm:text-4xl">
                 思考
               </h1>
-              <p className="mt-3 text-2xl text-neutral-500 dark:text-[#8e8e93] tracking-widest">
+              <p className="mt-3 text-2xl text-neutral-500 dark:text-[#777168] tracking-widest">
                 感君倾耳。
               </p>
             </header>
@@ -337,7 +342,8 @@ export function DynamicPostReader({
             <div className="mb-6 pl-1">
               <Link
                 href="/thoughts"
-                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-[#71717a] dark:hover:text-[#f4f4f5] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
+                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 返回
