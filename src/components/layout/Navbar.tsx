@@ -47,6 +47,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const liveStatus = useLiveStatus();
+  const { isDark } = useTheme();
   const isOnline = (liveStatus.activity === "music" && liveStatus.music !== null) || liveStatus.app !== null;
 
   return (
@@ -139,22 +140,37 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* ===================== 移动端下拉折叠菜单 ===================== */}
+      {/* ===================== 移动端空间展开 (不推动页面，融回内容) ===================== */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden border-b border-black/[0.06] dark:border-white/[0.04] bg-[#ede7dc] dark:bg-[#181614] px-6 py-4 shadow-md"
+            variants={{
+              open: { 
+                opacity: 1, 
+                y: 0, 
+                transition: { duration: isDark ? 0.24 : 0.20, ease: "easeOut" } 
+              },
+              closed: { 
+                opacity: 0, 
+                y: -6, 
+                transition: { duration: isDark ? 0.18 : 0.16, ease: "easeIn" } 
+              }
+            }}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="absolute inset-x-0 top-full md:hidden bg-[#ede7dc] dark:bg-[#181614] px-6 pt-2 pb-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]"
+            style={{ 
+              // 极弱的底缘背景差，替代生硬的 border
+              backgroundImage: isDark ? "linear-gradient(to bottom, rgba(24,22,20,1) 85%, rgba(20,18,16,1) 100%)" : "none"
+            }}
           >
             {isOnline && (
-              <div className="mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.06]">
+              <div className="mb-6 pl-2">
                 <StatusCapsule />
               </div>
             )}
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-col gap-3">
               {NAV_LINKS.map((link) => {
                 const isActive =
                   pathname === link.href ||
@@ -165,14 +181,29 @@ export function Navbar() {
                     key={link.name}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
-                      isActive
-                        ? "border-l-2 border-l-[#b91c1c] dark:border-l-white/45 text-neutral-950 dark:text-[#eae5dc] font-semibold bg-black/[0.025] dark:bg-white/[0.03] pl-2.5"
-                        : "text-neutral-600 hover:text-neutral-900 dark:text-[#9d9589] dark:hover:text-[#eae5dc]"
-                    }`}
-                    style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                    className="group relative flex items-center py-2.5 px-3 transition-colors cursor-pointer select-none"
                   >
-                    {link.name}
+                    <span className={`relative z-10 transition-colors ${
+                      isActive
+                        ? "text-neutral-900 dark:text-[#eae5dc] font-medium tracking-wide"
+                        : "text-neutral-500 dark:text-[#888176] font-normal tracking-wide hover:text-neutral-800 dark:hover:text-[#c4bfb6]"
+                    }`}>
+                      {link.name}
+                    </span>
+                    
+                    {/* Active 痕迹 (朱砂落在纸上 / 墨迹里的月光) */}
+                    <span 
+                      className={`absolute left-3 bottom-1.5 h-[1.5px] transition-all duration-300 ease-out pointer-events-none rounded-full ${
+                        isActive
+                          ? "w-[18px] bg-[#b91c1c] dark:bg-white/40 opacity-100"
+                          : "w-0 bg-transparent opacity-0"
+                      }`}
+                    />
+                    
+                    {/* 存在但不可察觉的互动反馈 (绝不形成明显的卡片) */}
+                    {isActive && (
+                      <span className="absolute inset-y-1 left-0 right-10 bg-gradient-to-r from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
+                    )}
                   </Link>
                 );
               })}
