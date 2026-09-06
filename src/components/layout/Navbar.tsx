@@ -148,12 +148,23 @@ export function Navbar() {
               open: { 
                 opacity: 1, 
                 y: 0, 
-                transition: { duration: isDark ? 0.24 : 0.20, ease: "easeOut" } 
+                transition: { 
+                  duration: isDark ? 0.24 : 0.20, 
+                  ease: "easeOut",
+                  staggerChildren: 0.04,
+                  delayChildren: 0.02
+                } 
               },
               closed: { 
                 opacity: 0, 
-                y: -6, 
-                transition: { duration: isDark ? 0.18 : 0.16, ease: "easeIn" } 
+                y: -4, 
+                transition: { 
+                  duration: isDark ? 0.18 : 0.16, 
+                  ease: "easeIn",
+                  staggerChildren: 0.03,
+                  staggerDirection: -1,
+                  when: "afterChildren"
+                } 
               }
             }}
             initial="closed"
@@ -166,10 +177,17 @@ export function Navbar() {
             }}
           >
             {isOnline && (
-              <div className="mb-6 pl-2">
-                <StatusCapsule />
-              </div>
+              <motion.div 
+                variants={{
+                  open: { opacity: 1, y: 0, transition: { duration: 0.15, ease: "easeOut" } },
+                  closed: { opacity: 0, y: -4, transition: { duration: 0.12, ease: "easeIn" } }
+                }}
+                className="mb-7 pl-2" // Status 与 Navigation 之间的呼吸空间 (28px)
+              >
+                <StatusCapsule hideWhenOffline={false} disablePopover={true} inlineApp={true} />
+              </motion.div>
             )}
+            
             <nav className="flex flex-col gap-3">
               {NAV_LINKS.map((link) => {
                 const isActive =
@@ -177,34 +195,36 @@ export function Navbar() {
                   (link.href !== "/" && pathname.startsWith(link.href));
 
                 return (
-                  <Link
+                  <motion.div
                     key={link.name}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="group relative flex items-center py-2.5 px-3 transition-colors cursor-pointer select-none"
+                    variants={{
+                      open: { opacity: 1, y: 0, transition: { duration: 0.15, ease: "easeOut" } },
+                      closed: { opacity: 0, y: -4, transition: { duration: 0.12, ease: "easeIn" } }
+                    }}
                   >
-                    <span className={`relative z-10 transition-colors ${
-                      isActive
-                        ? "text-neutral-900 dark:text-[#eae5dc] font-medium tracking-wide"
-                        : "text-neutral-500 dark:text-[#888176] font-normal tracking-wide hover:text-neutral-800 dark:hover:text-[#c4bfb6]"
-                    }`}>
-                      {link.name}
-                    </span>
-                    
-                    {/* Active 痕迹 (朱砂落在纸上 / 墨迹里的月光) */}
-                    <span 
-                      className={`absolute left-3 bottom-1.5 h-[1.5px] transition-all duration-300 ease-out pointer-events-none rounded-full ${
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="group relative flex items-center py-2 px-2 transition-colors cursor-pointer select-none"
+                    >
+                      <span className={`relative z-10 transition-colors ${
                         isActive
-                          ? "w-[18px] bg-[#b91c1c] dark:bg-white/40 opacity-100"
-                          : "w-0 bg-transparent opacity-0"
-                      }`}
-                    />
-                    
-                    {/* 存在但不可察觉的互动反馈 (绝不形成明显的卡片) */}
-                    {isActive && (
-                      <span className="absolute inset-y-1 left-0 right-10 bg-gradient-to-r from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
-                    )}
-                  </Link>
+                          ? "text-neutral-900 dark:text-[#eae5dc] font-medium tracking-wide"
+                          : "text-neutral-500 dark:text-[#888176] font-normal tracking-wide hover:text-neutral-800 dark:hover:text-[#c4bfb6]"
+                      }`}>
+                        {link.name}
+                      </span>
+                      
+                      {/* Active 痕迹 (极短、极细的朱砂/月白) */}
+                      <span 
+                        className={`absolute left-2 bottom-1 h-[1.5px] transition-all duration-300 ease-out pointer-events-none rounded-full ${
+                          isActive
+                            ? "w-[16px] bg-[#b91c1c] dark:bg-white/40 opacity-100"
+                            : "w-0 bg-transparent opacity-0"
+                        }`}
+                      />
+                    </Link>
+                  </motion.div>
                 );
               })}
             </nav>

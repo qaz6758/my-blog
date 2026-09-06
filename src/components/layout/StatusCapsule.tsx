@@ -33,12 +33,16 @@ interface StatusCapsuleProps {
   nickname?: string;
   variant?: "capsule" | "card";
   hideWhenOffline?: boolean;
+  disablePopover?: boolean;
+  inlineApp?: boolean;
 }
 
 export function StatusCapsule({
   nickname = "Vince Ou",
   variant = "capsule",
   hideWhenOffline = true,
+  disablePopover = false,
+  inlineApp = false,
 }: StatusCapsuleProps) {
   const liveStatus = useLiveStatus();
 
@@ -258,168 +262,202 @@ export function StatusCapsule({
     >
       {/* 顶部印章 / 刻痕 */}
       <div
-        onClick={() => setIsHovered((prev) => !prev)}
-        className="group flex cursor-pointer items-center gap-1.5 px-1 py-1 transition-colors"
+        onClick={() => !disablePopover && setIsHovered((prev) => !prev)}
+        className={`group flex cursor-pointer items-center px-1 py-1 transition-colors ${inlineApp ? 'w-full justify-between pr-4' : ''}`}
       >
-        <div 
-          className="flex h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 items-center justify-center overflow-hidden grayscale-0 opacity-100 dark:grayscale dark:opacity-60 transition-all group-hover:grayscale-0 group-hover:opacity-100"
-          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-        >
-          {isMusic && musicCover && !coverError ? (
-            <img
-              src={musicCover}
-              alt="music cover"
-              referrerPolicy="no-referrer"
-              onError={() => setCoverError(true)}
-              className="h-full w-full object-cover rounded-[1px]"
-            />
-          ) : isMusic ? (
-            <Music2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-pulse text-[#b91c1c] dark:text-[#eae5dc]" />
-          ) : hasApp && (liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)) ? (
-            <img
-              src={liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)!}
-              alt="status"
-              className="h-full w-full object-cover rounded-[1px]"
-              onError={(e) => {
-                const fallback = getAppIconFallback(liveStatus.app?.name || "");
-                if (fallback && e.currentTarget.src !== fallback) {
-                  e.currentTarget.src = fallback;
-                } else {
-                  e.currentTarget.style.display = "none";
-                }
-              }}
-            />
-          ) : hasApp ? (
-            <Laptop className="h-3 w-3 text-neutral-700 dark:text-neutral-400" />
-          ) : (
-            <Circle
-              size={6}
-              fill="currentColor"
-              className="text-neutral-700 dark:text-neutral-600"
-            />
-          )}
+        <div className="flex items-center gap-1.5">
+          <div 
+            className="flex h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 items-center justify-center overflow-hidden grayscale-0 opacity-100 dark:grayscale dark:opacity-60 transition-all group-hover:grayscale-0 group-hover:opacity-100"
+            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+          >
+            {isMusic && musicCover && !coverError ? (
+              <img
+                src={musicCover}
+                alt="music cover"
+                referrerPolicy="no-referrer"
+                onError={() => setCoverError(true)}
+                className="h-full w-full object-cover rounded-[1px]"
+              />
+            ) : isMusic ? (
+              <Music2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-pulse text-[#b91c1c] dark:text-[#eae5dc]" />
+            ) : hasApp && (liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)) ? (
+              <img
+                src={liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)!}
+                alt="status"
+                className="h-full w-full object-cover rounded-[1px]"
+                onError={(e) => {
+                  const fallback = getAppIconFallback(liveStatus.app?.name || "");
+                  if (fallback && e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  } else {
+                    e.currentTarget.style.display = "none";
+                  }
+                }}
+              />
+            ) : hasApp ? (
+              <Laptop className="h-3 w-3 text-neutral-700 dark:text-neutral-400" />
+            ) : (
+              <Circle
+                size={6}
+                fill="currentColor"
+                className="text-neutral-700 dark:text-neutral-600"
+              />
+            )}
+          </div>
+
+          <div className="flex min-w-0 max-w-[140px] sm:max-w-[160px] flex-col text-left leading-none">
+            <span 
+              className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-[#777168] dark:font-normal group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors"
+              style={{ transitionDuration: "var(--realm-motion-duration)" }}
+            >
+              {isMusic
+                ? musicTitle
+                : hasApp
+                  ? liveStatus.app?.name
+                  : "Offline"}
+            </span>
+          </div>
         </div>
 
-        <div className="flex min-w-0 max-w-[90px] sm:max-w-[120px] flex-col text-left leading-none">
-          <span 
-            className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-[#777168] dark:font-normal group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors"
-            style={{ transitionDuration: "var(--realm-motion-duration)" }}
-          >
-            {isMusic
-              ? musicTitle
-              : hasApp
-                ? liveStatus.app?.name
-                : "Offline"}
-          </span>
-        </div>
+        {/* 附加 App 信息 (当既有音乐又有 App 时，排在右侧) */}
+        {inlineApp && isMusic && hasApp && liveStatus.app?.name && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 items-center justify-center overflow-hidden grayscale-0 opacity-100 dark:grayscale dark:opacity-60 transition-all group-hover:grayscale-0 group-hover:opacity-100">
+              {liveStatus.app.icon || getAppIconFallback(liveStatus.app.name) ? (
+                <img
+                  src={liveStatus.app.icon || getAppIconFallback(liveStatus.app.name)!}
+                  alt="app"
+                  className="h-full w-full object-contain"
+                  onError={(e) => {
+                    const fallback = getAppIconFallback(liveStatus.app?.name || "");
+                    if (fallback && e.currentTarget.src !== fallback) {
+                      e.currentTarget.src = fallback;
+                    } else {
+                      e.currentTarget.style.display = "none";
+                    }
+                  }}
+                />
+              ) : (
+                <Laptop className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-neutral-700 dark:text-neutral-400" />
+              )}
+            </div>
+            <div className="flex min-w-0 max-w-[140px] sm:max-w-[160px] flex-col text-right leading-none">
+              <span className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-[#777168] dark:font-normal group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors">
+                {liveStatus.app.name}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 悬浮/点击展开卡片 (纸墨版) */}
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] torn-paper p-3.5 shadow-sm"
-          >
-            <div className="flex items-center justify-between mb-3 border-b border-black/[0.04] dark:border-white/[0.04] pb-2">
-              <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
-                LIVE DESK
-              </span>
-              <span className="flex items-center gap-1 text-[9px] font-mono text-neutral-500 dark:text-[#9d9589]">
-                <span
-                  className={`h-1 w-1 rounded-none ${
-                    isOnline ? "bg-neutral-800 dark:bg-[#eae5dc]" : "bg-neutral-300 dark:bg-neutral-700"
-                  }`}
-                />
-                {isOnline ? "ON" : "OFF"}
-              </span>
-            </div>
-
-            {/* 音乐卡片 (横向版画风格) */}
-            {isMusic && (
-              <div className="flex flex-col">
-                <div className="flex gap-3">
-                  <div className="h-10 w-10 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[10%]">
-                    {musicCover ? (
-                      <img
-                        src={musicCover}
-                        alt={`${musicTitle} cover`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-black/[0.02] dark:bg-white/[0.02]">
-                        <Music2 className="h-3.5 w-3.5 text-neutral-400" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex min-w-0 flex-1 flex-col justify-center">
-                    <div className="truncate text-xs font-bold text-neutral-900 dark:text-[#eae5dc]">
-                      {musicTitle}
-                    </div>
-                    <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-[#9d9589]">
-                      {musicArtist}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-2.5 flex items-center gap-2">
-                  <div className="flex h-2 items-end gap-[2px]">
-                    <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
-                    <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-2 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
-                    <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
-                  </div>
-
-                  <div className="relative h-[2px] flex-1 overflow-hidden bg-black/5 dark:bg-white/10">
-                    <div 
-                      className="absolute left-0 top-0 h-full bg-[#b91c1c] dark:bg-white transition-all duration-1000 ease-linear"
-                      style={{ width: `${progressPercent}%` }} 
-                    />
-                  </div>
-
-                  <span className="text-[9px] font-mono text-neutral-400 dark:text-[#777168]">
-                    {formatTime(localProgress)}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {!isMusic && !hasApp && (
-              <div className="text-[10px] font-mono text-neutral-400 dark:text-[#777168]">No active status</div>
-            )}
-            
-            {hasApp && liveStatus.app?.name && (
-              <div className="flex items-center gap-2 grayscale-[30%] opacity-90 mt-1">
-                <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center overflow-hidden">
-                  {liveStatus.app.icon || getAppIconFallback(liveStatus.app.name) ? (
-                    <img
-                      src={liveStatus.app.icon || getAppIconFallback(liveStatus.app.name)!}
-                      alt="app"
-                      className="h-full w-full object-contain"
-                      onError={(e) => {
-                        const fallback = getAppIconFallback(liveStatus.app?.name || "");
-                        if (fallback && e.currentTarget.src !== fallback) {
-                          e.currentTarget.src = fallback;
-                        } else {
-                          e.currentTarget.style.display = "none";
-                        }
-                      }}
-                    />
-                  ) : (
-                    <Laptop className="h-3 w-3 text-neutral-400" />
-                  )}
-                </div>
-                <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
-                  {liveStatus.app.name}
+      {!disablePopover && (
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] torn-paper p-3.5 shadow-sm"
+            >
+              <div className="flex items-center justify-between mb-3 border-b border-black/[0.04] dark:border-white/[0.04] pb-2">
+                <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
+                  LIVE DESK
+                </span>
+                <span className="flex items-center gap-1 text-[9px] font-mono text-neutral-500 dark:text-[#9d9589]">
+                  <span
+                    className={`h-1 w-1 rounded-none ${
+                      isOnline ? "bg-neutral-800 dark:bg-[#eae5dc]" : "bg-neutral-300 dark:bg-neutral-700"
+                    }`}
+                  />
+                  {isOnline ? "ON" : "OFF"}
                 </span>
               </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+              {/* 音乐卡片 (横向版画风格) */}
+              {isMusic && (
+                <div className="flex flex-col">
+                  <div className="flex gap-3">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[10%]">
+                      {musicCover ? (
+                        <img
+                          src={musicCover}
+                          alt={`${musicTitle} cover`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-black/[0.02] dark:bg-white/[0.02]">
+                          <Music2 className="h-3.5 w-3.5 text-neutral-400" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
+                      <div className="truncate text-xs font-bold text-neutral-900 dark:text-[#eae5dc]">
+                        {musicTitle}
+                      </div>
+                      <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-[#9d9589]">
+                        {musicArtist}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <div className="flex h-2 items-end gap-[2px]">
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-2 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
+                    </div>
+
+                    <div className="relative h-[2px] flex-1 overflow-hidden bg-black/5 dark:bg-white/10">
+                      <div 
+                        className="absolute left-0 top-0 h-full bg-[#b91c1c] dark:bg-white transition-all duration-1000 ease-linear"
+                        style={{ width: `${progressPercent}%` }} 
+                      />
+                    </div>
+
+                    <span className="text-[9px] font-mono text-neutral-400 dark:text-[#777168]">
+                      {formatTime(localProgress)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {!isMusic && !hasApp && (
+                <div className="text-[10px] font-mono text-neutral-400 dark:text-[#777168]">No active status</div>
+              )}
+              
+              {hasApp && liveStatus.app?.name && (
+                <div className="flex items-center gap-2 grayscale-[30%] opacity-90 mt-1">
+                  <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center overflow-hidden">
+                    {liveStatus.app.icon || getAppIconFallback(liveStatus.app.name) ? (
+                      <img
+                        src={liveStatus.app.icon || getAppIconFallback(liveStatus.app.name)!}
+                        alt="app"
+                        className="h-full w-full object-contain"
+                        onError={(e) => {
+                          const fallback = getAppIconFallback(liveStatus.app?.name || "");
+                          if (fallback && e.currentTarget.src !== fallback) {
+                            e.currentTarget.src = fallback;
+                          } else {
+                            e.currentTarget.style.display = "none";
+                          }
+                        }}
+                      />
+                    ) : (
+                      <Laptop className="h-3 w-3 text-neutral-400" />
+                    )}
+                  </div>
+                  <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
+                    {liveStatus.app.name}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
     </div>
   );
 }
