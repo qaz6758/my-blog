@@ -130,7 +130,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
           {photos.map((photo, index) => (
             <div
               key={photo.id}
-              className="relative aspect-square overflow-hidden group bg-neutral-100 dark:bg-[#252528] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
+              className="relative aspect-square overflow-hidden group bg-neutral-200/50 dark:bg-[#211f1c] cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
               onClick={() => handleOpenPhoto(photo)}
               onKeyDown={(e) => e.key === "Enter" && handleOpenPhoto(photo)}
               tabIndex={0}
@@ -156,7 +156,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
           {photos.map((photo, index) => (
             <div
               key={photo.id}
-              className="relative overflow-hidden group bg-neutral-100 dark:bg-[#252528] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
+              className="relative overflow-hidden group bg-neutral-200/50 dark:bg-[#211f1c] cursor-pointer break-inside-avoid mb-3 sm:mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-500 rounded-sm"
               onClick={() => handleOpenPhoto(photo)}
               onKeyDown={(e) => e.key === "Enter" && handleOpenPhoto(photo)}
               tabIndex={0}

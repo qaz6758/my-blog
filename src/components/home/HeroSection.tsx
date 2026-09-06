@@ -1,10 +1,11 @@
 // src/components/home/HeroSection.tsx
+// v3: stable paper paint + static typography + staged close
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { siteConfig } from "@/config/site";
 import {
   SiGithub,
@@ -115,6 +116,47 @@ function AgedScrollRod({ type }: AgedScrollRodProps) {
   );
 }
 
+interface StackItemProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconClassName?: string;
+  hoverClassName?: string;
+}
+
+function StackItem({
+  label,
+  icon: Icon,
+  iconClassName = "",
+  hoverClassName = "hover:text-neutral-900 dark:hover:text-white",
+}: StackItemProps) {
+  return (
+    <span
+      className={`group/stack inline-flex items-center gap-1.5 whitespace-nowrap text-neutral-900 transition-colors duration-200 dark:text-[#d6d0c7] ${hoverClassName}`}
+    >
+      <Icon className={`h-3.5 w-3.5 shrink-0 transition-all duration-200 ${iconClassName}`} />
+      <span>{label}</span>
+    </span>
+  );
+}
+
+interface StackRowProps {
+  label: string;
+  children: React.ReactNode;
+}
+
+function StackRow({ label, children }: StackRowProps) {
+  return (
+    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-start gap-x-3 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-x-5">
+      <span className="pt-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 dark:text-[#777168]">
+        {label}
+      </span>
+      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-[13px] leading-6 sm:text-[13.5px]">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export function HeroSection() {
   const { name } = siteConfig;
   const [isExpanded, setIsExpanded] = useState(false);
@@ -165,41 +207,92 @@ export function HeroSection() {
           </div>
         </motion.div>
 
-        {/* ===================== 1. 核心居中大标题 (典雅沉稳) ===================== */}
-        <h1 className="text-[34px] sm:text-[44px] font-bold tracking-tight text-neutral-900 dark:text-[#ededed] select-none text-center">
-          {name}
-        </h1>
+        {/* ===================== 1. 核心身份标题 ===================== */}
+        <div className="text-center">
+          <h1 className="text-[34px] font-semibold tracking-[-0.035em] text-neutral-900 dark:text-[#ece7df] select-none sm:text-[44px]">
+            {name}
+          </h1>
+          <p className="mt-2.5 text-[13px] tracking-[0.12em] text-neutral-400 dark:text-[#777168] sm:mt-3 sm:text-[13.5px]">
+            Developer · Music · Photography · Writing
+          </p>
+        </div>
 
-        {/* ===================== 2. 大标题下方仿古展卷交互钮 (双界交错：日间狂客赤印，夜间澄澈月石) ===================== */}
-        <button
+        {/* ===================== 2. 古卷题签触发器：低存在感、短反馈、与卷轴动作连续 ===================== */}
+        <motion.button
           type="button"
           onClick={handleToggle}
-          className="group mt-4 mb-2 sm:mt-5 sm:mb-2.5 inline-flex items-center gap-2.5 px-3 py-1.5 text-neutral-500 hover:text-neutral-900 dark:text-[#a8a29e] dark:hover:text-white transition-colors duration-200 cursor-pointer select-none bg-transparent border-none focus:outline-none"
+          whileTap={{ scale: 0.985 }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          className={`group relative mt-5 mb-2 flex min-h-9 items-center justify-center gap-2.5 px-2.5 sm:mt-6 sm:mb-2.5 sm:px-3 select-none outline-none ${
+            isExpanded
+              ? "text-neutral-700 dark:text-[#d6d0c7]"
+              : "text-neutral-500 dark:text-[#918a80]"
+          }`}
           aria-expanded={isExpanded}
           aria-label={isExpanded ? "收起画卷" : "展开画卷"}
         >
-          {/* 微印 (日间：狂客朱砂鲜亮跳动；夜间：温润清冷月白微珠) */}
-          <span className="w-1.5 h-1.5 rounded-full bg-[#dc2626] dark:bg-[#d6d3d1] group-hover:scale-125 group-hover:shadow-[0_0_8px_rgba(220,38,38,0.7)] dark:group-hover:shadow-[0_0_8px_rgba(255,255,255,0.5)] transition-all duration-300 shrink-0" />
+          {/* 题签引线：默认极淡，hover / 展开时才形成完整的小型构图 */}
+          <motion.span
+            aria-hidden="true"
+            className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-neutral-300/0 transition-colors duration-300 group-hover:bg-neutral-300/80 dark:group-hover:bg-white/15"
+            animate={{ scaleX: isExpanded ? 1 : 0.7, opacity: isExpanded ? 0.8 : 0.55 }}
+            transition={{ duration: isExpanded ? 0.36 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: "left center" }}
+          />
+          <motion.span
+            aria-hidden="true"
+            className="absolute right-0 top-1/2 h-px w-3 -translate-y-1/2 bg-neutral-300/0 transition-colors duration-300 group-hover:bg-neutral-300/80 dark:group-hover:bg-white/15"
+            animate={{ scaleX: isExpanded ? 1 : 0.7, opacity: isExpanded ? 0.8 : 0.55 }}
+            transition={{ duration: isExpanded ? 0.36 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: "right center" }}
+          />
 
-          {/* 古风题签微字 (定高定宽居中，彻底锁定文字布局基准，消除任何字形与行高跳动) */}
-          <span className="inline-flex items-center justify-center h-6 min-w-[72px] text-[13px] sm:text-[14px] tracking-[0.22em] font-serif font-medium leading-none group-hover:text-[#dc2626] dark:group-hover:text-white dark:group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-colors duration-200">
+          {/* 朱砂印记：从醒目的发光圆点降为真正的小印 */}
+          <motion.span
+            aria-hidden="true"
+            className="relative z-10 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b91c1c] dark:bg-[#c7c2ba]"
+            animate={{
+              scale: isExpanded ? 0.88 : 1,
+              opacity: isExpanded ? 0.8 : 0.9,
+            }}
+            whileHover={{ scale: 1.14 }}
+            transition={{ duration: isExpanded ? 0.3 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+          />
+
+          {/* 题签文字：保留固定尺寸，只做极轻的纵向落位 */}
+          <motion.span
+            className="relative z-10 inline-flex h-6 min-w-[72px] items-center justify-center text-[12.5px] font-serif font-medium leading-none tracking-[0.2em] transition-colors duration-300 sm:text-[13.5px] group-hover:text-[#991b1b] dark:group-hover:text-white"
+            animate={{ y: isExpanded ? -0.5 : 0 }}
+            transition={{ duration: isExpanded ? 0.46 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
             {isExpanded ? "卷收 · 藏" : "展卷 · 阅"}
-          </span>
+          </motion.span>
 
-          {/* 灵动下折箭头 (精确同步卷轴非对称开合时长与曲线，杜绝旋转与展开割裂脱节) */}
-          <div className="w-4 h-4 flex items-center justify-center text-neutral-400 group-hover:text-[#dc2626] dark:text-neutral-500 dark:group-hover:text-white group-hover:translate-y-0.5 transition-colors duration-200 shrink-0">
-            <ChevronDown
-              className="h-4 w-4 stroke-[1.8] transition-transform"
-              style={{
-                transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                transitionDuration: isExpanded ? "600ms" : "420ms",
-                transitionTimingFunction: isExpanded
-                  ? "cubic-bezier(0.25, 1, 0.35, 1)"
-                  : "cubic-bezier(0.36, 0, 0.16, 1)",
-              }}
-            />
-          </div>
-        </button>
+          {/* 箭头只作为方向提示，不再成为视觉主角 */}
+          <motion.span
+            className="relative z-10 flex h-4 w-4 shrink-0 items-center justify-center text-neutral-400 dark:text-neutral-500"
+            animate={{
+              y: isExpanded ? -0.5 : 0,
+              rotate: isExpanded ? 180 : 0,
+              opacity: isExpanded ? 0.82 : 0.68,
+            }}
+            whileHover={{ opacity: 1 }}
+            transition={{
+              duration: isExpanded ? 0.56 : 0.38,
+              ease: isExpanded ? [0.25, 1, 0.35, 1] : [0.36, 0, 0.16, 1],
+            }}
+          >
+            <ChevronDown className="h-3.5 w-3.5 stroke-[1.6]" />
+          </motion.span>
+
+          {/* 很轻的“印下”反馈，仅用于告诉用户点击已经发生 */}
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-3 top-1/2 h-7 -translate-y-1/2 rounded-full bg-[#b91c1c]/0 blur-md dark:bg-white/0"
+            animate={{ opacity: isExpanded ? 0.06 : 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          />
+        </motion.button>
 
         {/* ===================== 3. 仿古水墨画卷主体 (非对称自然物理缓动曲线：展卷从容舒展，收卷干净利落) ===================== */}
         <motion.div
@@ -210,120 +303,127 @@ export function HeroSection() {
           transition={
             isExpanded
               ? {
-                  height: { duration: 0.6, ease: [0.25, 1, 0.35, 1] },
+                  height: { duration: 0.62, ease: [0.25, 1, 0.35, 1] },
                 }
               : {
-                  height: { duration: 0.42, ease: [0.36, 0, 0.16, 1] },
+                  height: { duration: 0.48, delay: 0.08, ease: [0.36, 0, 0.16, 1] },
                 }
           }
           className={`w-full relative overflow-hidden ${isExpanded ? "" : "pointer-events-none"}`}
           style={{ willChange: "height" }}
         >
-          <motion.div
+          <div
             ref={contentRef}
-            initial={false}
-            animate={{
-              opacity: isExpanded ? 1 : 0,
-              y: isExpanded ? 0 : -14,
-            }}
-            transition={
-              isExpanded
-                ? {
-                    opacity: { duration: 0.48, ease: [0.25, 1, 0.35, 1], delay: 0.05 },
-                    y: { duration: 0.58, ease: [0.25, 1, 0.35, 1] },
-                  }
-                : {
-                    opacity: { duration: 0.22, ease: "easeIn" },
-                    y: { duration: 0.38, ease: [0.36, 0, 0.16, 1] },
-                  }
-            }
             className="w-full py-4"
           >
             {/* 1. 顶端圆木天杆：始终保持固定在顶端 */}
             <AgedScrollRod type="top" />
 
             {/* 2. 画卷装裱画芯主体 */}
-            <div className="relative w-full overflow-hidden scroll-canvas-bg border-x border-[#8c7150]/35 dark:border-white/[0.08] shadow-2xl rounded-[1px]">
+            <div className="relative w-full overflow-hidden scroll-canvas-bg border-x border-[#8c7150]/35 dark:border-white/[0.08] shadow-2xl rounded-[1px] [isolation:isolate]">
             {/* 内部画芯内容与浪客行海报背景 */}
             <div className="relative w-full py-9 sm:py-12 px-6 sm:px-11 text-left">
               {/* 图二海报背景 (武藏、金色旭日、红梅，全画幅覆盖) */}
-              <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
+              <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none [isolation:isolate]">
                 {/* 亮色模式：复古新闻纸与版画质感 (正片叠底) */}
                 <img
                   src="/images/vagabond-poster.webp"
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover object-center opacity-[0.32] sm:opacity-[0.36] dark:hidden mix-blend-multiply transition-opacity duration-500"
+                  className="absolute inset-0 w-full h-full object-cover object-center opacity-[0.24] sm:opacity-[0.28] dark:hidden mix-blend-multiply"
                 />
                 {/* 深色模式：夜色墨韵暗涌 (武藏、金色旭日与红梅) */}
                 <img
                   src="/images/vagabond-poster.webp"
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover object-center hidden dark:block opacity-[0.22] sm:opacity-[0.26] brightness-90 contrast-115 transition-opacity duration-500"
+                  className="absolute inset-0 w-full h-full object-cover object-center hidden dark:block opacity-[0.16] sm:opacity-[0.20] brightness-90 contrast-110"
                 />
 
                 {/* 中心阅读防干扰柔光遮罩 (保证文字与代码徽章黄金易读性) */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#ede7dc]/80 via-[#ede7dc]/55 to-[#ede7dc]/80 dark:from-[#181614]/85 dark:via-[#181614]/60 dark:to-[#181614]/85 backdrop-blur-[0.3px]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#ede7dc]/90 via-[#ede7dc]/58 to-[#ede7dc]/90 dark:from-[#181614]/90 dark:via-[#181614]/62 dark:to-[#181614]/90 " />
               </div>
 
               {/* 正文内容 (黄金阅读尺寸，霞鹜文楷水墨风，行高与画卷舒展和谐) */}
-              <div className="relative z-10 font-wenkai text-[16px] sm:text-[17px] leading-[2.0] sm:leading-[2.05] text-neutral-900 dark:text-[#eae5dc] space-y-6 sm:space-y-7 tracking-[0.025em]">
+              <motion.div
+                initial={false}
+                animate={{
+                  opacity: isExpanded ? 1 : 0,
+                }}
+                transition={
+                  isExpanded
+                    ? {
+                        opacity: { duration: 0.24, delay: 0.16, ease: [0.16, 1, 0.3, 1] },
+                      }
+                    : {
+                        opacity: { duration: 0.18, ease: [0.25, 0.1, 0.25, 1] },
+                      }
+                }
+                className="relative z-10 font-wenkai text-[16px] sm:text-[17px] leading-[2.0] sm:leading-[2.05] text-neutral-900 dark:text-[#eae5dc] space-y-6 sm:space-y-7 tracking-[0.025em]"
+                style={{ willChange: "opacity" }}
+              >
                 {/* 第一句：极简身份宣言 */}
                 <p>
                   嘿！我是{name}，一名热爱音乐以及网站开发的全栈初学者。
                 </p>
 
-                {/* 🌟 官方标准 SVG 图标 + 页面原字体排版 (保持技术栈标签清晰工整) */}
-                <div className="my-7 sm:my-8 space-y-3 font-sans text-[13.5px] sm:text-[14px] leading-relaxed select-none tracking-normal">
-                  {/* Focus on */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-neutral-500 dark:text-[#8c857b] w-26 shrink-0">Working with</span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#dc2626] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiVercel className="h-3.5 w-3.5 dark:opacity-80" />
-                      <span>Vercel</span>
+                {/* 题跋 / 工具注记 */}
+                <div className="my-8 border-y border-black/[0.07] py-5 font-sans tracking-normal dark:border-white/[0.08] sm:my-9 sm:py-6">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-neutral-400 dark:text-[#777168]">
+                      Working notes
                     </span>
-                    <span className="text-neutral-400 dark:text-[#57534e]">/</span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#dc2626] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiCloudflare className="h-3.5 w-3.5 text-[#F38020] dark:grayscale dark:contrast-125 dark:opacity-75 dark:hover:grayscale-0 dark:hover:opacity-100 transition-all duration-200" />
-                      <span>Cloudflare</span>
+                    <span className="font-mono text-[10px] text-neutral-400 dark:text-[#6f685f]">
+                      01 — 04
                     </span>
                   </div>
 
-                  {/* Tech Stack */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                    <span className="text-neutral-500 dark:text-[#8c857b] w-26 shrink-0">Tech Stack</span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#0284c7] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiReact className="h-3.5 w-3.5 text-[#61DAFB] dark:grayscale dark:contrast-125 dark:opacity-75 dark:hover:grayscale-0 dark:hover:opacity-100 transition-all duration-200" />
-                      <span>React 19</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#dc2626] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiNextdotjs className="h-3.5 w-3.5 dark:opacity-80" />
-                      <span>Next.js 16</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#0284c7] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiTypescript className="h-3.5 w-3.5 text-[#3178C6] dark:grayscale dark:contrast-125 dark:opacity-75 dark:hover:grayscale-0 dark:hover:opacity-100 transition-all duration-200" />
-                      <span>TypeScript</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#0284c7] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiTailwindcss className="h-3.5 w-3.5 text-[#06B6D4] dark:grayscale dark:contrast-125 dark:opacity-75 dark:hover:grayscale-0 dark:hover:opacity-100 transition-all duration-200" />
-                      <span>Tailwind v4</span>
-                    </span>
-                  </div>
+                  <div className="space-y-3">
+                    <StackRow label="Working with">
+                      <StackItem icon={SiVercel} label="Vercel" />
+                      <span className="text-neutral-300 dark:text-[#4a4640]">/</span>
+                      <StackItem
+                        icon={SiCloudflare}
+                        label="Cloudflare"
+                        iconClassName="text-[#F38020] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
+                      />
+                    </StackRow>
 
-                  {/* Infrastructure */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                    <span className="text-neutral-500 dark:text-[#8c857b] w-26 shrink-0">Backend</span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#059669] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiSupabase className="h-3.5 w-3.5 text-[#3ECF8E] dark:grayscale dark:contrast-125 dark:opacity-75 dark:hover:grayscale-0 dark:hover:opacity-100 transition-all duration-200" />
-                      <span>Supabase</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#dc2626] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiNotion className="h-3.5 w-3.5 dark:opacity-80" />
-                      <span>Notion API</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-neutral-900 dark:text-[#d6d3d1] hover:text-[#F38020] dark:hover:text-white transition-colors duration-200 cursor-default">
-                      <SiCloudflare className="h-3.5 w-3.5 text-[#F38020] dark:grayscale dark:contrast-125 dark:opacity-75 dark:hover:grayscale-0 dark:hover:opacity-100 transition-all duration-200" />
-                      <span>Cloudflare R2</span>
-                    </span>
+                    <StackRow label="Tech stack">
+                      <StackItem
+                        icon={SiReact}
+                        label="React 19"
+                        iconClassName="text-[#61DAFB] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
+                        hoverClassName="hover:text-[#0284c7] dark:hover:text-white"
+                      />
+                      <StackItem icon={SiNextdotjs} label="Next.js 16" />
+                      <StackItem
+                        icon={SiTypescript}
+                        label="TypeScript"
+                        iconClassName="text-[#3178C6] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
+                        hoverClassName="hover:text-[#0284c7] dark:hover:text-white"
+                      />
+                      <StackItem
+                        icon={SiTailwindcss}
+                        label="Tailwind v4"
+                        iconClassName="text-[#06B6D4] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
+                        hoverClassName="hover:text-[#0284c7] dark:hover:text-white"
+                      />
+                    </StackRow>
+
+                    <StackRow label="Backend">
+                      <StackItem
+                        icon={SiSupabase}
+                        label="Supabase"
+                        iconClassName="text-[#3ECF8E] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
+                        hoverClassName="hover:text-emerald-700 dark:hover:text-white"
+                      />
+                      <StackItem icon={SiNotion} label="Notion API" />
+                      <StackItem
+                        icon={SiCloudflare}
+                        label="Cloudflare R2"
+                        iconClassName="text-[#F38020] dark:grayscale dark:contrast-125 dark:opacity-70 dark:group-hover/stack:grayscale-0 dark:group-hover/stack:opacity-100"
+                        hoverClassName="hover:text-[#d97706] dark:hover:text-white"
+                      />
+                    </StackRow>
                   </div>
                 </div>
 
@@ -335,7 +435,10 @@ export function HeroSection() {
                 {/* 段落 3: 态度与信念 */}
                 <p>
                   但不必长久陷入痛苦。我选择在此留下自己能留下的一切，无论是逻辑的代码，还是感性的艺术。秉持着{" "}
-                  “破碎重组，再破碎的循环，让自己成为自己” 的信念，持续打磨自己的开源项目与个人数字花园。
+                  <span className="relative mx-1 inline-block font-medium text-[#7f1d1d] dark:text-[#e7e2d8]">
+                    “破碎重组，再破碎的循环，让自己成为自己”
+                  </span>
+                  的信念，持续打磨自己的开源项目与个人数字花园。
                 </p>
 
                 {/* 段落 4: 多维内容索引 */}
@@ -346,18 +449,18 @@ export function HeroSection() {
                   <TextLink href="/posts">博客文章</TextLink> 与{" "}
                   <TextLink href="/thoughts">随想录</TextLink> 里，读一读我近期的技术沉淀与内心注脚。
                 </p>
-              </div>
+              </motion.div>
+            </div>
             </div>
           </div>
 
           {/* 3. 底端圆木地轴：紧贴画芯底边，收卷时真实由下向上滚动，直至与顶端天杆合拢 */}
           <AgedScrollRod type="bottom" />
         </motion.div>
-      </motion.div>
 
         {/* ===================== 4. 联系方式 (自然平滑随画卷展开下移与回退) ===================== */}
         <div
-          className="w-full flex flex-col items-center text-center space-y-2.5 pt-1 sm:pt-1.5 select-none"
+          className="mt-1 flex w-full flex-col items-center space-y-2.5 pt-2 text-center select-none sm:pt-2.5"
         >
           {/* 居中极简题跋标签 */}
           <div className="flex items-center gap-2 text-neutral-400 dark:text-neutral-500 text-xs sm:text-[13px]">
@@ -372,9 +475,9 @@ export function HeroSection() {
               href="https://github.com/qaz6758"
               target="_blank"
               rel="noopener noreferrer"
-              className="prose-link group inline-flex items-center gap-1 font-medium text-neutral-900 dark:text-[#a8a29e] hover:!text-[#0891b2] dark:hover:!text-white hover:!border-b-[#0891b2] dark:hover:!border-b-white cursor-pointer select-none transition-all duration-200"
+              className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiGithub className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 dark:group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200" />
+              <SiGithub className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-all duration-200" />
               <span>GitHub</span>
             </a>
 
@@ -382,9 +485,9 @@ export function HeroSection() {
               href="https://x.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="prose-link group inline-flex items-center gap-1 font-medium text-neutral-900 dark:text-[#a8a29e] hover:!text-[#dc2626] dark:hover:!text-white hover:!border-b-[#dc2626] dark:hover:!border-b-white cursor-pointer select-none transition-all duration-200"
+              className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiX className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:scale-110 dark:group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200" />
+              <SiX className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:scale-110 transition-all duration-200" />
               <span>Twitter</span>
             </a>
 
@@ -392,19 +495,19 @@ export function HeroSection() {
               href="https://space.bilibili.com/520681544?spm_id_from=333.1007.0.0"
               target="_blank"
               rel="noopener noreferrer"
-              className="prose-link group inline-flex items-center gap-1 font-medium text-neutral-900 dark:text-[#a8a29e] hover:!text-[#0284c7] dark:hover:text-white hover:!border-b-[#0284c7] dark:hover:!border-b-white cursor-pointer select-none transition-all duration-200"
+              className="prose-link group inline-flex items-center gap-1 font-medium "
             >
-              <SiBilibili className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 dark:group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200" />
-              <span>哔哩哔哩</span>
+              <SiBilibili className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-all duration-200" />
+              <span>Bilibili</span>
             </a>
 
             <a
               href="https://t.me"
               target="_blank"
               rel="noopener noreferrer"
-              className="prose-link group inline-flex items-center gap-1 font-medium text-neutral-900 dark:text-[#a8a29e] hover:!text-[#0891b2] dark:hover:!text-white hover:!border-b-[#0891b2] dark:hover:!border-b-white cursor-pointer select-none transition-all duration-200"
+              className="prose-link group inline-flex items-center gap-1 font-medium"
             >
-              <SiTelegram className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 dark:group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-200" />
+              <SiTelegram className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover:scale-110 transition-all duration-200" />
               <span>Telegram</span>
             </a>
           </div>

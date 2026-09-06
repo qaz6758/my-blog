@@ -62,15 +62,16 @@
  * ============================================================
  */
 
-/* 日间（混沌武士涂鸦）：如血色朱砂喷漆划过粗宣纸 */
+/* 昼行：如淡落朱砂轻拂过粗生宣 */
 ::selection {
-  background: rgba(225, 29, 72, 0.22);
-  color: #881337;
+  background: rgba(185, 28, 28, 0.18);
+  color: #7f1d1d;
 }
 
-/* 夜间（浪客行水墨）：如月光倾泻在焦墨上，澄澈留白 */
-.dark ::selection {
-  background: rgba(255, 255, 255, 0.16);
+/* 夜行：如皓月倾泻在焦墨上，澄澈留白 */
+.dark ::selection,
+html.dark ::selection {
+  background: rgba(234, 229, 220, 0.18);
   color: #ffffff;
 }
 
@@ -93,93 +94,114 @@
 /*
  * ============================================================
  * 双界文本链接系统 (Prose Link)
- * 日间：石墨黑底色，Hover 激发无幻血赤涂鸦喷漆与青刃光芒
- * 夜间：澄澈淡墨灰，Hover 升华如清泉月华，纯白留白，零彩色杂质
+ * 昼行：石墨黑底色，Hover 显落款朱砂与轻快节拍，印泥落纸
+ * 夜行：澄澈淡墨灰，Hover 升华如清泉月华，纯白留白，零霓虹杂质
  * ============================================================
  */
 
 .prose-link {
   font-weight: 600;
   color: #171717;
-  border-bottom: 1px solid rgba(225, 29, 72, 0.35);
+  border-bottom: 1px solid rgba(185, 28, 28, 0.35);
   padding-bottom: 1px;
   text-decoration: none !important;
   cursor: pointer;
-  transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), text-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  transition: color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+              border-color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+              opacity 0.2s ease;
 }
 
-/* 日间悬停：狂暴、血腥、涂鸦喷漆微晕 */
+/* 昼行悬停：落款朱砂，利落干净，无廉价荧光 */
 .prose-link:hover {
-  color: #dc2626 !important;
-  border-bottom-color: #dc2626 !important;
-  text-shadow: 0 0 8px rgba(220, 38, 38, 0.35);
+  color: #b91c1c !important;
+  border-bottom-color: #b91c1c !important;
 }
 
-/* 夜间常态：温润淡墨灰 */
+/* 夜行常态：温润淡墨灰 */
 .dark .prose-link {
   color: #a8a29e;
   border-bottom: 1px solid rgba(168, 162, 158, 0.28);
 }
 
-/* 夜间悬停：极致纯黑白，月华澄澈微光，包容留白 */
+/* 夜行悬停：极致纯净，月华澄澈，零发光污染 */
 .dark .prose-link:hover {
   color: #ffffff !important;
   border-bottom-color: #ffffff !important;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
 }
 
 /*
  * ============================================================
  * 双界交错色彩原子类
- * 日间：高饱和街头涂鸦三原色
- * 夜间：沉静黑白五色墨阶梯
+ * 昼行：自然克制的街头手稿色调（朱砂、青刃、旧金）
+ * 夜行：沉静黑白墨阶梯（月白、素霜、皓月），去高饱和杂质
  * ============================================================
  */
 
-/* 核心强调：日间血赤，夜间月白 */
+/* 核心强调：昼行朱砂落款，夜行澄澈月白 */
 .champloo-text-crimson {
-  color: #dc2626;
+  color: #b91c1c;
 }
 .dark .champloo-text-crimson {
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  color: #eae5dc;
 }
 
-/* 刀芒强调：日间青刃，夜间素霜灰 */
+/* 刀芒强调：昼行青刃，夜行素霜灰 */
 .champloo-text-cyan {
-  color: #0284c7;
+  color: #0369a1;
 }
 .dark .champloo-text-cyan {
   color: #d6d3d1;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
-/* 律动强调：日间向日葵曜金，夜间温润月白 */
+/* 律动强调：昼行向日葵旧金，夜行温润皓月 */
 .champloo-text-gold {
-  color: #d97706;
+  color: #b45309;
 }
 .dark .champloo-text-gold {
   color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 
 :root {
   color-scheme: light;
 
-  /* 混沌武士与浪客行经典浅色基底：未漂白粗粝新闻纸/古生宣质感 */
-  --background: #ede7dc;
-  --foreground: #1e1b18;
+  /*
+   * 昼行（Samurai Champloo 精神内核）：
+   * 粗粝暖宣纸底、石墨黑字、落款朱砂与青刃，带手作呼吸与微小不对称
+   */
+  --realm-bg: #ede7dc;
+  --realm-surface: #f5efe3;
+  --realm-surface-secondary: #eae3d5;
+  --realm-surface-tertiary: #dfd7c5;
 
-  --surface: #f5efe3;
-  --surface-secondary: #eae3d5;
-  --surface-tertiary: #dfd7c5;
+  --realm-border: rgba(50, 40, 30, 0.08);
+  --realm-border-strong: rgba(50, 40, 30, 0.16);
 
-  --border: rgba(50, 40, 30, 0.08);
-  --border-strong: rgba(50, 40, 30, 0.15);
+  --realm-ink-primary: #1e1b18;
+  --realm-ink-secondary: #6e6559;
+  --realm-ink-muted: #9c9284;
 
-  --text-primary: #1e1b18;
-  --text-secondary: #6e6559;
-  --text-tertiary: #9c9284;
+  --realm-accent-cinnabar: #b91c1c;
+  --realm-accent-indigo: #0369a1;
+  --realm-accent-gold: #b45309;
+
+  /* 昼行动效节拍（稍快、轻快、利落） */
+  --realm-motion-duration: 0.18s;
+  --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* 现有设计变量 100% 映射与兼容 */
+  --background: var(--realm-bg);
+  --foreground: var(--realm-ink-primary);
+
+  --surface: var(--realm-surface);
+  --surface-secondary: var(--realm-surface-secondary);
+  --surface-tertiary: var(--realm-surface-tertiary);
+
+  --border: var(--realm-border);
+  --border-strong: var(--realm-border-strong);
+
+  --text-primary: var(--realm-ink-primary);
+  --text-secondary: var(--realm-ink-secondary);
+  --text-tertiary: var(--realm-ink-muted);
 }
 
 html.light {
@@ -194,28 +216,51 @@ html.light {
 
 /*
  * ============================================================
- * Dark Theme (混沌武士 × 浪客行：江户松烟焦炭与深沉夜色)
+ * Dark Theme（夜行 · Vagabond 精神内核：江户松烟焦炭与深沉夜色）
  * ============================================================
  */
 
 html.dark {
   color-scheme: dark !important;
 
-  /* 江户夜色松烟深炭：告别单调冷灰，呈现沉郁厚重的古典武士墨色 */
-  --background: #181614;
-  --foreground: #eae5dc;
+  /*
+   * 夜行（Vagabond 精神内核）：
+   * 江户夜色松烟深炭、玄武案台、月白与素霜，彻底去除高饱和杂质，澄澈留白
+   */
+  --realm-bg: #181614;
+  --realm-surface: #22201d;
+  --realm-surface-secondary: #2b2824;
+  --realm-surface-tertiary: #35312c;
 
-  /* 卡片层级：暖黑檀木质感与发丝微光 */
-  --surface: #22201d;
-  --surface-secondary: #2b2824;
-  --surface-tertiary: #35312c;
+  --realm-border: rgba(255, 255, 255, 0.08);
+  --realm-border-strong: rgba(255, 255, 255, 0.14);
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --realm-ink-primary: #eae5dc;
+  --realm-ink-secondary: #9d9589;
+  --realm-ink-muted: #6f685c;
 
-  --text-primary: #eae5dc;
-  --text-secondary: #9d9589;
-  --text-tertiary: #6f685c;
+  --realm-accent-cinnabar: #eae5dc;
+  --realm-accent-indigo: #d6d3d1;
+  --realm-accent-gold: #ffffff;
+
+  /* 夜行动效节拍（沉静、舒缓、如呼吸般缓慢柔和） */
+  --realm-motion-duration: 0.32s;
+  --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
+
+  /* 现有设计变量 100% 映射与兼容 */
+  --background: var(--realm-bg);
+  --foreground: var(--realm-ink-primary);
+
+  --surface: var(--realm-surface);
+  --surface-secondary: var(--realm-surface-secondary);
+  --surface-tertiary: var(--realm-surface-tertiary);
+
+  --border: var(--realm-border);
+  --border-strong: var(--realm-border-strong);
+
+  --text-primary: var(--realm-ink-primary);
+  --text-secondary: var(--realm-ink-secondary);
+  --text-tertiary: var(--realm-ink-muted);
 }
 
 /*
@@ -294,22 +339,6 @@ body {
   height: 1.5px !important;
   line-height: 0 !important;
   font-size: 0 !important;
-}
-
-/*
- * ============================================================
- * Selection (选中文本高亮)
- * ============================================================
- */
-
-::selection {
-  background: rgba(0, 0, 0, 0.1);
-  color: #111111;
-}
-
-html.dark ::selection {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
 }
 
 /*
@@ -561,17 +590,17 @@ html.dark :focus-visible {
 }
 
 .dark .torn-paper {
-  /* 夜间模式：冷峻深岩羊皮纸质感，在 #1c1c1e 底色上呈现沉静微悬浮 */
-  background-color: #262629 !important;
+  /* 夜行：玄武案台与松烟墨岩质感，与 #181614 暖黑底色浑然一体 */
+  background-color: #201e1b !important;
   background-image: 
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.035) 0%, rgba(0, 0, 0, 0.28) 100%),
+    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.035) 0%, rgba(0, 0, 0, 0.35) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E") !important;
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.35) !important;
-  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.45) !important;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
 .dark .torn-paper:hover {
-  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.6)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
 }
 
 /*

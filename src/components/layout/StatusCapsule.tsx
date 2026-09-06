@@ -24,6 +24,7 @@ function getAppIconFallback(appName: string): string | null {
   if (name.includes("telegram")) return "https://api.iconify.design/logos:telegram.svg";
   if (name.includes("cursor")) return "https://cdn.simpleicons.org/cursor/000000";
   if (name.includes("qq")) return "https://cdn.simpleicons.org/tencentqq/12B7F5";
+  if (name.includes("moekoe")) return "https://music.moekoe.cn/logo.png";
   
   return null;
 }
@@ -84,6 +85,11 @@ export function StatusCapsule({
   const musicDuration = liveStatus.music?.duration || 0;
 
   const [localProgress, setLocalProgress] = useState(0);
+  const [coverError, setCoverError] = useState(false);
+
+  React.useEffect(() => {
+    setCoverError(false);
+  }, [musicCover]);
 
   // 实时跳动进度条逻辑
   React.useEffect(() => {
@@ -162,10 +168,12 @@ export function StatusCapsule({
         <div className="mt-3 flex flex-col rounded-xl border border-neutral-200/50 bg-neutral-100/50 p-3 dark:border-neutral-700/50 dark:bg-neutral-800/40">
           <div className="flex gap-3">
             <div className="h-[52px] w-[52px] shrink-0 overflow-hidden rounded-md bg-neutral-200 shadow-sm dark:bg-neutral-800">
-              {musicCover ? (
+              {musicCover && !coverError ? (
                 <img
                   src={musicCover}
                   alt={`${musicTitle} cover`}
+                  referrerPolicy="no-referrer"
+                  onError={() => setCoverError(true)}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -261,10 +269,12 @@ export function StatusCapsule({
         className="flex cursor-pointer items-center gap-2 rounded-xl border border-black/[0.08] dark:border-white/15 bg-black/[0.02] dark:bg-neutral-900/80 px-2.5 py-1.5 backdrop-blur-md transition-all duration-200 hover:bg-black/[0.05] dark:hover:bg-neutral-800/90 shadow-xs"
       >
         <div className="flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-xs dark:border-white/10 dark:bg-neutral-800">
-          {isMusic && musicCover ? (
+          {isMusic && musicCover && !coverError ? (
             <img
               src={musicCover}
               alt="music cover"
+              referrerPolicy="no-referrer"
+              onError={() => setCoverError(true)}
               className="h-full w-full object-cover"
             />
           ) : isMusic ? (
