@@ -185,8 +185,8 @@ export function PostsListClient({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 w-full">
-      {/* 1. 左侧边栏 (Categories & Tags 侧栏，含纵向分割线) */}
-      <aside className="md:col-span-3 pt-6 pb-8 md:pr-8 md:border-r border-black/[0.08] dark:border-white/[0.08] flex flex-col gap-8">
+      {/* 1. 左侧边栏：Sticky 固定吸顶，滚动不消失 */}
+      <aside className="md:col-span-3 pt-6 pb-8 md:pr-8 md:border-r border-black/[0.08] dark:border-white/[0.08] flex flex-col gap-8 md:sticky md:top-24 md:self-start md:max-h-[calc(100vh-7rem)] md:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* Categories 分类 */}
         <SlideEnter stage={2}>
           <div>
@@ -278,7 +278,7 @@ export function PostsListClient({
         )}
       </aside>
 
-      {/* 2. 右侧主归档目录 (Main Ledger Archive，紧凑排布与全贯穿横线) */}
+      {/* 2. 右侧主归档目录 (Main Ledger Archive)：严格单行对齐，等高平整 */}
       <main className="md:col-span-9 md:pl-10 pt-6 pb-16 min-w-0">
         <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content w-full">
           {/* 置顶文章 (Pinned) */}
@@ -304,12 +304,13 @@ export function PostsListClient({
                       key={post.id}
                       stage={3 + index}
                       stagger={25}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 52px" }}
+                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 48px" }}
                     >
                       <Link
                         href={targetLink}
+                        title={post.title}
                         className="
-                          group flex items-baseline py-3.5
+                          group flex items-center py-3.5
                           border-b border-black/[0.06] dark:border-white/[0.06]
                           cursor-pointer transition-colors
                           hover:text-neutral-950 dark:hover:text-white
@@ -318,10 +319,10 @@ export function PostsListClient({
                         <div className="w-20 sm:w-24 shrink-0 font-mono text-[12px] text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">
                           {editorialDate}
                         </div>
-                        <div className="flex-1 min-w-0 flex items-baseline justify-between gap-4">
-                          <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
                             <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-60" />
-                            <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-snug font-normal">
+                            <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-normal font-normal truncate">
                               {post.title}
                             </h3>
                           </div>
@@ -365,8 +366,9 @@ export function PostsListClient({
                     const postItem = (
                       <Link
                         href={targetLink}
+                        title={post.title}
                         className="
-                          group flex items-baseline py-3.5
+                          group flex items-center py-3.5
                           border-b border-black/[0.06] dark:border-white/[0.06]
                           cursor-pointer transition-colors
                           hover:text-neutral-950 dark:hover:text-white
@@ -375,8 +377,8 @@ export function PostsListClient({
                         <div className="w-20 sm:w-24 shrink-0 font-mono text-[12px] text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">
                           {editorialDate}
                         </div>
-                        <div className="flex-1 min-w-0 flex items-baseline justify-between gap-4">
-                          <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-snug font-normal">
+                        <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
+                          <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-normal font-normal truncate flex-1 min-w-0">
                             {post.title}
                           </h3>
                           {(post.category || readTime) && (
@@ -394,14 +396,14 @@ export function PostsListClient({
                         key={post.id}
                         stage={postStage}
                         stagger={35}
-                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 52px" }}
+                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 48px" }}
                       >
                         {postItem}
                       </SlideEnter>
                     ) : (
                       <div
                         key={post.id}
-                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 52px" }}
+                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 48px" }}
                       >
                         {postItem}
                       </div>
