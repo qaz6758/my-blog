@@ -212,25 +212,22 @@ export function PostsListClient({
 
       {/* 年份文章列表 */}
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-4xl mx-auto w-full">
-        {/* 置顶精选专栏 (Pinned) */}
+        {/* Pinned */}
         {pinnedPosts.length > 0 && (
-          <section className="mb-16 sm:mb-24">
+          <section className="mb-16 sm:mb-20">
             <SlideEnter stage={3}>
-              <h2 className="font-serif text-2xl sm:text-3xl text-neutral-300 dark:text-[#c4c4c4] mb-6 sm:mb-8 tracking-wide">
+              <h2 className="font-serif text-[18px] sm:text-[22px] text-neutral-500 mb-6 tracking-wide">
                 Pinned
               </h2>
             </SlideEnter>
 
-            <div className="flex-col border-t border-black/[0.06] dark:border-white/[0.06]">
+            <div className="flex-col border-t border-black/[0.04] dark:border-white/[0.04]">
               {pinnedPosts.map((post, index) => {
                 const date = post.published_at || post.created_at;
-                
-                // Format to AUG 15 style
                 const d = new Date(date);
                 const isDateValid = !isNaN(d.getTime());
                 const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
                 const editorialDate = isDateValid ? `${months[d.getMonth()]} ${d.getDate().toString().padStart(2, '0')}` : "";
-
                 const readTime = getReadTime(post);
                 const targetLink = `/posts/${post.slug || post.id}`;
 
@@ -244,37 +241,31 @@ export function PostsListClient({
                     <Link
                       href={targetLink}
                       className="
-                        group
-                        flex
-                        items-baseline
-                        py-5 sm:py-6
-                        cursor-pointer
-                        border-b border-black/[0.06] dark:border-white/[0.06]
-                        
+                        group flex items-baseline py-6 sm:py-8
+                        border-b border-black/[0.04] dark:border-white/[0.04]
+                        cursor-pointer transition-colors
                       "
                     >
-                      <div className="w-20 sm:w-28 shrink-0 font-mono text-[12px] sm:text-[13px] tracking-widest text-neutral-400 dark:text-[#8a8a8a] uppercase">
+                      <div className="w-20 sm:w-28 shrink-0 font-mono text-[12px] sm:text-[13px] tracking-widest text-neutral-500 uppercase">
                         {editorialDate}
                       </div>
                       
-                      <div className="flex-1 min-w-0 pr-4">
-                        <div className="flex items-start gap-3">
-                          <Pin className="h-4 w-4 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 mt-1.5 opacity-60" />
-                          <h3 className="font-serif text-[19px] sm:text-[24px] leading-snug text-neutral-900 dark:text-[#e5e5e5] group-hover:text-black dark:group-hover:text-white transition-colors">
-                            {post.title}
-                          </h3>
-                        </div>
+                      <div className="flex-1 min-w-0 relative">
+                        <Pin className="absolute -left-6 top-1.5 h-3.5 w-3.5 -rotate-45 text-neutral-600 opacity-50" />
+                        <h3 className="font-serif text-[24px] sm:text-[34px] leading-[1.2] text-neutral-900 dark:text-[#e8e8e8] transition-colors">
+                          {post.title}
+                        </h3>
                         
                         {(post.category || readTime) && (
-                          <div className="mt-3 font-mono text-[10px] sm:text-[11px] tracking-widest text-neutral-400 dark:text-[#737373] uppercase pl-7">
+                          <div className="mt-3 font-serif italic text-[14px] text-neutral-500 tracking-wide">
                             {post.category && !activeCategory && (
                               <span>{post.category}</span>
                             )}
                             {post.category && !activeCategory && readTime && (
-                              <span className="mx-2">/</span>
+                              <span className="mx-2 not-italic opacity-50">/</span>
                             )}
                             {readTime && (
-                              <span>{readTime} MIN</span>
+                              <span>{readTime} min read</span>
                             )}
                           </div>
                         )}
@@ -291,23 +282,20 @@ export function PostsListClient({
           const yearPosts = postsByYear[year];
 
           return (
-            <section key={year} className="mb-16 sm:mb-24">
+            <section key={year} className="mb-16 sm:mb-20">
               <SlideEnter stage={3}>
-                <h2 className="font-serif text-2xl sm:text-3xl text-neutral-300 dark:text-[#c4c4c4] mb-6 sm:mb-8 tracking-wide">
+                <h2 className="font-serif text-[18px] sm:text-[22px] text-neutral-500 mb-6 tracking-wide">
                   {year}
                 </h2>
               </SlideEnter>
 
-              <div className="flex-col border-t border-black/[0.06] dark:border-white/[0.06]">
+              <div className="flex-col border-t border-black/[0.04] dark:border-white/[0.04]">
                 {yearPosts.map((post, index) => {
                   const date = post.published_at || post.created_at;
-                  
-                  // Format to AUG 15 style
                   const d = new Date(date);
                   const isDateValid = !isNaN(d.getTime());
                   const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
                   const editorialDate = isDateValid ? `${months[d.getMonth()]} ${d.getDate().toString().padStart(2, '0')}` : "";
-
                   const readTime = getReadTime(post);
                   const postStage = Math.min(4 + index, 14);
                   const targetLink = `/posts/${post.slug || post.id}`;
@@ -316,34 +304,30 @@ export function PostsListClient({
                     <Link
                       href={targetLink}
                       className="
-                        group
-                        flex
-                        items-baseline
-                        py-5 sm:py-6
-                        cursor-pointer
-                        border-b border-black/[0.06] dark:border-white/[0.06]
-                        
+                        group flex items-baseline py-6 sm:py-8
+                        border-b border-black/[0.04] dark:border-white/[0.04]
+                        cursor-pointer transition-colors
                       "
                     >
-                      <div className="w-20 sm:w-28 shrink-0 font-mono text-[12px] sm:text-[13px] tracking-widest text-neutral-400 dark:text-[#8a8a8a] uppercase">
+                      <div className="w-20 sm:w-28 shrink-0 font-mono text-[12px] sm:text-[13px] tracking-widest text-neutral-500 uppercase">
                         {editorialDate}
                       </div>
                       
-                      <div className="flex-1 min-w-0 pr-4">
-                        <h3 className="font-serif text-[19px] sm:text-[24px] leading-snug text-neutral-900 dark:text-[#e5e5e5] group-hover:text-black dark:group-hover:text-white transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-serif text-[24px] sm:text-[34px] leading-[1.2] text-neutral-900 dark:text-[#e8e8e8] transition-colors">
                           {post.title}
                         </h3>
                         
                         {(post.category || readTime) && (
-                          <div className="mt-3 font-mono text-[10px] sm:text-[11px] tracking-widest text-neutral-400 dark:text-[#737373] uppercase">
+                          <div className="mt-3 font-serif italic text-[14px] text-neutral-500 tracking-wide">
                             {post.category && !activeCategory && (
                               <span>{post.category}</span>
                             )}
                             {post.category && !activeCategory && readTime && (
-                              <span className="mx-2">/</span>
+                              <span className="mx-2 not-italic opacity-50">/</span>
                             )}
                             {readTime && (
-                              <span>{readTime} MIN</span>
+                              <span>{readTime} min read</span>
                             )}
                           </div>
                         )}
