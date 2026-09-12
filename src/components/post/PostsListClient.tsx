@@ -47,7 +47,7 @@ export function PostsListClient({
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeTag, setActiveTag] = useState<string>(initialTag);
 
-  // 分批流式展示状态：初始 35 篇，滚动到底部自动平滑追加，彻底控制 DOM 节点数
+  // 分批流式展示状态：初始 35 篇，滚动到底部自动平滑追加，彻底控制 DOM 节点�?
   const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -55,12 +55,12 @@ export function PostsListClient({
     if (initialPosts) setPosts(initialPosts);
   }, [initialPosts]);
 
-  // 分类或标签切换时，重置回到首批 35 篇
+  // 分类或标签切换时，重置回到首�?35 �?
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
   }, [activeCategory, activeTag]);
 
-  // 1. 统计分类与数量
+  // 1. 统计分类与数�?
   const { categoryCounts, categories } = useMemo(() => {
     const counts: Record<string, number> = {};
     posts.forEach((post) => {
@@ -103,7 +103,7 @@ export function PostsListClient({
     return regularPosts.slice(0, visibleCount);
   }, [regularPosts, visibleCount]);
 
-  // 5. 按年份归并常规文章（彻底控制 DOM 节点数与主题切换重绘负载）
+  // 5. 按年份归并常规文章（彻底控制 DOM 节点数与主题切换重绘负载�?
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
     displayedRegularPosts.forEach((post) => {
@@ -117,7 +117,7 @@ export function PostsListClient({
     return { years: sortedYears, postsByYear: groups };
   }, [displayedRegularPosts]);
 
-  // 6. 触底自动追加监听（提前 350px 预加载，无感平滑滚动）
+  // 6. 触底自动追加监听（提�?350px 预加载，无感平滑滚动�?
   const hasMore = visibleCount < regularPosts.length;
   useEffect(() => {
     if (!hasMore || !loadMoreRef.current) return;
@@ -135,7 +135,7 @@ export function PostsListClient({
     return () => observer.disconnect();
   }, [hasMore, regularPosts.length]);
 
-  // 6. 切换分类与标签
+  // 6. 切换分类与标�?
   const handleCategoryChange = (cat: string) => {
     const nextCategory = activeCategory === cat ? "" : cat;
     setActiveCategory(nextCategory);
@@ -156,7 +156,7 @@ export function PostsListClient({
 
   return (
     <>
-      {/* 分类 Tab 栏 (Stage 2) */}
+      {/* 分类 Tab �?(Stage 2) */}
       <SlideEnter stage={2} className="mb-10">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-b border-black/[0.06] pb-3.5 dark:border-white/[0.08]">
           <button
@@ -211,17 +211,22 @@ export function PostsListClient({
       </SlideEnter>
 
       {/* 年份文章列表 */}
-      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content space-y-14">
-        {/* 置顶精选专栏 (Pinned & Featured) */}
+      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content">
+        {/* 置顶精选专�?(Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
-          <section className="relative mb-10">
-            <SlideEnter stage={3} className="relative mb-4 flex items-center select-none">
-              <h2 className="relative text-lg font-medium tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-xl">
-                置顶
+          <section className="relative mb-12 sm:mb-20 flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
+            <SlideEnter stage={3} className="md:w-32 shrink-0 pt-3 md:sticky md:top-32 h-fit z-10 hidden md:block">
+              <h2 className="text-[11px] font-semibold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase">
+                Pinned
               </h2>
             </SlideEnter>
+            <div className="md:hidden pt-4 pb-2 border-b border-black/[0.06] dark:border-white/[0.06] mb-2">
+              <h2 className="text-[11px] font-semibold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase">
+                Pinned
+              </h2>
+            </div>
 
-            <div className="space-y-1">
+            <div className="flex-1 space-y-0.5">
               {pinnedPosts.map((post, index) => {
                 const date = post.published_at || post.created_at;
                 const readTime = getReadTime(post);
@@ -232,64 +237,48 @@ export function PostsListClient({
                     key={post.id}
                     stage={3 + index}
                     stagger={25}
-                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 45px" }}
+                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
                   >
                     <Link
                       href={targetLink}
                       className="
                         group
                         flex
-                        items-baseline
+                        flex-col sm:flex-row
+                        sm:items-center
                         justify-between
-                        gap-4
-                        py-2.5
+                        gap-2 sm:gap-6
+                        py-3 sm:py-4
                         cursor-pointer
+                        border-b border-black/[0.03] dark:border-white/[0.03]
+                        hover:bg-neutral-50 dark:hover:bg-white/[0.02]
+                        px-3 sm:px-4 -mx-3 sm:-mx-4 rounded-xl transition-all
                       "
                     >
-                      <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
-                        <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-900 dark:text-[#eae5dc] opacity-30 group-hover:opacity-100 transition-opacity" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
-                        <span
-                          className="
-                            text-[15px]
-                            font-semibold
-                            leading-snug
-                            text-neutral-900
-                            dark:text-[#eae5dc]
-                            group-hover:text-[#b91c1c]
-                            dark:group-hover:text-white
-                            transition-colors
-                            ease-out
-                            antialiased
-                            sm:text-[16px]
-                            sm:leading-relaxed
-                          "
-                          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                        >
-                          {post.title}
+                      <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                          {formatDate(date, false)}
                         </span>
+                        
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+                          <span className="text-[15px] font-medium leading-snug text-neutral-900 dark:text-[#eae5dc] group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors truncate sm:text-[16px]">
+                            {post.title}
+                          </span>
+                        </div>
+                      </div>
 
+                      <div className="flex shrink-0 items-center gap-4 sm:gap-6 pl-16 sm:pl-0 font-mono text-[10px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
                         {post.category && !activeCategory && (
-                          <span 
-                            className="hidden shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-900 dark:text-[#eae5dc] opacity-45 group-hover:opacity-80 transition-opacity sm:inline"
-                            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                          >
+                          <span className="shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-2 py-0.5 font-normal text-neutral-500 dark:text-neutral-400">
                             {post.category}
                           </span>
                         )}
-                      </div>
-
-                      <div 
-                        className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-900 dark:text-[#eae5dc] opacity-40 group-hover:opacity-75 transition-opacity tabular-nums"
-                        style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                      >
                         {readTime && (
-                          <span className="hidden sm:inline">
+                          <span className="w-12 text-right hidden sm:inline-block">
                             {readTime}m
                           </span>
                         )}
-                        <span>
-                          {formatDate(date, false)}
-                        </span>
                       </div>
                     </Link>
                   </SlideEnter>
@@ -299,45 +288,27 @@ export function PostsListClient({
           </section>
         )}
 
-        {years.map((year) => {
+        {years.map((year, yearIndex) => {
           const yearPosts = postsByYear[year];
 
           return (
-            <section key={year} className="relative">
-              {/* 年份背景水印与标题 (Stage 3) - 日间模式彻底隐藏大日期水印 */}
-              <SlideEnter stage={3} className="relative mb-6 flex items-center select-none">
-                <span
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-                    absolute
-                    -left-2
-                    -top-6
-                    -z-10
-                    select-none
-                    font-mono
-                    text-7xl
-                    font-bold
-                    tracking-tighter
-                    hidden
-                    dark:block
-                    dark:text-neutral-800/40
-                    dark:opacity-80
-                    sm:-left-4
-                    sm:-top-8
-                    sm:text-8xl
-                  "
-                >
-                  {year}
-                </span>
-
-                <h2 className="relative text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-2xl">
+            <section key={year} className="relative mb-12 sm:mb-20 flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
+              {/* 年份侧边�?(宽屏吸顶) */}
+              <SlideEnter stage={3} className="md:w-32 shrink-0 pt-3 md:sticky md:top-32 h-fit z-10 hidden md:block">
+                <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono">
                   {year}
                 </h2>
               </SlideEnter>
+              {/* 年份小标�?(移动�? */}
+              <div className="md:hidden pt-4 pb-2 border-b border-black/[0.06] dark:border-white/[0.06] mb-2 flex items-center justify-between">
+                <h2 className="text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono">
+                  {year}
+                </h2>
+                <span className="text-xs text-neutral-400 font-mono">{yearPosts.length} posts</span>
+              </div>
 
-              {/* 文章条目 */}
-              <div className="space-y-1">
+              {/* 文章列表 */}
+              <div className="flex-1 space-y-0.5">
                 {yearPosts.map((post, index) => {
                   const date = post.published_at || post.created_at;
                   const readTime = getReadTime(post);
@@ -350,56 +321,38 @@ export function PostsListClient({
                       className="
                         group
                         flex
-                        items-baseline
+                        flex-col sm:flex-row
+                        sm:items-center
                         justify-between
-                        gap-4
-                        py-2.5
+                        gap-2 sm:gap-6
+                        py-3 sm:py-4
                         cursor-pointer
+                        border-b border-black/[0.03] dark:border-white/[0.03]
+                        hover:bg-neutral-50 dark:hover:bg-white/[0.02]
+                        px-3 sm:px-4 -mx-3 sm:-mx-4 rounded-xl transition-all
                       "
                     >
-                      <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
-                        <span
-                          className="
-                            text-[15px]
-                            font-semibold
-                            leading-snug
-                            text-neutral-900
-                            dark:text-[#eae5dc]
-                            group-hover:text-[#b91c1c]
-                            dark:group-hover:text-white
-                            transition-colors
-                            ease-out
-                            antialiased
-                            sm:text-[16px]
-                            sm:leading-relaxed
-                          "
-                          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                        >
+                      <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                          {formatDate(date, false)}
+                        </span>
+                        
+                        <span className="text-[15px] font-medium leading-snug text-neutral-900 dark:text-[#eae5dc] group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors truncate sm:text-[16px]">
                           {post.title}
                         </span>
+                      </div>
 
+                      <div className="flex shrink-0 items-center gap-4 sm:gap-6 pl-16 sm:pl-0 font-mono text-[10px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
                         {post.category && !activeCategory && (
-                          <span 
-                            className="hidden shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-900 dark:text-[#eae5dc] opacity-45 group-hover:opacity-80 transition-opacity sm:inline"
-                            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                          >
+                          <span className="shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-2 py-0.5 font-normal text-neutral-500 dark:text-neutral-400">
                             {post.category}
                           </span>
                         )}
-                      </div>
-
-                      <div 
-                        className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-900 dark:text-[#eae5dc] opacity-40 group-hover:opacity-75 transition-opacity tabular-nums"
-                        style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                      >
                         {readTime && (
-                          <span className="hidden sm:inline">
+                          <span className="w-12 text-right hidden sm:inline-block">
                             {readTime}m
                           </span>
                         )}
-                        <span>
-                          {formatDate(date, false)}
-                        </span>
                       </div>
                     </Link>
                   );
@@ -409,14 +362,14 @@ export function PostsListClient({
                       key={post.id}
                       stage={postStage}
                       stagger={35}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 45px" }}
+                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
                     >
                       {postItem}
                     </SlideEnter>
                   ) : (
                     <div
                       key={post.id}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 45px" }}
+                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
                     >
                       {postItem}
                     </div>
@@ -437,17 +390,17 @@ export function PostsListClient({
           {hasMore ? (
             <div className="inline-flex items-center gap-2 opacity-60">
               <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500 animate-pulse" />
-              <span>翻展余卷中…</span>
+              <span>翻展余卷中�?/span>
             </div>
           ) : filteredPosts.length > BATCH_SIZE ? (
             <span className="opacity-40 tracking-wider">
-              — 已展全卷（共 {filteredPosts.length} 篇）—
+              �?已展全卷（共 {filteredPosts.length} 篇）�?
             </span>
           ) : null}
         </div>
       )}
 
-      {/* 空状态 (Stage 4) */}
+      {/* 空状�?(Stage 4) */}
       {filteredPosts.length === 0 && (
         <div key={`empty-${activeCategory}-${activeTag}`} className="slide-enter-content">
           <SlideEnter

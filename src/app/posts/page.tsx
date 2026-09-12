@@ -9,8 +9,8 @@ export default async function PostsPage() {
   const posts = await fetchPosts();
 
   return (
-    <div className="relative min-h-screen w-full px-6 pt-24 pb-20 sm:px-8 sm:pt-28">
-      <main className="mx-auto w-full max-w-[65ch]">
+    <div className="relative min-h-screen w-full px-6 pt-24 pb-20 sm:px-8 sm:pt-28 lg:px-12">
+      <main className="mx-auto w-full max-w-5xl">
         {/* 1. 大标题与简介文案 */}
         <SlideEnter stage={1} className="mb-10">
           <header>
