@@ -211,16 +211,14 @@ export function PostsListClient({
       </SlideEnter>
 
       {/* 年份文章列表 */}
-      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-2xl mx-auto w-full">
+      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-4xl mx-auto w-full">
         {/* 置顶精选专栏 (Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
-          <section className="relative mb-16 sm:mb-24">
-            <SlideEnter stage={3} className="flex items-center justify-center py-8 mb-6">
-              <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
-              <h2 className="mx-6 font-mono text-xs font-semibold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase">
-                Featured
+          <section className="relative mb-8 sm:mb-12">
+            <SlideEnter stage={3} className="py-4 mb-2">
+              <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
+                精选
               </h2>
-              <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
             </SlideEnter>
 
             <div className="flex-col space-y-0">
@@ -242,36 +240,35 @@ export function PostsListClient({
                         group
                         flex
                         flex-col
-                        py-5 sm:py-6
+                        py-4 sm:py-5
                         cursor-pointer
-                        border-b border-black/[0.03] dark:border-white/[0.03]
+                        border-b border-black/[0.04] dark:border-white/[0.04]
                         transition-transform
-                        hover:translate-x-1
+                        hover:translate-x-[2px]
                       "
                     >
                       <div className="flex items-baseline gap-4 sm:gap-6 min-w-0">
-                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums pt-0.5">
+                        <span className="w-[4.5rem] shrink-0 font-mono text-[13px] text-neutral-400/80 dark:text-neutral-500/80 tabular-nums">
                           {formatDate(date, false)}
                         </span>
                         
-                        <div className="flex min-w-0 items-start gap-2.5">
-                          <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-300 dark:text-neutral-600 opacity-60 group-hover:opacity-100 transition-opacity mt-1" />
-                          <h3 className="text-[16px] sm:text-[17px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
+                        <div className="flex min-w-0 items-start gap-2">
+                          <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-50 mt-1" />
+                          <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
                             {post.title}
                           </h3>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 sm:gap-6 pl-[4rem] sm:pl-[4.5rem] mt-2 font-mono text-[10px] sm:text-[11px] text-neutral-400 dark:text-neutral-500 opacity-70">
+                      <div className="flex items-center gap-2 pl-[5.5rem] sm:pl-[6rem] mt-1.5 font-mono text-[11px] sm:text-[12px] text-neutral-400/70 dark:text-neutral-500/70 tracking-wide">
                         {post.category && !activeCategory && (
-                          <span className="tracking-wide">
-                            {post.category}
-                          </span>
+                          <span>{post.category}</span>
+                        )}
+                        {post.category && !activeCategory && readTime && (
+                          <span>·</span>
                         )}
                         {readTime && (
-                          <span className="tracking-wide">
-                            {readTime}m read
-                          </span>
+                          <span>{readTime} min</span>
                         )}
                       </div>
                     </Link>
@@ -286,13 +283,11 @@ export function PostsListClient({
           const yearPosts = postsByYear[year];
 
           return (
-            <section key={year} className="relative mb-16 sm:mb-24">
-              <SlideEnter stage={3} className="flex items-center justify-center py-8 mb-6">
-                <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
-                <h2 className="mx-6 font-mono text-lg font-medium tracking-widest text-neutral-800 dark:text-neutral-200">
+            <section key={year} className="relative mb-10 sm:mb-16">
+              <SlideEnter stage={3} className="py-4 mb-2">
+                <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
                   {year}
                 </h2>
-                <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
               </SlideEnter>
 
               <div className="flex-col space-y-0">
@@ -309,33 +304,32 @@ export function PostsListClient({
                         group
                         flex
                         flex-col
-                        py-5 sm:py-6
+                        py-4 sm:py-5
                         cursor-pointer
-                        border-b border-black/[0.03] dark:border-white/[0.03]
+                        border-b border-black/[0.04] dark:border-white/[0.04]
                         transition-transform
-                        hover:translate-x-1
+                        hover:translate-x-[2px]
                       "
                     >
                       <div className="flex items-baseline gap-4 sm:gap-6 min-w-0">
-                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums pt-0.5">
+                        <span className="w-[4.5rem] shrink-0 font-mono text-[13px] text-neutral-400/80 dark:text-neutral-500/80 tabular-nums">
                           {formatDate(date, false)}
                         </span>
                         
-                        <h3 className="text-[16px] sm:text-[17px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
+                        <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
                           {post.title}
                         </h3>
                       </div>
 
-                      <div className="flex items-center gap-4 sm:gap-6 pl-[4rem] sm:pl-[4.5rem] mt-2 font-mono text-[10px] sm:text-[11px] text-neutral-400 dark:text-neutral-500 opacity-70">
+                      <div className="flex items-center gap-2 pl-[5.5rem] sm:pl-[6rem] mt-1.5 font-mono text-[11px] sm:text-[12px] text-neutral-400/70 dark:text-neutral-500/70 tracking-wide">
                         {post.category && !activeCategory && (
-                          <span className="tracking-wide">
-                            {post.category}
-                          </span>
+                          <span>{post.category}</span>
+                        )}
+                        {post.category && !activeCategory && readTime && (
+                          <span>·</span>
                         )}
                         {readTime && (
-                          <span className="tracking-wide">
-                            {readTime}m read
-                          </span>
+                          <span>{readTime} min</span>
                         )}
                       </div>
                     </Link>
