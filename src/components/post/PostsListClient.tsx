@@ -212,10 +212,10 @@ export function PostsListClient({
 
       {/* 年份文章列表 */}
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-4xl mx-auto w-full">
-        {/* 置顶精选专栏 (Pinned & Featured) */}
+        {/* 置顶Pinned专栏 (Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
-          <section className="relative mb-8 sm:mb-12">
-            <SlideEnter stage={3} className="py-4 mb-2">
+          <section className="relative mb-8">
+            <SlideEnter stage={3} className="py-2 mb-1">
               <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
                 精选
               </h2>
@@ -240,7 +240,7 @@ export function PostsListClient({
                         group
                         flex
                         flex-col
-                        py-4 sm:py-5
+                        py-3
                         cursor-pointer
                         border-b border-black/[0.04] dark:border-white/[0.04]
                         transition-transform
@@ -254,7 +254,7 @@ export function PostsListClient({
                         
                         <div className="flex min-w-0 items-start gap-2">
                           <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-50 mt-1" />
-                          <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
+                          <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] ">
                             {post.title}
                           </h3>
                         </div>
@@ -283,8 +283,8 @@ export function PostsListClient({
           const yearPosts = postsByYear[year];
 
           return (
-            <section key={year} className="relative mb-10 sm:mb-16">
-              <SlideEnter stage={3} className="py-4 mb-2">
+            <section key={year} className="relative mb-8">
+              <SlideEnter stage={3} className="py-2 mb-1">
                 <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
                   {year}
                 </h2>
@@ -304,7 +304,7 @@ export function PostsListClient({
                         group
                         flex
                         flex-col
-                        py-4 sm:py-5
+                        py-3
                         cursor-pointer
                         border-b border-black/[0.04] dark:border-white/[0.04]
                         transition-transform
@@ -316,7 +316,7 @@ export function PostsListClient({
                           {formatDate(date, false)}
                         </span>
                         
-                        <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
+                        <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] ">
                           {post.title}
                         </h3>
                       </div>
