@@ -95,7 +95,7 @@ export function Playlist({
                   className="group flex cursor-pointer flex-col w-full max-w-[240px]"
                 >
                   {/* 歌单封面卡片 (纸墨世界风格：无圆角，无阴影，静谧刻痕) */}
-                  <div className="relative aspect-square w-full max-w-[240px] overflow-hidden rounded-none bg-[#1a1816] ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                  <div className="relative aspect-square w-full max-w-[240px] overflow-hidden rounded-none bg-[#ded5c4]/60 dark:bg-[#1a1816] ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                     {(() => {
                       const rawCover =
                         playlist.cover ||
@@ -182,7 +182,7 @@ export function Playlist({
                 {/* Hero 头部排版 (纸墨留白风格) */}
                 <div className="mb-5 sm:mb-7 flex flex-col md:flex-row items-stretch gap-8 sm:gap-10 pt-1 pb-2">
                   {/* 左侧封面 */}
-                  <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-none bg-[#1a1816] shadow-none ring-1 ring-black/5 dark:ring-white/5 grayscale-[10%]">
+                  <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-none bg-[#ded5c4]/60 dark:bg-[#1a1816] shadow-none ring-1 ring-black/5 dark:ring-white/5 grayscale-[10%]">
                     {(() => {
                       const rawHeroCover =
                         activePlaylist.cover ||

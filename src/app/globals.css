@@ -227,7 +227,7 @@ html.dark ::selection {
 }
 
 html.light {
-  color-scheme: only light !important;
+  color-scheme: light !important;
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
   --background: #ede7dc !important;
@@ -244,6 +244,10 @@ html.light {
 
 html.dark {
   color-scheme: dark !important;
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
+  background-color: #111213 !important;
+  color: #eae5dc !important;
 
   /*
    * 夜行（Vagabond 精神内核）：
@@ -317,8 +321,8 @@ html {
 }
 
 html.dark {
-  background-color: #111213;
-  color-scheme: dark;
+  background-color: #111213 !important;
+  color-scheme: dark !important;
 }
 
 /*
@@ -552,8 +556,7 @@ html.dark :focus-visible {
   }
 }
 
-/* 仅在根节点与主要容器上做平滑渐变，避免使用通用选择器 (*) 导致手机端掉帧 */
-.theme-smooth-transition,
+/* 仅在主要容器背景上做平滑渐变，坚决不给根节点挂载全局 color 继承过渡（杜绝移动端数千文本节点样式重算掉帧卡顿） */
 .theme-smooth-transition body,
 .theme-smooth-transition header,
 .theme-smooth-transition footer,
@@ -562,9 +565,8 @@ html.dark :focus-visible {
 .theme-smooth-transition .bg-page {
   transition:
     background-color 0.2s ease-out,
-    border-color 0.2s ease-out,
-    color 0.2s ease-out !important;
-  transition-delay: 0s !important;
+    border-color 0.2s ease-out;
+  transition-delay: 0s;
 }
 
 /*
@@ -701,17 +703,13 @@ html.dark :focus-visible {
  */
 
 ::view-transition {
-  background: transparent !important;
+  background: var(--background) !important;
 }
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none !important;
   mix-blend-mode: normal !important;
-  will-change: clip-path, transform, opacity;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  contain: paint;
 }
 
 ::view-transition-old(root) {

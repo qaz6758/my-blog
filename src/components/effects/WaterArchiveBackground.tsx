@@ -12,7 +12,7 @@ export function WaterArchiveBackground() {
       {/* 1. 中心柔和水晕漫射光 (Soft Caustic Water Diffusion) */}
       {/* 暗黑模式：矿物炭黑与柔和月光冷光斑 */}
       <div
-        className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-300 ease-out pointer-events-none"
+        className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-200 ease-out pointer-events-none"
         style={{
           background: `
             radial-gradient(ellipse 75% 55% at 50% 24%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.012) 50%, transparent 80%),
@@ -24,7 +24,7 @@ export function WaterArchiveBackground() {
       />
       {/* 浅色模式：暖调宣纸上的温润水晕反光 (含实色底色，彻底杜绝任何透明透黑) */}
       <div
-        className="absolute inset-0 opacity-100 dark:opacity-0 transition-opacity duration-300 ease-out pointer-events-none"
+        className="absolute inset-0 opacity-100 dark:opacity-0 transition-opacity duration-200 ease-out pointer-events-none"
         style={{
           background: `
             radial-gradient(ellipse 75% 55% at 50% 24%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 80%),

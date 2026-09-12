@@ -87,7 +87,7 @@ export default function RootLayout({
                   } else {
                     cl.remove('dark');
                     cl.add('light');
-                    docEl.style.colorScheme = 'only light';
+                    docEl.style.colorScheme = 'light';
                   }
                 } catch (e) {}
               })();

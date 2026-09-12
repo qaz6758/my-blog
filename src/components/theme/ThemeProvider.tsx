@@ -170,17 +170,18 @@ export function ThemeProvider({
     const root = document.documentElement;
 
     /*
-     * DOM class 优先更新。
-     *
-     * 依赖 CSS 原生 color-scheme 规则，绝不频繁改写 style.colorScheme，
-     * 消除移动端 Chromium/WebKit 内核因 Compositor Layer 重构导致的整屏白屏/黑屏闪烁。
+     * DOM class 与 root.style.colorScheme 严格同步原子更新。
+     * 确保移动端浏览器与操作系统级画布底层永远与当前日间/夜间模式保持 100% 一致，
+     * 彻底根治深色画布残留导致的“双重穿透”黑底闪屏漏洞。
      */
     if (newTheme === "dark") {
       root.classList.add("dark");
       root.classList.remove("light");
+      root.style.colorScheme = "dark";
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
+      root.style.colorScheme = "light";
     }
 
     setThemeState(newTheme);
@@ -337,12 +338,13 @@ export function ThemeProvider({
           ("ontouchstart" in window && window.innerWidth < 1024));
 
       /*
-       * 移动端（iOS/Android WebView）：直接使用超流畅的 CSS 平滑过渡。
-       * 彻底消除移动端 GPU 在 View Transition 执行动态圆 clip-path 时发生的瓦片合成丢失（黑块闪烁）。
-       * 用户主动要求关闭动画，或者浏览器不支持 View Transition，使用普通平滑渐变。
+       * 移动端（iOS/Android WebView）：直接使用极速原子切换 (applyThemeDirect)。
+       * 彻底消除移动端多 DOM 节点全局样式重算与 color transition（根除“异常卡顿”与掉帧），
+       * 并保证背景色与文本对比度同帧零毫秒翻转，绝无反色相撞的“整页闪屏”。
+       * 桌面端用户关闭动画或不支持 View Transition 时，亦采用极速原子切换。
        */
       if (options?.disableAnimation || !hasViewTransitions || isMobile) {
-        applyThemeWithSmoothTransition(nextTheme);
+        applyThemeDirect(nextTheme);
         return;
       }
 
@@ -490,17 +492,16 @@ export function ThemeProvider({
         });
       } catch {
         /*
-         * 某些 Android 浏览器虽然存在 startViewTransition，
+         * 某些浏览器虽然存在 startViewTransition，
          * 但实际执行可能失败。
          *
-         * 这种情况下直接降级到普通平滑主题切换。
+         * 这种情况下直接降级到极速原子切换。
          */
-        applyThemeWithSmoothTransition(nextTheme);
+        applyThemeDirect(nextTheme);
       }
     },
     [
       applyThemeDirect,
-      applyThemeWithSmoothTransition,
     ]
   );
 
