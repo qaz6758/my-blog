@@ -297,7 +297,7 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
         }
       }
       const summary =
-        getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要')) || '';
+        getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要', '文本')) || '';
       
       // 提取自定义网址 slug，若无则使用干净的 page id
       const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
@@ -387,7 +387,7 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
       }
     }
     const summary =
-      getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要')) || '';
+      getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要', '文本')) || '';
     const status = getStatus(findProp(p, '状态', 'Status', 'State'));
     const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
     const cleanSlug = customUrl
