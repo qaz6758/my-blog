@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * ============================================================
  * Tailwind v4 全局字体映射 (@theme)
@@ -714,10 +716,15 @@ html.dark::view-transition {
   background-color: #111213 !important;
 }
 
+::view-transition-group(root) {
+  animation-duration: 0.4s;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none !important;
   mix-blend-mode: normal !important;
+  contain: paint !important;
 }
 
 ::view-transition-old(root) {
@@ -729,16 +736,13 @@ html.dark::view-transition {
 }
 
 /*
- * 在 View Transition 圆形波纹扩散期间，临时切断骨干容器的 CSS transition，
- * 避免通用选择器 (*) 强制全 DOM 树样式重算（消除卡顿与闪屏），释放 GPU 算力。
+ * 在 View Transition 圆形波纹扩散期间，临时切断全 DOM 树的 CSS transition，
+ * 彻底消除移动端与 PC 端样式重算风暴（消除卡顿与闪屏），让 GPU 算力 100% 专供圆形波纹。
  */
-html.view-transition-active body,
-html.view-transition-active header,
-html.view-transition-active footer,
-html.view-transition-active nav,
-html.view-transition-active main,
-html.view-transition-active .surface,
-html.view-transition-active .bg-page {
+html.view-transition-active,
+html.view-transition-active *,
+html.view-transition-active *::before,
+html.view-transition-active *::after {
   transition: none !important;
 }
 

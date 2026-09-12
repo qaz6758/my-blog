@@ -228,10 +228,11 @@ export function ThemeProvider({
       const nextTheme: Theme = isCurrentlyDark ? "light" : "dark";
 
       if (isMobileDevice()) {
-        // [手机端通道]：调用专门定制的移动端水墨漫染引擎
+        // [手机端通道]：满血日光波纹（与 PC 端完全一致的以触控点为中心的扩散）
         runMobileThemeTransition({
           nextTheme,
           applyThemeDirect,
+          event,
           options,
           onComplete: handleComplete,
         });

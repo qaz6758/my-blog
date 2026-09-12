@@ -17,6 +17,7 @@ import { ThemeDriverParams } from "../types";
 export function runMobileThemeTransition({
   nextTheme,
   applyThemeDirect,
+  event,
   options,
   onComplete,
 }: ThemeDriverParams): void {
@@ -50,6 +51,31 @@ export function runMobileThemeTransition({
         };
       };
 
+      // 1. 计算动画圆心 (以触控按钮中心或点击坐标为准)
+      let x = window.innerWidth - 48;
+      let y = 32;
+
+      const target = event?.currentTarget;
+      if (target instanceof HTMLElement) {
+        const rect = target.getBoundingClientRect();
+        x = rect.left + rect.width / 2;
+        y = rect.top + rect.height / 2;
+      } else if (event && typeof (event as any).clientX === "number") {
+        x = (event as any).clientX;
+        y = (event as any).clientY;
+      }
+
+      x = Math.max(0, Math.min(window.innerWidth, x));
+      y = Math.max(0, Math.min(window.innerHeight, y));
+
+      // 2. 精准几何半径：刚好覆盖全屏四个顶点的最大距离
+      const endRadius = Math.ceil(
+        Math.hypot(
+          Math.max(x, window.innerWidth - x),
+          Math.max(y, window.innerHeight - y)
+        )
+      );
+
       root.classList.add("view-transition-active");
 
       const transition = transitionDoc.startViewTransition(() => {
@@ -68,17 +94,19 @@ export function runMobileThemeTransition({
       transition.ready
         .then(() => {
           /*
-           * 移动端黄金动效：纯 GPU 合成层透明度与微尺度缓动 (Alpha + Scale Cross-Dissolve)
-           * 绝不使用 clip-path，显存开销接近 0，永不丢瓦片，绝无黑块。
+           * 移动端满血日光波纹：以触控点为圆心精准扩散，与 PC 端完全一致！
+           * 严禁挂载 fill: "both"，生命周期结束主动 cancel()，杜绝 Blink 悬空指针。
            */
           const animation = document.documentElement.animate(
             {
-              opacity: [0, 1],
-              transform: ["scale(1.008)", "scale(1)"],
+              clipPath: [
+                `circle(0px at ${x}px ${y}px)`,
+                `circle(${endRadius}px at ${x}px ${y}px)`,
+              ],
             },
             {
-              duration: 260,
-              easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+              duration: 400,
+              easing: "cubic-bezier(0.16, 1, 0.3, 1)",
               pseudoElement: "::view-transition-new(root)",
             }
           );
