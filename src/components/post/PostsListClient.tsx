@@ -47,7 +47,7 @@ export function PostsListClient({
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeTag, setActiveTag] = useState<string>(initialTag);
 
-  // 分批流式展示状态：初始 35 篇，滚动到底部自动平滑追加，彻底控制 DOM 节点�?
+  // 分批流式展示状态：初始 35 篇，滚动到底部自动平滑追加，彻底控制 DOM 节点数
   const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -55,12 +55,12 @@ export function PostsListClient({
     if (initialPosts) setPosts(initialPosts);
   }, [initialPosts]);
 
-  // 分类或标签切换时，重置回到首�?35 �?
+  // 分类或标签切换时，重置回到首批 35 篇
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
   }, [activeCategory, activeTag]);
 
-  // 1. 统计分类与数�?
+  // 1. 统计分类与数量
   const { categoryCounts, categories } = useMemo(() => {
     const counts: Record<string, number> = {};
     posts.forEach((post) => {
@@ -103,7 +103,7 @@ export function PostsListClient({
     return regularPosts.slice(0, visibleCount);
   }, [regularPosts, visibleCount]);
 
-  // 5. 按年份归并常规文章（彻底控制 DOM 节点数与主题切换重绘负载�?
+  // 5. 按年份归并常规文章（彻底控制 DOM 节点数与主题切换重绘负载）
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
     displayedRegularPosts.forEach((post) => {
@@ -117,7 +117,7 @@ export function PostsListClient({
     return { years: sortedYears, postsByYear: groups };
   }, [displayedRegularPosts]);
 
-  // 6. 触底自动追加监听（提�?350px 预加载，无感平滑滚动�?
+  // 6. 触底自动追加监听（提前 350px 预加载，无感平滑滚动）
   const hasMore = visibleCount < regularPosts.length;
   useEffect(() => {
     if (!hasMore || !loadMoreRef.current) return;
@@ -135,7 +135,7 @@ export function PostsListClient({
     return () => observer.disconnect();
   }, [hasMore, regularPosts.length]);
 
-  // 6. 切换分类与标�?
+  // 6. 切换分类与标签
   const handleCategoryChange = (cat: string) => {
     const nextCategory = activeCategory === cat ? "" : cat;
     setActiveCategory(nextCategory);
@@ -156,7 +156,7 @@ export function PostsListClient({
 
   return (
     <>
-      {/* 分类 Tab �?(Stage 2) */}
+      {/* 分类 Tab 栏 (Stage 2) */}
       <SlideEnter stage={2} className="mb-10">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-b border-black/[0.06] pb-3.5 dark:border-white/[0.08]">
           <button
@@ -212,7 +212,7 @@ export function PostsListClient({
 
       {/* 年份文章列表 */}
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content">
-        {/* 置顶精选专�?(Pinned & Featured) */}
+        {/* 置顶精选专栏 (Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
           <section className="relative mb-12 sm:mb-20 flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
             <SlideEnter stage={3} className="md:w-32 shrink-0 pt-3 md:sticky md:top-32 h-fit z-10 hidden md:block">
@@ -293,13 +293,11 @@ export function PostsListClient({
 
           return (
             <section key={year} className="relative mb-12 sm:mb-20 flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
-              {/* 年份侧边�?(宽屏吸顶) */}
               <SlideEnter stage={3} className="md:w-32 shrink-0 pt-3 md:sticky md:top-32 h-fit z-10 hidden md:block">
                 <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono">
                   {year}
                 </h2>
               </SlideEnter>
-              {/* 年份小标�?(移动�? */}
               <div className="md:hidden pt-4 pb-2 border-b border-black/[0.06] dark:border-white/[0.06] mb-2 flex items-center justify-between">
                 <h2 className="text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono">
                   {year}
@@ -307,7 +305,6 @@ export function PostsListClient({
                 <span className="text-xs text-neutral-400 font-mono">{yearPosts.length} posts</span>
               </div>
 
-              {/* 文章列表 */}
               <div className="flex-1 space-y-0.5">
                 {yearPosts.map((post, index) => {
                   const date = post.published_at || post.created_at;
@@ -381,26 +378,7 @@ export function PostsListClient({
         })}
       </div>
 
-      {/* 底部触底探测哨兵与优雅的水墨底端提示 */}
-      {filteredPosts.length > 0 && (
-        <div
-          ref={loadMoreRef}
-          className="pt-10 pb-6 flex justify-center items-center text-xs text-neutral-400 dark:text-neutral-500 font-serif select-none"
-        >
-          {hasMore ? (
-            <div className="inline-flex items-center gap-2 opacity-60">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 dark:bg-neutral-500 animate-pulse" />
-              <span>翻展余卷中�?/span>
-            </div>
-          ) : filteredPosts.length > BATCH_SIZE ? (
-            <span className="opacity-40 tracking-wider">
-              �?已展全卷（共 {filteredPosts.length} 篇）�?
-            </span>
-          ) : null}
-        </div>
-      )}
-
-      {/* 空状�?(Stage 4) */}
+      {/* 空状态 (Stage 4) */}
       {filteredPosts.length === 0 && (
         <div key={`empty-${activeCategory}-${activeTag}`} className="slide-enter-content">
           <SlideEnter
