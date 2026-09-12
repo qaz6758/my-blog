@@ -43,16 +43,17 @@
     serif;
 
   --font-serif:
-    "Cormorant Garamond",
+    var(--font-cormorant),
+    var(--font-wenkai),
     "LXGW WenKai Screen",
     Georgia,
     "Times New Roman",
-    "Songti SC",
     serif;
 
   --font-cinzel:
-    "Cinzel",
-    "Cormorant Garamond",
+    var(--font-cinzel),
+    var(--font-cormorant),
+    Georgia,
     serif;
 }
 
@@ -62,11 +63,11 @@
 }
 
 .font-serif {
-  font-family: "Cormorant Garamond", "LXGW WenKai Screen", Georgia, "Times New Roman", "Songti SC", "SimSun", serif;
+  font-family: var(--font-cormorant), var(--font-wenkai), "LXGW WenKai Screen", "Songti SC", Georgia, "Times New Roman", serif;
 }
 
 .font-cinzel {
-  font-family: "Cinzel", "Cormorant Garamond", Georgia, serif;
+  font-family: var(--font-cinzel), var(--font-cormorant), Georgia, serif;
 }
 
 /*

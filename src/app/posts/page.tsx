@@ -11,15 +11,15 @@ export default async function PostsPage() {
 
   return (
     <div className="relative min-h-screen w-full">
-      {/* 方案C真实水晕漫射与水纹等高线矢量背景 */}
+      {/* 方案C真实水晕漫射与水纹等高线柔焦背景 */}
       <WaterArchiveBackground />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pt-20 pb-20">
         {/* 顶部通栏标题 (Option C Header Bar) */}
         <SlideEnter stage={1} className="pb-6 border-b border-black/[0.08] dark:border-white/[0.08] mb-2">
           <header className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
-            <h1 className="font-cinzel text-2xl sm:text-3xl tracking-[0.2em] font-medium text-neutral-900 dark:text-neutral-200 uppercase">
-              Writer&apos;s Archive
+            <h1 className="font-serif text-3xl sm:text-4xl tracking-wide font-normal text-neutral-900 dark:text-neutral-100">
+              Archive
             </h1>
             <p className="text-xs sm:text-sm font-serif italic text-neutral-500 dark:text-neutral-400">
               感君倾耳，记录技术与生活的探索。

@@ -190,7 +190,7 @@ export function PostsListClient({
         {/* Categories 分类 */}
         <SlideEnter stage={2}>
           <div>
-            <div className="font-serif text-[11.5px] tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400 mb-4 font-semibold">
+            <div className="font-serif text-[11px] tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 mb-3 font-semibold">
               Categories
             </div>
             <ul className="flex flex-col space-y-1 text-[13.5px]">
@@ -204,8 +204,8 @@ export function PostsListClient({
                       : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
                   }`}
                 >
-                  <span>全部</span>
-                  <span className="font-mono text-[11px] opacity-50 tabular-nums">
+                  <span className="tracking-wide">全部</span>
+                  <span className="font-mono text-[11px] opacity-40 tabular-nums">
                     {posts.length}
                   </span>
                 </button>
@@ -224,7 +224,7 @@ export function PostsListClient({
                           : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
                       }`}
                     >
-                      <span>{cat}</span>
+                      <span className="tracking-wide">{cat}</span>
                       <span className="font-mono text-[11px] opacity-40 tabular-nums">
                         {count}
                       </span>
@@ -240,8 +240,8 @@ export function PostsListClient({
         {allTags.length > 0 && (
           <SlideEnter stage={3}>
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="font-serif text-[11.5px] tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400 font-semibold">
+              <div className="flex items-center justify-between mb-3">
+                <div className="font-serif text-[11px] tracking-[0.25em] uppercase text-neutral-400 dark:text-neutral-500 font-semibold">
                   Tags
                 </div>
                 {activeTag && (
@@ -254,7 +254,7 @@ export function PostsListClient({
                   </button>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2 text-[12px] font-mono">
+              <div className="flex flex-wrap gap-x-2.5 gap-y-1.5 text-[12px] font-mono">
                 {allTags.map((tag) => {
                   const isCurrent = activeTag.toLowerCase() === tag.toLowerCase();
                   return (
@@ -262,10 +262,10 @@ export function PostsListClient({
                       key={tag}
                       type="button"
                       onClick={() => handleTagToggle(tag)}
-                      className={`cursor-pointer transition-colors py-0.5 px-1 rounded ${
+                      className={`cursor-pointer transition-colors py-0.5 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 ${
                         isCurrent
-                          ? "text-neutral-950 dark:text-white underline font-semibold"
-                          : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                          ? "!text-neutral-950 dark:!text-white font-semibold underline underline-offset-4"
+                          : ""
                       }`}
                     >
                       #{tag}
@@ -278,7 +278,7 @@ export function PostsListClient({
         )}
       </aside>
 
-      {/* 2. 右侧主归档目录 (Main Ledger Archive)：严格单行对齐，等高平整 */}
+      {/* 2. 右侧主归档目录 (Main Ledger Archive)：宽裕标题空间，纯粹大气的方案C原貌 */}
       <main className="md:col-span-9 md:pl-10 pt-6 pb-16 min-w-0">
         <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content w-full">
           {/* 置顶文章 (Pinned) */}
@@ -286,7 +286,7 @@ export function PostsListClient({
             <section className="mb-10">
               <SlideEnter stage={3}>
                 <div className="py-2.5 border-b border-black/[0.08] dark:border-white/[0.08]">
-                  <h2 className="font-serif text-[19px] sm:text-[20px] text-neutral-600 dark:text-neutral-300 font-medium tracking-wide">
+                  <h2 className="font-serif text-[20px] text-neutral-600 dark:text-neutral-300 font-medium tracking-wide">
                     Pinned
                   </h2>
                 </div>
@@ -320,16 +320,15 @@ export function PostsListClient({
                           {editorialDate}
                         </div>
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-60" />
-                            <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-normal font-normal truncate">
+                            <h3 className="font-serif text-[19px] sm:text-[21px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-normal font-normal truncate">
                               {post.title}
                             </h3>
                           </div>
-                          {(post.category || readTime) && (
-                            <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 shrink-0 hidden sm:inline tabular-nums">
-                              {post.category && !activeCategory && <span>{post.category} · </span>}
-                              {readTime && <span>{readTime} MIN</span>}
+                          {readTime && (
+                            <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 opacity-60 group-hover:opacity-100 shrink-0 hidden sm:inline tabular-nums transition-opacity">
+                              {readTime}m
                             </span>
                           )}
                         </div>
@@ -349,7 +348,7 @@ export function PostsListClient({
               <section key={year} className="mb-10">
                 <SlideEnter stage={3}>
                   <div className="py-2.5 border-b border-black/[0.08] dark:border-white/[0.08]">
-                    <h2 className="font-serif text-[19px] sm:text-[20px] text-neutral-600 dark:text-neutral-300 font-medium tracking-wide">
+                    <h2 className="font-serif text-[20px] text-neutral-600 dark:text-neutral-300 font-medium tracking-wide">
                       {year}
                     </h2>
                   </div>
@@ -378,13 +377,12 @@ export function PostsListClient({
                           {editorialDate}
                         </div>
                         <div className="flex-1 min-w-0 flex items-center justify-between gap-4">
-                          <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-normal font-normal truncate flex-1 min-w-0">
+                          <h3 className="font-serif text-[19px] sm:text-[21px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-normal font-normal truncate flex-1 min-w-0">
                             {post.title}
                           </h3>
-                          {(post.category || readTime) && (
-                            <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 shrink-0 hidden sm:inline tabular-nums">
-                              {post.category && !activeCategory && <span>{post.category} · </span>}
-                              {readTime && <span>{readTime} MIN</span>}
+                          {readTime && (
+                            <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 opacity-60 group-hover:opacity-100 shrink-0 hidden sm:inline tabular-nums transition-opacity">
+                              {readTime}m
                             </span>
                           )}
                         </div>

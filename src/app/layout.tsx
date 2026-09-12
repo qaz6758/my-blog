@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Cinzel, Cormorant_Garamond } from "next/font/google";
 import "@/app/globals.css";
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -15,6 +15,20 @@ const inter = Inter({
   display: "optional",
   variable: "--font-inter",
   preload: true,
+});
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cinzel",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -46,7 +60,7 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={inter.variable}
+      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
     >
       <head>
         {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}
@@ -54,13 +68,6 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
           crossOrigin="anonymous"
-        />
-        {/* 引入 Cormorant Garamond 与 Cinzel 经典古典西文衬线字体 */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap"
-          rel="stylesheet"
         />
         {/* 首屏零毫秒同步锁定主题脚本 */}
         <script
