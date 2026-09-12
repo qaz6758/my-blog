@@ -3,9 +3,9 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { FolderOpen, Tag as TagIcon, X, Pin } from "lucide-react";
+import { Pin } from "lucide-react";
 import { SlideEnter } from "@/components/layout/SlideEnter";
-import { formatDate, calculateReadTime } from "@/lib/utils";
+import { calculateReadTime } from "@/lib/utils";
 
 export interface PostItem {
   id: string | number;
@@ -47,7 +47,6 @@ export function PostsListClient({
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeTag, setActiveTag] = useState<string>(initialTag);
 
-  // 分批流式展示状态：初始 35 篇，滚动到底部自动平滑追加，彻底控制 DOM 节点数
   const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +54,6 @@ export function PostsListClient({
     if (initialPosts) setPosts(initialPosts);
   }, [initialPosts]);
 
-  // 分类或标签切换时，重置回到首批 35 篇
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
   }, [activeCategory, activeTag]);
@@ -72,7 +70,21 @@ export function PostsListClient({
     return { categoryCounts: counts, categories: sortedCats };
   }, [posts]);
 
-  // 2. 过滤文章
+  // 2. 统计所有标签
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    posts.forEach((post) => {
+      if (!post.tags) return;
+      if (Array.isArray(post.tags)) {
+        post.tags.forEach((t) => t && tagSet.add(t.trim()));
+      } else if (typeof post.tags === "string") {
+        post.tags.split(",").forEach((t) => t && tagSet.add(t.trim()));
+      }
+    });
+    return Array.from(tagSet).slice(0, 20);
+  }, [posts]);
+
+  // 3. 过滤文章
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
       if (activeCategory && post.category !== activeCategory) return false;
@@ -84,7 +96,7 @@ export function PostsListClient({
     });
   }, [posts, activeCategory, activeTag]);
 
-  // 3. 区分置顶文章与常规文章（置顶文章永远保持在列表最顶层，不被年份分页截断）
+  // 4. 区分置顶文章与常规文章
   const { pinnedPosts, regularPosts } = useMemo(() => {
     const pinned: PostItem[] = [];
     const regular: PostItem[] = [];
@@ -98,12 +110,12 @@ export function PostsListClient({
     return { pinnedPosts: pinned, regularPosts: regular };
   }, [filteredPosts]);
 
-  // 4. 截取当前可见常规文章（纯前端零延迟内存切片）
+  // 5. 截取当前可见常规文章
   const displayedRegularPosts = useMemo(() => {
     return regularPosts.slice(0, visibleCount);
   }, [regularPosts, visibleCount]);
 
-  // 5. 按年份归并常规文章（彻底控制 DOM 节点数与主题切换重绘负载）
+  // 6. 按年份归并常规文章
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
     displayedRegularPosts.forEach((post) => {
@@ -117,7 +129,7 @@ export function PostsListClient({
     return { years: sortedYears, postsByYear: groups };
   }, [displayedRegularPosts]);
 
-  // 6. 触底自动追加监听（提前 350px 预加载，无感平滑滚动）
+  // 7. 触底自动追加监听
   const hasMore = visibleCount < regularPosts.length;
   useEffect(() => {
     if (!hasMore || !loadMoreRef.current) return;
@@ -135,7 +147,7 @@ export function PostsListClient({
     return () => observer.disconnect();
   }, [hasMore, regularPosts.length]);
 
-  // 6. 切换分类与标签
+  // 8. 切换分类与标签
   const handleCategoryChange = (cat: string) => {
     const nextCategory = activeCategory === cat ? "" : cat;
     setActiveCategory(nextCategory);
@@ -154,222 +166,268 @@ export function PostsListClient({
     window.history.replaceState(null, "", query ? `/posts?${query}` : "/posts");
   };
 
+  const handleTagToggle = (tag: string) => {
+    const nextTag = activeTag === tag ? "" : tag;
+    setActiveTag(nextTag);
+    const params = new URLSearchParams();
+    if (activeCategory) params.set("category", activeCategory);
+    if (nextTag) params.set("tag", nextTag);
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `/posts?${query}` : "/posts");
+  };
+
+  const formatEditorialDate = (dateString: string) => {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "";
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    return `${months[d.getMonth()]} ${d.getDate().toString().padStart(2, "0")}`;
+  };
+
   return (
-    <>
-      {/* 分类 Tab 栏 (Stage 2) */}
-      <SlideEnter stage={2} className="mb-10">
-        <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-b border-black/[0.06] pb-3.5 dark:border-white/[0.08]">
-          <button
-            type="button"
-            onClick={() => handleCategoryChange("")}
-            className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity cursor-pointer select-none font-normal text-neutral-900 dark:text-[#eae5dc] ${
-              !activeCategory ? "opacity-100 font-medium" : "opacity-55 hover:opacity-100"
-            }`}
-            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-          >
-            <span>全部</span>
-            <span className="font-mono text-[11px] tabular-nums opacity-60">
-              {posts.length}
-            </span>
-          </button>
-
-          {categories.map((cat) => {
-            const isCurrent = activeCategory === cat;
-            const count = categoryCounts[cat] || 0;
-
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => handleCategoryChange(cat)}
-                className={`group inline-flex items-center gap-1.5 py-1 text-[13.5px] transition-opacity cursor-pointer select-none font-normal text-neutral-900 dark:text-[#eae5dc] ${
-                  isCurrent ? "opacity-100 font-medium" : "opacity-55 hover:opacity-100"
-                }`}
-                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-              >
-                <FolderOpen className={`h-3.5 w-3.5 transition-opacity ${isCurrent ? "opacity-90" : "opacity-50 group-hover:opacity-100"}`} style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
-                <span>{cat}</span>
-                <span className="font-mono text-[11px] tabular-nums opacity-60">
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-
-          {activeTag && (
-            <button
-              type="button"
-              onClick={handleClearTag}
-              className="inline-flex items-center gap-1.5 rounded border border-black/[0.08] px-2 py-0.5 text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950 dark:border-white/[0.1] dark:text-neutral-300 dark:hover:text-white cursor-pointer select-none"
-            >
-              <TagIcon className="h-3 w-3" />
-              <span>#{activeTag}</span>
-              <X className="h-3 w-3 opacity-60 hover:opacity-100" />
-            </button>
-          )}
-        </div>
-      </SlideEnter>
-
-      {/* 年份文章列表 */}
-      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-4xl mx-auto w-full">
-        {/* Pinned */}
-        {pinnedPosts.length > 0 && (
-          <section className="mb-16 sm:mb-20">
-            <SlideEnter stage={3}>
-              <h2 className="font-serif text-[18px] sm:text-[22px] text-neutral-500 mb-6 tracking-wide">
-                Pinned
-              </h2>
-            </SlideEnter>
-
-            <div className="flex-col border-t border-black/[0.04] dark:border-white/[0.04]">
-              {pinnedPosts.map((post, index) => {
-                const date = post.published_at || post.created_at;
-                const d = new Date(date);
-                const isDateValid = !isNaN(d.getTime());
-                const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-                const editorialDate = isDateValid ? `${months[d.getMonth()]} ${d.getDate().toString().padStart(2, '0')}` : "";
-                const readTime = getReadTime(post);
-                const targetLink = `/posts/${post.slug || post.id}`;
-
+    <div className="grid grid-cols-1 md:grid-cols-12 w-full">
+      {/* 1. 左侧边栏 (Categories & Tags 侧栏，含纵向分割线) */}
+      <aside className="md:col-span-3 pt-6 pb-8 md:pr-8 md:border-r border-black/[0.08] dark:border-white/[0.08] flex flex-col gap-8">
+        {/* Categories 分类 */}
+        <SlideEnter stage={2}>
+          <div>
+            <div className="font-serif text-[11.5px] tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400 mb-4 font-semibold">
+              Categories
+            </div>
+            <ul className="flex flex-col space-y-1 text-[13.5px]">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => handleCategoryChange("")}
+                  className={`w-full text-left flex items-center justify-between py-1 transition-colors cursor-pointer ${
+                    !activeCategory
+                      ? "text-neutral-950 dark:text-white font-medium"
+                      : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                  }`}
+                >
+                  <span>全部</span>
+                  <span className="font-mono text-[11px] opacity-50 tabular-nums">
+                    {posts.length}
+                  </span>
+                </button>
+              </li>
+              {categories.map((cat) => {
+                const isCurrent = activeCategory === cat;
+                const count = categoryCounts[cat] || 0;
                 return (
-                  <SlideEnter
-                    key={post.id}
-                    stage={3 + index}
-                    stagger={25}
-                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
-                  >
-                    <Link
-                      href={targetLink}
-                      className="
-                        group flex items-baseline py-6 sm:py-8
-                        border-b border-black/[0.04] dark:border-white/[0.04]
-                        cursor-pointer transition-colors
-                      "
+                  <li key={cat}>
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryChange(cat)}
+                      className={`w-full text-left flex items-center justify-between py-1 transition-colors cursor-pointer ${
+                        isCurrent
+                          ? "text-neutral-950 dark:text-white font-medium"
+                          : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                      }`}
                     >
-                      <div className="w-20 sm:w-28 shrink-0 font-mono text-[12px] sm:text-[13px] tracking-widest text-neutral-500 uppercase">
-                        {editorialDate}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0 relative">
-                        <Pin className="absolute -left-6 top-1.5 h-3.5 w-3.5 -rotate-45 text-neutral-600 opacity-50" />
-                        <h3 className="font-serif text-[24px] sm:text-[34px] leading-[1.2] text-neutral-900 dark:text-[#e8e8e8] transition-colors">
-                          {post.title}
-                        </h3>
-                        
-                        {(post.category || readTime) && (
-                          <div className="mt-3 font-serif italic text-[14px] text-neutral-500 tracking-wide">
-                            {post.category && !activeCategory && (
-                              <span>{post.category}</span>
-                            )}
-                            {post.category && !activeCategory && readTime && (
-                              <span className="mx-2 not-italic opacity-50">/</span>
-                            )}
-                            {readTime && (
-                              <span>{readTime} min read</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </SlideEnter>
+                      <span>{cat}</span>
+                      <span className="font-mono text-[11px] opacity-40 tabular-nums">
+                        {count}
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
+            </ul>
+          </div>
+        </SlideEnter>
+
+        {/* Tags 标签 */}
+        {allTags.length > 0 && (
+          <SlideEnter stage={3}>
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="font-serif text-[11.5px] tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400 font-semibold">
+                  Tags
+                </div>
+                {activeTag && (
+                  <button
+                    type="button"
+                    onClick={handleClearTag}
+                    className="text-[11px] font-mono text-neutral-400 hover:text-neutral-200 cursor-pointer underline"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2 text-[12px] font-mono">
+                {allTags.map((tag) => {
+                  const isCurrent = activeTag.toLowerCase() === tag.toLowerCase();
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => handleTagToggle(tag)}
+                      className={`cursor-pointer transition-colors py-0.5 px-1 rounded ${
+                        isCurrent
+                          ? "text-neutral-950 dark:text-white underline font-semibold"
+                          : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </section>
+          </SlideEnter>
         )}
+      </aside>
 
-        {years.map((year, yearIndex) => {
-          const yearPosts = postsByYear[year];
-
-          return (
-            <section key={year} className="mb-16 sm:mb-20">
+      {/* 2. 右侧主归档目录 (Main Ledger Archive，紧凑排布与全贯穿横线) */}
+      <main className="md:col-span-9 md:pl-10 pt-6 pb-16 min-w-0">
+        <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content w-full">
+          {/* 置顶文章 (Pinned) */}
+          {pinnedPosts.length > 0 && (
+            <section className="mb-10">
               <SlideEnter stage={3}>
-                <h2 className="font-serif text-[18px] sm:text-[22px] text-neutral-500 mb-6 tracking-wide">
-                  {year}
-                </h2>
+                <div className="py-2.5 border-b border-black/[0.08] dark:border-white/[0.08]">
+                  <h2 className="font-serif text-[19px] sm:text-[20px] text-neutral-600 dark:text-neutral-300 font-medium tracking-wide">
+                    Pinned
+                  </h2>
+                </div>
               </SlideEnter>
 
-              <div className="flex-col border-t border-black/[0.04] dark:border-white/[0.04]">
-                {yearPosts.map((post, index) => {
+              <div className="flex flex-col">
+                {pinnedPosts.map((post, index) => {
                   const date = post.published_at || post.created_at;
-                  const d = new Date(date);
-                  const isDateValid = !isNaN(d.getTime());
-                  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-                  const editorialDate = isDateValid ? `${months[d.getMonth()]} ${d.getDate().toString().padStart(2, '0')}` : "";
+                  const editorialDate = formatEditorialDate(date);
                   const readTime = getReadTime(post);
-                  const postStage = Math.min(4 + index, 14);
                   const targetLink = `/posts/${post.slug || post.id}`;
 
-                  const postItem = (
-                    <Link
-                      href={targetLink}
-                      className="
-                        group flex items-baseline py-6 sm:py-8
-                        border-b border-black/[0.04] dark:border-white/[0.04]
-                        cursor-pointer transition-colors
-                      "
-                    >
-                      <div className="w-20 sm:w-28 shrink-0 font-mono text-[12px] sm:text-[13px] tracking-widest text-neutral-500 uppercase">
-                        {editorialDate}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-serif text-[24px] sm:text-[34px] leading-[1.2] text-neutral-900 dark:text-[#e8e8e8] transition-colors">
-                          {post.title}
-                        </h3>
-                        
-                        {(post.category || readTime) && (
-                          <div className="mt-3 font-serif italic text-[14px] text-neutral-500 tracking-wide">
-                            {post.category && !activeCategory && (
-                              <span>{post.category}</span>
-                            )}
-                            {post.category && !activeCategory && readTime && (
-                              <span className="mx-2 not-italic opacity-50">/</span>
-                            )}
-                            {readTime && (
-                              <span>{readTime} min read</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  );
-
-                  return index < 15 ? (
+                  return (
                     <SlideEnter
                       key={post.id}
-                      stage={postStage}
-                      stagger={35}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
+                      stage={3 + index}
+                      stagger={25}
+                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 52px" }}
                     >
-                      {postItem}
+                      <Link
+                        href={targetLink}
+                        className="
+                          group flex items-baseline py-3.5
+                          border-b border-black/[0.06] dark:border-white/[0.06]
+                          cursor-pointer transition-colors
+                          hover:text-neutral-950 dark:hover:text-white
+                        "
+                      >
+                        <div className="w-20 sm:w-24 shrink-0 font-mono text-[12px] text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">
+                          {editorialDate}
+                        </div>
+                        <div className="flex-1 min-w-0 flex items-baseline justify-between gap-4">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-60" />
+                            <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-snug font-normal">
+                              {post.title}
+                            </h3>
+                          </div>
+                          {(post.category || readTime) && (
+                            <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 shrink-0 hidden sm:inline tabular-nums">
+                              {post.category && !activeCategory && <span>{post.category} · </span>}
+                              {readTime && <span>{readTime} MIN</span>}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
                     </SlideEnter>
-                  ) : (
-                    <div
-                      key={post.id}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
-                    >
-                      {postItem}
-                    </div>
                   );
                 })}
               </div>
             </section>
-          );
-        })}
-      </div>
+          )}
 
-      {/* 空状态 (Stage 4) */}
-      {filteredPosts.length === 0 && (
-        <div key={`empty-${activeCategory}-${activeTag}`} className="slide-enter-content">
-          <SlideEnter
-            stage={4}
-            className="py-20 text-center text-sm text-neutral-400 dark:text-neutral-500"
-          >
-            {activeCategory || activeTag ? "该分类下暂无文章" : "暂无文章"}
-          </SlideEnter>
+          {/* 年份文章分组 (Years) */}
+          {years.map((year, yearIndex) => {
+            const yearPosts = postsByYear[year];
+
+            return (
+              <section key={year} className="mb-10">
+                <SlideEnter stage={3}>
+                  <div className="py-2.5 border-b border-black/[0.08] dark:border-white/[0.08]">
+                    <h2 className="font-serif text-[19px] sm:text-[20px] text-neutral-600 dark:text-neutral-300 font-medium tracking-wide">
+                      {year}
+                    </h2>
+                  </div>
+                </SlideEnter>
+
+                <div className="flex flex-col">
+                  {yearPosts.map((post, index) => {
+                    const date = post.published_at || post.created_at;
+                    const editorialDate = formatEditorialDate(date);
+                    const readTime = getReadTime(post);
+                    const postStage = Math.min(4 + index, 14);
+                    const targetLink = `/posts/${post.slug || post.id}`;
+
+                    const postItem = (
+                      <Link
+                        href={targetLink}
+                        className="
+                          group flex items-baseline py-3.5
+                          border-b border-black/[0.06] dark:border-white/[0.06]
+                          cursor-pointer transition-colors
+                          hover:text-neutral-950 dark:hover:text-white
+                        "
+                      >
+                        <div className="w-20 sm:w-24 shrink-0 font-mono text-[12px] text-neutral-400 dark:text-neutral-500 tracking-wider uppercase">
+                          {editorialDate}
+                        </div>
+                        <div className="flex-1 min-w-0 flex items-baseline justify-between gap-4">
+                          <h3 className="font-serif text-[18px] sm:text-[20px] text-neutral-800 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white leading-snug font-normal">
+                            {post.title}
+                          </h3>
+                          {(post.category || readTime) && (
+                            <span className="font-mono text-[11px] text-neutral-400 dark:text-neutral-500 shrink-0 hidden sm:inline tabular-nums">
+                              {post.category && !activeCategory && <span>{post.category} · </span>}
+                              {readTime && <span>{readTime} MIN</span>}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    );
+
+                    return index < 15 ? (
+                      <SlideEnter
+                        key={post.id}
+                        stage={postStage}
+                        stagger={35}
+                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 52px" }}
+                      >
+                        {postItem}
+                      </SlideEnter>
+                    ) : (
+                      <div
+                        key={post.id}
+                        style={{ contentVisibility: "auto", containIntrinsicSize: "0 52px" }}
+                      >
+                        {postItem}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
         </div>
-      )}
-    </>
+
+        {/* 触底加载更多哨兵 */}
+        {hasMore && <div ref={loadMoreRef} className="h-10 w-full" />}
+
+        {/* 空状态 (Stage 4) */}
+        {filteredPosts.length === 0 && (
+          <div key={`empty-${activeCategory}-${activeTag}`} className="slide-enter-content">
+            <SlideEnter
+              stage={4}
+              className="py-20 text-center text-sm text-neutral-400 dark:text-neutral-500"
+            >
+              {activeCategory || activeTag ? "该分类下暂无文章" : "暂无文章"}
+            </SlideEnter>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
