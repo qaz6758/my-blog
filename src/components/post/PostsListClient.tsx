@@ -211,22 +211,19 @@ export function PostsListClient({
       </SlideEnter>
 
       {/* 年份文章列表 */}
-      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content">
+      <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-2xl mx-auto w-full">
         {/* 置顶精选专栏 (Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
-          <section className="relative mb-12 sm:mb-20 flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
-            <SlideEnter stage={3} className="md:w-32 shrink-0 pt-3 md:sticky md:top-32 h-fit z-10 hidden md:block">
-              <h2 className="text-[11px] font-semibold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase">
-                Pinned
+          <section className="relative mb-16 sm:mb-24">
+            <SlideEnter stage={3} className="flex items-center justify-center py-8 mb-6">
+              <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
+              <h2 className="mx-6 font-mono text-xs font-semibold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase">
+                Featured
               </h2>
+              <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
             </SlideEnter>
-            <div className="md:hidden pt-4 pb-2 border-b border-black/[0.06] dark:border-white/[0.06] mb-2">
-              <h2 className="text-[11px] font-semibold tracking-[0.2em] text-neutral-400 dark:text-neutral-500 uppercase">
-                Pinned
-              </h2>
-            </div>
 
-            <div className="flex-1 space-y-0.5">
+            <div className="flex-col space-y-0">
               {pinnedPosts.map((post, index) => {
                 const date = post.published_at || post.created_at;
                 const readTime = getReadTime(post);
@@ -237,46 +234,43 @@ export function PostsListClient({
                     key={post.id}
                     stage={3 + index}
                     stagger={25}
-                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
+                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
                   >
                     <Link
                       href={targetLink}
                       className="
                         group
                         flex
-                        flex-col sm:flex-row
-                        sm:items-center
-                        justify-between
-                        gap-2 sm:gap-6
-                        py-3 sm:py-4
+                        flex-col
+                        py-5 sm:py-6
                         cursor-pointer
                         border-b border-black/[0.03] dark:border-white/[0.03]
-                        hover:bg-neutral-50 dark:hover:bg-white/[0.02]
-                        px-3 sm:px-4 -mx-3 sm:-mx-4 rounded-xl transition-all
+                        transition-transform
+                        hover:translate-x-1
                       "
                     >
-                      <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
-                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                      <div className="flex items-baseline gap-4 sm:gap-6 min-w-0">
+                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums pt-0.5">
                           {formatDate(date, false)}
                         </span>
                         
-                        <div className="flex min-w-0 items-center gap-2.5">
-                          <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-60 group-hover:opacity-100 transition-opacity" />
-                          <span className="text-[15px] font-medium leading-snug text-neutral-900 dark:text-[#eae5dc] group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors truncate sm:text-[16px]">
+                        <div className="flex min-w-0 items-start gap-2.5">
+                          <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-300 dark:text-neutral-600 opacity-60 group-hover:opacity-100 transition-opacity mt-1" />
+                          <h3 className="text-[16px] sm:text-[17px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
                             {post.title}
-                          </span>
+                          </h3>
                         </div>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-4 sm:gap-6 pl-16 sm:pl-0 font-mono text-[10px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                      <div className="flex items-center gap-4 sm:gap-6 pl-[4rem] sm:pl-[4.5rem] mt-2 font-mono text-[10px] sm:text-[11px] text-neutral-400 dark:text-neutral-500 opacity-70">
                         {post.category && !activeCategory && (
-                          <span className="shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-2 py-0.5 font-normal text-neutral-500 dark:text-neutral-400">
+                          <span className="tracking-wide">
                             {post.category}
                           </span>
                         )}
                         {readTime && (
-                          <span className="w-12 text-right hidden sm:inline-block">
-                            {readTime}m
+                          <span className="tracking-wide">
+                            {readTime}m read
                           </span>
                         )}
                       </div>
@@ -292,20 +286,16 @@ export function PostsListClient({
           const yearPosts = postsByYear[year];
 
           return (
-            <section key={year} className="relative mb-12 sm:mb-20 flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
-              <SlideEnter stage={3} className="md:w-32 shrink-0 pt-3 md:sticky md:top-32 h-fit z-10 hidden md:block">
-                <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono">
+            <section key={year} className="relative mb-16 sm:mb-24">
+              <SlideEnter stage={3} className="flex items-center justify-center py-8 mb-6">
+                <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
+                <h2 className="mx-6 font-mono text-lg font-medium tracking-widest text-neutral-800 dark:text-neutral-200">
                   {year}
                 </h2>
+                <div className="flex-1 border-t border-black/[0.04] dark:border-white/[0.04]"></div>
               </SlideEnter>
-              <div className="md:hidden pt-4 pb-2 border-b border-black/[0.06] dark:border-white/[0.06] mb-2 flex items-center justify-between">
-                <h2 className="text-lg font-bold tracking-tight text-neutral-900 dark:text-neutral-100 font-mono">
-                  {year}
-                </h2>
-                <span className="text-xs text-neutral-400 font-mono">{yearPosts.length} posts</span>
-              </div>
 
-              <div className="flex-1 space-y-0.5">
+              <div className="flex-col space-y-0">
                 {yearPosts.map((post, index) => {
                   const date = post.published_at || post.created_at;
                   const readTime = getReadTime(post);
@@ -318,36 +308,33 @@ export function PostsListClient({
                       className="
                         group
                         flex
-                        flex-col sm:flex-row
-                        sm:items-center
-                        justify-between
-                        gap-2 sm:gap-6
-                        py-3 sm:py-4
+                        flex-col
+                        py-5 sm:py-6
                         cursor-pointer
                         border-b border-black/[0.03] dark:border-white/[0.03]
-                        hover:bg-neutral-50 dark:hover:bg-white/[0.02]
-                        px-3 sm:px-4 -mx-3 sm:-mx-4 rounded-xl transition-all
+                        transition-transform
+                        hover:translate-x-1
                       "
                     >
-                      <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
-                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                      <div className="flex items-baseline gap-4 sm:gap-6 min-w-0">
+                        <span className="w-12 sm:w-14 shrink-0 font-mono text-[11px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums pt-0.5">
                           {formatDate(date, false)}
                         </span>
                         
-                        <span className="text-[15px] font-medium leading-snug text-neutral-900 dark:text-[#eae5dc] group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors truncate sm:text-[16px]">
+                        <h3 className="text-[16px] sm:text-[17px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] group-hover:text-black dark:group-hover:text-white transition-colors">
                           {post.title}
-                        </span>
+                        </h3>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-4 sm:gap-6 pl-16 sm:pl-0 font-mono text-[10px] sm:text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                      <div className="flex items-center gap-4 sm:gap-6 pl-[4rem] sm:pl-[4.5rem] mt-2 font-mono text-[10px] sm:text-[11px] text-neutral-400 dark:text-neutral-500 opacity-70">
                         {post.category && !activeCategory && (
-                          <span className="shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-2 py-0.5 font-normal text-neutral-500 dark:text-neutral-400">
+                          <span className="tracking-wide">
                             {post.category}
                           </span>
                         )}
                         {readTime && (
-                          <span className="w-12 text-right hidden sm:inline-block">
-                            {readTime}m
+                          <span className="tracking-wide">
+                            {readTime}m read
                           </span>
                         )}
                       </div>
@@ -359,14 +346,14 @@ export function PostsListClient({
                       key={post.id}
                       stage={postStage}
                       stagger={35}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
+                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
                     >
                       {postItem}
                     </SlideEnter>
                   ) : (
                     <div
                       key={post.id}
-                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
+                      style={{ contentVisibility: "auto", containIntrinsicSize: "0 80px" }}
                     >
                       {postItem}
                     </div>

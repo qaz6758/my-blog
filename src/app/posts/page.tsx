@@ -10,7 +10,7 @@ export default async function PostsPage() {
 
   return (
     <div className="relative min-h-screen w-full px-6 pt-24 pb-20 sm:px-8 sm:pt-28 lg:px-12">
-      <main className="mx-auto w-full max-w-5xl">
+      <main className="mx-auto w-full max-w-2xl">
         {/* 1. 大标题与简介文案 */}
         <SlideEnter stage={1} className="mb-10">
           <header>
