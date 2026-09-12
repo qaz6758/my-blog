@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { FolderOpen, Tag as TagIcon, X } from "lucide-react";
+import { FolderOpen, Tag as TagIcon, X, Pin } from "lucide-react";
 import { SlideEnter } from "@/components/layout/SlideEnter";
 import { formatDate, calculateReadTime } from "@/lib/utils";
 
@@ -17,6 +17,7 @@ export interface PostItem {
   summary?: string | null;
   category?: string | null;
   tags?: string[] | string | null;
+  is_pinned?: boolean | null;
 }
 
 interface PostsListClientProps {
@@ -83,15 +84,29 @@ export function PostsListClient({
     });
   }, [posts, activeCategory, activeTag]);
 
-  // 3. 截取当前可见文章（纯前端零延迟内存切片）
-  const displayedPosts = useMemo(() => {
-    return filteredPosts.slice(0, visibleCount);
-  }, [filteredPosts, visibleCount]);
+  // 3. 区分置顶文章与常规文章（置顶文章永远保持在列表最顶层，不被年份分页截断）
+  const { pinnedPosts, regularPosts } = useMemo(() => {
+    const pinned: PostItem[] = [];
+    const regular: PostItem[] = [];
+    filteredPosts.forEach((post) => {
+      if (post.is_pinned) {
+        pinned.push(post);
+      } else {
+        regular.push(post);
+      }
+    });
+    return { pinnedPosts: pinned, regularPosts: regular };
+  }, [filteredPosts]);
 
-  // 4. 按年份归并（仅对当前可见批次进行归并，彻底控制 DOM 节点数与主题切换重绘负载）
+  // 4. 截取当前可见常规文章（纯前端零延迟内存切片）
+  const displayedRegularPosts = useMemo(() => {
+    return regularPosts.slice(0, visibleCount);
+  }, [regularPosts, visibleCount]);
+
+  // 5. 按年份归并常规文章（彻底控制 DOM 节点数与主题切换重绘负载）
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
-    displayedPosts.forEach((post) => {
+    displayedRegularPosts.forEach((post) => {
       const date = post.published_at || post.created_at;
       const year = String(getYear(date));
       if (!groups[year]) groups[year] = [];
@@ -100,17 +115,17 @@ export function PostsListClient({
 
     const sortedYears = Object.keys(groups).sort((a, b) => Number(b) - Number(a));
     return { years: sortedYears, postsByYear: groups };
-  }, [displayedPosts]);
+  }, [displayedRegularPosts]);
 
-  // 5. 触底自动追加监听（提前 350px 预加载，无感平滑滚动）
-  const hasMore = visibleCount < filteredPosts.length;
+  // 6. 触底自动追加监听（提前 350px 预加载，无感平滑滚动）
+  const hasMore = visibleCount < regularPosts.length;
   useEffect(() => {
     if (!hasMore || !loadMoreRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filteredPosts.length));
+          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, regularPosts.length));
         }
       },
       { rootMargin: "350px" }
@@ -118,7 +133,7 @@ export function PostsListClient({
 
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [hasMore, filteredPosts.length]);
+  }, [hasMore, regularPosts.length]);
 
   // 6. 切换分类与标签
   const handleCategoryChange = (cat: string) => {
@@ -197,6 +212,101 @@ export function PostsListClient({
 
       {/* 年份文章列表 */}
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content space-y-14">
+        {/* 置顶精选专栏 (Pinned & Featured) */}
+        {pinnedPosts.length > 0 && (
+          <section className="relative mb-12">
+            <SlideEnter stage={3} className="relative mb-4 flex items-center gap-2 select-none">
+              <span className="flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
+                <Pin className="h-3 w-3 -rotate-45" />
+              </span>
+              <h2 className="text-xs font-semibold tracking-wider uppercase text-amber-700/90 dark:text-amber-400/90 font-mono">
+                置顶精选 / Featured
+              </h2>
+            </SlideEnter>
+
+            <div className="space-y-3">
+              {pinnedPosts.map((post, index) => {
+                const date = post.published_at || post.created_at;
+                const readTime = getReadTime(post);
+                const targetLink = `/posts/${post.slug || post.id}`;
+
+                return (
+                  <SlideEnter
+                    key={post.id}
+                    stage={3 + index}
+                    stagger={25}
+                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
+                  >
+                    <Link
+                      href={targetLink}
+                      className="
+                        group
+                        relative
+                        block
+                        rounded-xl
+                        border
+                        border-amber-500/20
+                        dark:border-amber-400/20
+                        bg-amber-500/[0.03]
+                        dark:bg-amber-400/[0.03]
+                        hover:border-amber-500/40
+                        dark:hover:border-amber-400/40
+                        hover:bg-amber-500/[0.06]
+                        dark:hover:bg-amber-400/[0.06]
+                        p-4 sm:p-5
+                        transition-all
+                        duration-300
+                        ease-out
+                        cursor-pointer
+                      "
+                    >
+                      <div className="flex items-baseline justify-between gap-4">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <span className="inline-flex items-center gap-1 rounded bg-amber-500/15 dark:bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 select-none">
+                            <Pin className="h-2.5 w-2.5 -rotate-45" />
+                            置顶
+                          </span>
+
+                          <h3 className="
+                            text-[15px]
+                            sm:text-[16px]
+                            font-semibold
+                            leading-snug
+                            text-neutral-900
+                            dark:text-[#eae5dc]
+                            group-hover:text-amber-700
+                            dark:group-hover:text-amber-300
+                            transition-colors
+                          ">
+                            {post.title}
+                          </h3>
+
+                          {post.category && (
+                            <span className="hidden sm:inline rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-600 dark:text-neutral-300 opacity-60">
+                              {post.category}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="shrink-0 flex items-center gap-3 font-mono text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
+                          {readTime && <span className="hidden sm:inline">{readTime}m</span>}
+                          <span>{formatDate(date, false)}</span>
+                        </div>
+                      </div>
+
+                      {post.summary && (
+                        <p className="mt-2 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400 line-clamp-2">
+                          {post.summary}
+                        </p>
+                      )}
+                    </Link>
+                  </SlideEnter>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {years.map((year) => {
           const yearPosts = postsByYear[year];
 

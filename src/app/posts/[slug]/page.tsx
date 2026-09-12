@@ -4,7 +4,7 @@ import { fetchPosts, fetchPostDetail } from '@/lib/data';
 import PostDetailClient from './PostDetailClient';
 import { PostDetail } from '@/components/post/DynamicPostReader';
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 export const revalidate = 60;
 
 // 1. 构建期提取所有已发布文章的 Slug（包含 Notion 原创与 Supabase 文章）

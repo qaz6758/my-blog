@@ -268,6 +268,7 @@ export async function fetchPosts(limit: number = 60): Promise<NotionPostItem[]> 
       source_url: `/posts/${item.slug || item.id}`,
       post_type: 'original',
       status: item.status || '已发布',
+      is_pinned: Boolean((item as any).is_pinned),
     }));
 
     // 去重逻辑：如果 Notion 和 Supabase 存在相同 slug 或 id，以 Notion 为准
@@ -276,8 +277,16 @@ export async function fetchPosts(limit: number = 60): Promise<NotionPostItem[]> 
       (p) => !notionSlugs.has(p.slug) && !notionSlugs.has(p.id)
     );
 
-    // Notion 原创文章置顶优先，其后衔接 Supabase 历史内容
-    return [...notionPosts, ...filteredSupabase];
+    const merged = [...notionPosts, ...filteredSupabase];
+    merged.sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      const timeA = new Date(a.published_at || a.created_at).getTime();
+      const timeB = new Date(b.published_at || b.created_at).getTime();
+      return timeB - timeA;
+    });
+
+    return merged;
   } catch (err) {
     console.warn('[Fetch Posts Error]:', err);
     return [];
@@ -316,6 +325,7 @@ export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem 
     source_url: `/posts/${data.slug}`,
     post_type: 'original',
     status: data.status || '已发布',
+    is_pinned: Boolean((data as any).is_pinned),
     content: data.content || '',
   };
 }

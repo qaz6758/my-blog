@@ -18,6 +18,7 @@ export interface NotionPostItem {
   cover_image?: string;
   post_type: 'original' | 'notion' | 'rss';
   status: string;
+  is_pinned?: boolean;
   content?: string;
 }
 
@@ -284,10 +285,17 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
         continue;
       }
 
+      const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
       const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
       const title = getText(findProp(p, '文章标题', 'Title', 'Name', '标题')) || '未命名文章';
       const category = getSelect(findProp(p, '主题/分类', 'Category', '分类', '主题')) || '技术';
-      const tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+      let tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+      if (!tagsList || tagsList.length === 0) {
+        const rawTagsText = getText(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+        if (rawTagsText) {
+          tagsList = rawTagsText.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
+        }
+      }
       const summary =
         getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要')) || '';
       
@@ -311,8 +319,16 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
         source_url: `/posts/${cleanSlug}`,
         post_type: 'notion',
         status: status || '已发布 🚀',
+        is_pinned: isPinned,
       });
     }
+
+    // 优先按置顶排前，其次按发布时间倒序
+    items.sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      return new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime();
+    });
 
     return items;
   } catch (error) {
@@ -359,10 +375,17 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
     const page = await pageRes.json();
     const p = page.properties;
 
+    const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
     const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
     const title = getText(findProp(p, '文章标题', 'Title', 'Name', '标题')) || '未命名文章';
     const category = getSelect(findProp(p, '主题/分类', 'Category', '分类', '主题')) || '技术';
-    const tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+    let tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+    if (!tagsList || tagsList.length === 0) {
+      const rawTagsText = getText(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+      if (rawTagsText) {
+        tagsList = rawTagsText.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
+      }
+    }
     const summary =
       getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要')) || '';
     const status = getStatus(findProp(p, '状态', 'Status', 'State'));
@@ -387,6 +410,7 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
       source_url: `/posts/${cleanSlug}`,
       post_type: 'notion',
       status: status || '已发布 🚀',
+      is_pinned: isPinned,
       content: markdownContent,
     };
   } catch (error) {
