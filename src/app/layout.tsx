@@ -84,10 +84,12 @@ export default function RootLayout({
                     cl.add('dark');
                     cl.remove('light');
                     docEl.style.colorScheme = 'dark';
+                    docEl.style.backgroundColor = '#111213';
                   } else {
                     cl.remove('dark');
                     cl.add('light');
                     docEl.style.colorScheme = 'light';
+                    docEl.style.backgroundColor = '#ede7dc';
                   }
                 } catch (e) {}
               })();
