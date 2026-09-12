@@ -14,6 +14,7 @@ export function runDesktopThemeTransition({
   applyThemeDirect,
   event,
   options,
+  onComplete,
 }: ThemeDriverParams): void {
   if (typeof document === "undefined") return;
 
@@ -31,6 +32,7 @@ export function runDesktopThemeTransition({
   // 用户主动要求关闭动画，或浏览器不支持 View Transition，直接原子切换
   if (options?.disableAnimation || !hasViewTransitions) {
     applyThemeDirect(nextTheme);
+    onComplete?.();
     return;
   }
 
@@ -78,6 +80,7 @@ export function runDesktopThemeTransition({
     transition.finished
       .finally(() => {
         root.classList.remove("view-transition-active");
+        onComplete?.();
       })
       .catch(() => {});
 
@@ -93,17 +96,23 @@ export function runDesktopThemeTransition({
           {
             duration: 420,
             easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-            fill: "both",
+            // 严禁在此使用 fill: "both" 或 fill: "forwards"！
+            // 在伪元素销毁后挂起 fill 状态会导致 Chromium Blink 合成器野指针崩溃（引发“重新启动 Chrome”）。
             pseudoElement: "::view-transition-new(root)",
           }
         );
 
-        animation.finished.catch(() => {});
+        animation.finished
+          .then(() => {
+            animation.cancel();
+          })
+          .catch(() => {});
       })
       .catch(() => {
-        applyThemeDirect(nextTheme);
+        // 过渡被打断或取消，DOM 已在 callback 中翻转，无需重复应用
       });
   } catch {
     applyThemeDirect(nextTheme);
+    onComplete?.();
   }
 }

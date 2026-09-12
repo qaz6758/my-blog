@@ -1,4 +1,4 @@
-﻿// src/components/theme/types.ts
+// src/components/theme/types.ts
 import React from "react";
 
 export type Theme = "light" | "dark";
@@ -23,4 +23,5 @@ export interface ThemeDriverParams {
   applyThemeDirect: (newTheme: Theme) => void;
   event?: React.MouseEvent<HTMLElement>;
   options?: ToggleThemeOptions;
+  onComplete?: () => void;
 }

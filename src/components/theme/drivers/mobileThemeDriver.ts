@@ -1,4 +1,4 @@
-﻿// src/components/theme/drivers/mobileThemeDriver.ts
+// src/components/theme/drivers/mobileThemeDriver.ts
 /**
  * [移动端专属主题引擎]
  *
@@ -18,6 +18,7 @@ export function runMobileThemeTransition({
   nextTheme,
   applyThemeDirect,
   options,
+  onComplete,
 }: ThemeDriverParams): void {
   if (typeof document === "undefined") return;
 
@@ -26,6 +27,7 @@ export function runMobileThemeTransition({
   // 用户主动要求关闭动效，直接原子切换
   if (options?.disableAnimation) {
     applyThemeDirect(nextTheme);
+    onComplete?.();
     return;
   }
 
@@ -59,6 +61,7 @@ export function runMobileThemeTransition({
       transition.finished
         .finally(() => {
           root.classList.remove("view-transition-active");
+          onComplete?.();
         })
         .catch(() => {});
 
@@ -76,15 +79,18 @@ export function runMobileThemeTransition({
             {
               duration: 260,
               easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-              fill: "both",
               pseudoElement: "::view-transition-new(root)",
             }
           );
 
-          animation.finished.catch(() => {});
+          animation.finished
+            .then(() => {
+              animation.cancel();
+            })
+            .catch(() => {});
         })
         .catch(() => {
-          applyThemeDirect(nextTheme);
+          // 过渡取消无需重复应用
         });
 
       return;
@@ -94,7 +100,7 @@ export function runMobileThemeTransition({
   }
 
   // 场景 B：移动端 Safari / 旧版 WebView / 降级环境：使用高性能纯硬件加速“水墨帷幕”
-  runMobileVeilTransition(nextTheme, applyThemeDirect);
+  runMobileVeilTransition(nextTheme, applyThemeDirect, onComplete);
 }
 
 /**
@@ -104,7 +110,8 @@ export function runMobileThemeTransition({
  */
 function runMobileVeilTransition(
   nextTheme: "light" | "dark",
-  applyThemeDirect: (theme: "light" | "dark") => void
+  applyThemeDirect: (theme: "light" | "dark") => void,
+  onComplete?: () => void
 ): void {
   const veil = document.createElement("div");
   const targetBg = nextTheme === "dark" ? "#111213" : "#ede7dc";
@@ -123,17 +130,20 @@ function runMobileVeilTransition(
   // 底层 DOM 瞬时翻转，文本与背景对比度保持 100% 恒定
   applyThemeDirect(nextTheme);
 
+  let cleaned = false;
+  const cleanUp = () => {
+    if (cleaned) return;
+    cleaned = true;
+    veil.removeEventListener("transitionend", cleanUp);
+    if (veil.parentNode) {
+      veil.parentNode.removeChild(veil);
+    }
+    onComplete?.();
+  };
+
   // 触发硬件加速淡出消散
   requestAnimationFrame(() => {
     veil.style.opacity = "0";
-
-    const cleanUp = () => {
-      veil.removeEventListener("transitionend", cleanUp);
-      if (veil.parentNode) {
-        veil.parentNode.removeChild(veil);
-      }
-    };
-
     veil.addEventListener("transitionend", cleanUp);
     // 兜底超时移除
     setTimeout(cleanUp, 300);

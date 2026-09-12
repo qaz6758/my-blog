@@ -191,6 +191,8 @@ export function ThemeProvider({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [initialTheme, applyThemeDirect]);
 
+  const isTransitioningRef = React.useRef(false);
+
   /*
    * ============================================================
    * 主题切换分流调度中心：PC 归 PC，手机端归手机端，各司其职
@@ -203,6 +205,24 @@ export function ThemeProvider({
     ) => {
       if (typeof document === "undefined") return;
 
+      // 互斥防抖锁：如果当前正在播放过渡动效（无论是 PC 扩散还是移动端漫染），
+      // 坚决忽略重复连击（彻底根除连击“切两下”导致的 Chromium Blink Compositor 重入与 GPU 崩溃）
+      if (isTransitioningRef.current) {
+        return;
+      }
+
+      isTransitioningRef.current = true;
+
+      // 550ms 兜底安全解锁，防止任何浏览器不可抗力异常导致锁死
+      const releaseTimeout = setTimeout(() => {
+        isTransitioningRef.current = false;
+      }, 550);
+
+      const handleComplete = () => {
+        clearTimeout(releaseTimeout);
+        isTransitioningRef.current = false;
+      };
+
       const root = document.documentElement;
       const isCurrentlyDark = root.classList.contains("dark");
       const nextTheme: Theme = isCurrentlyDark ? "light" : "dark";
@@ -213,6 +233,7 @@ export function ThemeProvider({
           nextTheme,
           applyThemeDirect,
           options,
+          onComplete: handleComplete,
         });
       } else {
         // [PC 桌面端通道]：调用专属精准指针日光波纹引擎
@@ -221,6 +242,7 @@ export function ThemeProvider({
           applyThemeDirect,
           event,
           options,
+          onComplete: handleComplete,
         });
       }
     },
