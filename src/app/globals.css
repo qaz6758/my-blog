@@ -703,7 +703,15 @@ html.dark :focus-visible {
  */
 
 ::view-transition {
-  background: var(--background) !important;
+  background: transparent !important;
+}
+
+html.light::view-transition {
+  background-color: #ede7dc !important;
+}
+
+html.dark::view-transition {
+  background-color: #111213 !important;
 }
 
 ::view-transition-old(root),

@@ -74,7 +74,7 @@ export function Playlist({
 
   return (
     <div className="w-full relative">
-      <AnimatePresence mode="popLayout" initial={false}>
+      <AnimatePresence mode="wait" initial={false}>
         {!selectedPlaylistId ? (
           /* ===================== 1. 宽屏画廊网格 ===================== */
           <motion.div
