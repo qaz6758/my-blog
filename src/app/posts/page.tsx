@@ -2,7 +2,6 @@
 import { fetchPosts } from '@/lib/data';
 import { PostsListClient, PostItem } from '@/components/post/PostsListClient';
 import { SlideEnter } from '@/components/layout/SlideEnter';
-import { WaterArchiveBackground } from '@/components/effects/WaterArchiveBackground';
 
 export const revalidate = 60;
 
@@ -11,9 +10,6 @@ export default async function PostsPage() {
 
   return (
     <div className="relative min-h-screen w-full">
-      {/* 方案C真实水晕漫射与水纹等高线柔焦背景 */}
-      <WaterArchiveBackground />
-
       <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 pt-20 pb-20">
         {/* 顶部通栏标题 (Option C Header Bar) */}
         <SlideEnter stage={1} className="pb-6 border-b border-black/[0.08] dark:border-white/[0.08] mb-2">
