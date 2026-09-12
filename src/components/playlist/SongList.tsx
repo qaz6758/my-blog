@@ -132,15 +132,22 @@ export function SongList({
                           referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
+                            if (target.dataset.errorCount === "2") {
+                              target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                              return;
+                            }
+                            if (target.dataset.errorCount === "1") {
+                              target.dataset.errorCount = "2";
+                              target.src = FALLBACK_SONG_COVER;
+                              return;
+                            }
+                            target.dataset.errorCount = "1";
                             if (isNetease && rawCover) {
                               const wsrvFallback = `https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=120&h=120&fit=cover`;
-                              const proxyFallback = getProxyImageUrl(wsrvFallback);
-                              if (target.src !== proxyFallback) {
-                                target.src = proxyFallback;
-                                return;
-                              }
+                              target.src = getProxyImageUrl(wsrvFallback);
+                            } else {
+                              target.src = FALLBACK_SONG_COVER;
                             }
-                            target.src = FALLBACK_SONG_COVER;
                           }}
                           className="h-full w-full object-cover transition-opacity duration-150"
                         />

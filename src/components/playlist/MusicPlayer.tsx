@@ -39,6 +39,20 @@ function handleMusicCoverError(
   size = 120
 ) {
   const target = e.target as HTMLImageElement;
+  
+  if (target.dataset.errorCount === "2") {
+    // Stop the infinite loop, show a transparent pixel or do nothing
+    target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    return;
+  }
+  
+  if (target.dataset.errorCount === "1") {
+    target.dataset.errorCount = "2";
+    target.src = FALLBACK_COVER;
+    return;
+  }
+  
+  target.dataset.errorCount = "1";
   if (
     originalUrl &&
     originalUrl.includes("music.126.net") &&

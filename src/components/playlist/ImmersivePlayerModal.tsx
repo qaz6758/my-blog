@@ -146,14 +146,21 @@ export function ImmersivePlayerModal({
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (raw && raw.includes("music.126.net")) {
-                          const fallbackUrl = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=640&h=640&fit=cover`);
-                          if (target.src !== fallbackUrl) {
-                            target.src = fallbackUrl;
-                            return;
-                          }
+                        if (target.dataset.errorCount === "2") {
+                          target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                          return;
                         }
-                        target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+                        if (target.dataset.errorCount === "1") {
+                          target.dataset.errorCount = "2";
+                          target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+                          return;
+                        }
+                        target.dataset.errorCount = "1";
+                        if (raw && raw.includes("music.126.net")) {
+                          target.src = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(raw)}&w=640&h=640&fit=cover`);
+                        } else {
+                          target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+                        }
                       }}
                       className="h-full w-full object-cover"
                     />

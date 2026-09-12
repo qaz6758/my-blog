@@ -214,17 +214,14 @@ export function PostsListClient({
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content space-y-14">
         {/* 置顶精选专栏 (Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
-          <section className="relative mb-12">
-            <SlideEnter stage={3} className="relative mb-4 flex items-center gap-2 select-none">
-              <span className="flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
-                <Pin className="h-3 w-3 -rotate-45" />
-              </span>
-              <h2 className="text-xs font-semibold tracking-wider uppercase text-amber-700/90 dark:text-amber-400/90 font-mono">
-                置顶精选 / Featured
+          <section className="relative mb-10">
+            <SlideEnter stage={3} className="relative mb-4 flex items-center select-none">
+              <h2 className="relative text-lg font-medium tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-xl">
+                置顶
               </h2>
             </SlideEnter>
 
-            <div className="space-y-3">
+            <div className="space-y-1">
               {pinnedPosts.map((post, index) => {
                 const date = post.published_at || post.created_at;
                 const readTime = getReadTime(post);
@@ -235,70 +232,65 @@ export function PostsListClient({
                     key={post.id}
                     stage={3 + index}
                     stagger={25}
-                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 60px" }}
+                    style={{ contentVisibility: "auto", containIntrinsicSize: "0 45px" }}
                   >
                     <Link
                       href={targetLink}
                       className="
                         group
-                        relative
-                        block
-                        rounded-xl
-                        border
-                        border-amber-500/20
-                        dark:border-amber-400/20
-                        bg-amber-500/[0.03]
-                        dark:bg-amber-400/[0.03]
-                        hover:border-amber-500/40
-                        dark:hover:border-amber-400/40
-                        hover:bg-amber-500/[0.06]
-                        dark:hover:bg-amber-400/[0.06]
-                        p-4 sm:p-5
-                        transition-all
-                        duration-300
-                        ease-out
+                        flex
+                        items-baseline
+                        justify-between
+                        gap-4
+                        py-2.5
                         cursor-pointer
                       "
                     >
-                      <div className="flex items-baseline justify-between gap-4">
-                        <div className="flex flex-wrap items-center gap-2.5">
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-500/15 dark:bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300 select-none">
-                            <Pin className="h-2.5 w-2.5 -rotate-45" />
-                            置顶
-                          </span>
-
-                          <h3 className="
+                      <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
+                        <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-900 dark:text-[#eae5dc] opacity-30 group-hover:opacity-100 transition-opacity" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
+                        <span
+                          className="
                             text-[15px]
-                            sm:text-[16px]
                             font-semibold
                             leading-snug
                             text-neutral-900
                             dark:text-[#eae5dc]
-                            group-hover:text-amber-700
-                            dark:group-hover:text-amber-300
+                            group-hover:text-[#b91c1c]
+                            dark:group-hover:text-white
                             transition-colors
-                          ">
-                            {post.title}
-                          </h3>
+                            ease-out
+                            antialiased
+                            sm:text-[16px]
+                            sm:leading-relaxed
+                          "
+                          style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                        >
+                          {post.title}
+                        </span>
 
-                          {post.category && (
-                            <span className="hidden sm:inline rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-600 dark:text-neutral-300 opacity-60">
-                              {post.category}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="shrink-0 flex items-center gap-3 font-mono text-xs text-neutral-400 dark:text-neutral-500 tabular-nums">
-                          {readTime && <span className="hidden sm:inline">{readTime}m</span>}
-                          <span>{formatDate(date, false)}</span>
-                        </div>
+                        {post.category && !activeCategory && (
+                          <span 
+                            className="hidden shrink-0 rounded border border-black/[0.08] dark:border-white/[0.08] px-1.5 py-0.5 text-[10px] font-normal text-neutral-900 dark:text-[#eae5dc] opacity-45 group-hover:opacity-80 transition-opacity sm:inline"
+                            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                          >
+                            {post.category}
+                          </span>
+                        )}
                       </div>
 
-                      {post.summary && (
-                        <p className="mt-2 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400 line-clamp-2">
-                          {post.summary}
-                        </p>
-                      )}
+                      <div 
+                        className="flex shrink-0 items-center gap-3 font-mono text-xs text-neutral-900 dark:text-[#eae5dc] opacity-40 group-hover:opacity-75 transition-opacity tabular-nums"
+                        style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                      >
+                        {readTime && (
+                          <span className="hidden sm:inline">
+                            {readTime}m
+                          </span>
+                        )}
+                        <span>
+                          {formatDate(date, false)}
+                        </span>
+                      </div>
                     </Link>
                   </SlideEnter>
                 );

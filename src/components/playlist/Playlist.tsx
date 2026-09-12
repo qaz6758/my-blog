@@ -109,17 +109,24 @@ export function Playlist({
                           referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
+                            if (target.dataset.errorCount === "2") {
+                              target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                              return;
+                            }
+                            if (target.dataset.errorCount === "1") {
+                              target.dataset.errorCount = "2";
+                              target.src = FALLBACK_COVER;
+                              return;
+                            }
+                            target.dataset.errorCount = "1";
                             if (
                               rawCover &&
                               rawCover.includes("music.126.net")
                             ) {
-                              const fallbackUrl = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`);
-                              if (target.src !== fallbackUrl) {
-                                target.src = fallbackUrl;
-                                return;
-                              }
+                              target.src = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`);
+                            } else {
+                              target.src = FALLBACK_COVER;
                             }
-                            target.src = FALLBACK_COVER;
                           }}
                           className="h-full w-full object-cover transition-transform group-hover:grayscale-[20%]"
                           style={{ transitionDuration: "var(--realm-motion-duration)" }}
@@ -189,17 +196,24 @@ export function Playlist({
                           referrerPolicy="no-referrer"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
+                            if (target.dataset.errorCount === "2") {
+                              target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                              return;
+                            }
+                            if (target.dataset.errorCount === "1") {
+                              target.dataset.errorCount = "2";
+                              target.src = FALLBACK_COVER;
+                              return;
+                            }
+                            target.dataset.errorCount = "1";
                             if (
                               rawHeroCover &&
                               rawHeroCover.includes("music.126.net")
                             ) {
-                              const fallbackUrl = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawHeroCover)}&w=640&h=640&fit=cover`);
-                              if (target.src !== fallbackUrl) {
-                                target.src = fallbackUrl;
-                                return;
-                              }
+                              target.src = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawHeroCover)}&w=640&h=640&fit=cover`);
+                            } else {
+                              target.src = FALLBACK_COVER;
                             }
-                            target.src = FALLBACK_COVER;
                           }}
                           className="h-full w-full object-cover"
                         />
