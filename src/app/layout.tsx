@@ -60,7 +60,7 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
+      className={`bg-[#ede7dc] dark:bg-[#111213] ${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
     >
       <head>
         {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}

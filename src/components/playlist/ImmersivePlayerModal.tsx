@@ -118,11 +118,11 @@ export function ImmersivePlayerModal({
           <NeatFluidBackground coverUrl={activeCover} />
 
           {/* ================= 2. 顶部导航操作栏 (极简纯白无底圈 X 图标) ================= */}
-          <div className="relative z-10 flex items-center justify-between px-6 sm:px-12 pt-6 sm:pt-8">
+          <div className="relative z-10 flex items-center justify-between px-6 sm:px-12 pt-[max(1.25rem,env(safe-area-inset-top))] sm:pt-8 pb-1">
             <button
               type="button"
               onClick={onClose}
-              className="text-white/60 hover:text-white transition-opacity p-2 -ml-2 cursor-pointer"
+              className="text-white/70 hover:text-white transition-opacity p-2 -ml-2 cursor-pointer"
               title="关闭全屏 (Esc)"
             >
               <X className="h-6 w-6 stroke-[2]" />
@@ -130,18 +130,18 @@ export function ImmersivePlayerModal({
           </div>
 
           {/* ================= 3. Apple 官方同款 CSS Grid 排版引擎容器 ================= */}
-          <article className="relative z-10 flex-1 w-full grid grid-cols-[minmax(0,600px)] justify-center items-center px-6 sm:px-8 py-2">
+          <article className="relative z-10 flex-1 w-full grid grid-cols-[minmax(0,540px)] justify-center items-center px-6 sm:px-8 py-2 overflow-y-auto sm:overflow-y-visible">
             <div
               data-testid="lyrics-controls"
-              className="w-full grid grid-cols-[minmax(0,100%)] justify-items-center gap-y-5 sm:gap-y-6"
+              className="w-full grid grid-cols-[minmax(0,100%)] justify-items-center gap-y-3.5 sm:gap-y-5 md:gap-y-6"
             >
-              {/* 巨幅专辑封面 (Apple 官方 600px 网格自适应大尺寸 + 20px 唱片圆角 + 深度投影) */}
+              {/* 巨幅专辑封面 (自适应视口比例，移动端不撑破视口 + 唱片圆角 + 深度投影) */}
               <motion.div
                 initial={{ scale: 0.92, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.92, opacity: 0 }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="relative aspect-square w-full max-w-[480px] sm:max-w-[540px] rounded-[18px] sm:rounded-[22px] overflow-hidden shadow-[0_30px_80px_-15px_rgba(0,0,0,0.85)] ring-1 ring-white/15 justify-self-center"
+                className="relative aspect-square w-[68vw] max-w-[270px] sm:w-full sm:max-w-[460px] md:max-w-[520px] rounded-[16px] sm:rounded-[22px] overflow-hidden shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85)] sm:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.85)] ring-1 ring-white/15 justify-self-center"
               >
                 <img
                   src={activeCover}
@@ -161,9 +161,9 @@ export function ImmersivePlayerModal({
               </motion.div>
 
               {/* 歌曲信息 (网格轨道 100% 等宽左对齐排版) */}
-              <div className="w-full max-w-[480px] sm:max-w-[540px] justify-self-center">
+              <div className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] justify-self-center">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl sm:text-[23px] font-bold text-white tracking-tight truncate leading-tight">
+                  <h2 className="text-lg sm:text-xl md:text-[23px] font-bold text-white tracking-tight truncate leading-tight">
                     {currentSong.title}
                   </h2>
                   {currentSong.explicit && (
@@ -172,13 +172,13 @@ export function ImmersivePlayerModal({
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-sm sm:text-[15px] font-medium text-white/65 truncate">
+                <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm md:text-[15px] font-medium text-white/65 truncate">
                   {currentSong.artist} — {currentSong.album || currentSong.title}
                 </p>
               </div>
 
               {/* 极简流线进度条 (带纯白圆点滑块 Thumb + 0:04 / -1:26 格式) */}
-              <div className="w-full max-w-[480px] sm:max-w-[540px] justify-self-center">
+              <div className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] justify-self-center">
                 <div className="relative flex items-center group/prog cursor-pointer">
                   {/* 底槽与已播放进度 (极细 2.5px 粗细) */}
                   <div className="w-full h-[2.5px] sm:h-[3px] rounded-full bg-white/20 overflow-hidden">
@@ -285,7 +285,7 @@ export function ImmersivePlayerModal({
               </div>
 
               {/* 底部音量调节条 (粗细 1:1 匹配上方进度条，带纯白圆点滑块，与中轴严格等宽) */}
-              <div className="w-full max-w-[480px] sm:max-w-[540px] flex items-center gap-3 text-white/60 justify-self-center pt-1">
+              <div className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] flex items-center gap-3 text-white/60 justify-self-center pt-0.5 sm:pt-1">
                 {/* 左侧极简小喇叭 */}
                 <button
                   type="button"
@@ -334,8 +334,8 @@ export function ImmersivePlayerModal({
             </div>
           </article>
 
-          {/* 4. 底部留白平衡 */}
-          <div className="h-4 sm:h-8" />
+          {/* 4. 底部留白平衡 (适配 safe-area) */}
+          <div className="h-[max(1rem,env(safe-area-inset-bottom))] sm:h-8" />
         </motion.div>
       )}
     </AnimatePresence>

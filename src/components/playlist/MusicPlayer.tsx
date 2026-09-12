@@ -333,13 +333,13 @@ export function MusicPlayer({
       <aside
         style={{
           position: "fixed",
-          bottom: "calc(env(safe-area-inset-bottom, 0px) + 20px)",
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 14px)",
           left: 0,
           right: 0,
           top: "auto",
           zIndex: 9999,
         }}
-        className="flex justify-center px-3 sm:px-6 pointer-events-none select-none antialiased"
+        className="flex justify-center px-2 sm:px-6 pointer-events-none select-none antialiased"
       >
         <div
           ref={listRef}
@@ -520,10 +520,10 @@ export function MusicPlayer({
                 opacity: { duration: isCollapsed ? 0.14 : 0.28, delay: isCollapsed ? 0 : 0.05 },
                 scale: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
               }}
-              className="relative flex h-full w-full min-w-[320px] sm:min-w-[620px] items-center justify-between gap-2 sm:gap-4 px-2.5 sm:px-4 z-10"
+              className="relative flex h-full w-full sm:min-w-[620px] items-center justify-between gap-1.5 sm:gap-4 px-2 sm:px-4 z-10"
             >
               {/* 移动端左侧：封面与歌曲信息 */}
-              <div className="flex sm:hidden flex-1 items-center gap-2.5 min-w-0 pr-1">
+              <div className="flex sm:hidden flex-1 items-center gap-2 min-w-0 pr-1 overflow-hidden">
                 <div
                   onClick={() => setIsExpanded(true)}
                   className="group/cover relative h-8 w-8 rounded-[4.5px] overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-sm cursor-pointer active:scale-95 transition-transform"
@@ -564,9 +564,9 @@ export function MusicPlayer({
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col min-w-0">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`truncate font-semibold text-[13px] tracking-tight leading-none transition-colors duration-300 ${
+                <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className={`truncate font-semibold text-[12px] sm:text-[13px] tracking-tight leading-none transition-colors duration-300 ${
                       isPlaying
                         ? "champloo-text-gold"
                         : "text-neutral-900 dark:text-white"
@@ -738,27 +738,27 @@ export function MusicPlayer({
                 </div>
               </div>
 
-              {/* 移动端右侧：轻量化播放控制组 */}
-              <div className="flex sm:hidden relative z-10 items-center gap-1 shrink-0 text-neutral-800 dark:text-white">
+              {/* 移动端右侧：轻量化播放控制组 (精细紧凑布局，杜绝窄屏右侧裁切) */}
+              <div className="flex sm:hidden relative z-10 items-center gap-0.5 shrink-0 text-neutral-800 dark:text-white">
                 <button
                   type="button"
                   onClick={onPrev}
                   className="p-1 text-neutral-700 dark:text-white/80 active:scale-90 transition-transform cursor-pointer"
                   title="上一首"
                 >
-                  <SkipBack className="h-4 w-4 fill-current stroke-none" />
+                  <SkipBack className="h-3.5 w-3.5 fill-current stroke-none" />
                 </button>
 
                 <button
                   type="button"
                   onClick={onTogglePlay}
-                  className="p-1.5 text-neutral-900 dark:text-white active:scale-95 transition-transform cursor-pointer rounded-full bg-black/5 dark:bg-white/10"
+                  className="p-1 text-neutral-900 dark:text-white active:scale-95 transition-transform cursor-pointer rounded-full bg-black/5 dark:bg-white/10"
                   title={isPlaying ? "暂停" : "播放"}
                 >
                   {isPlaying ? (
-                    <Pause className="h-4 w-4 fill-current stroke-none" />
+                    <Pause className="h-3.5 w-3.5 fill-current stroke-none" />
                   ) : (
-                    <Play className="ml-0.5 h-4 w-4 fill-current stroke-none" />
+                    <Play className="ml-0.5 h-3.5 w-3.5 fill-current stroke-none" />
                   )}
                 </button>
 
@@ -768,7 +768,7 @@ export function MusicPlayer({
                   className="p-1 text-neutral-700 dark:text-white/80 active:scale-90 transition-transform cursor-pointer"
                   title="下一首"
                 >
-                  <SkipForward className="h-4 w-4 fill-current stroke-none" />
+                  <SkipForward className="h-3.5 w-3.5 fill-current stroke-none" />
                 </button>
 
                 <button
@@ -784,7 +784,7 @@ export function MusicPlayer({
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="h-4 w-4"
+                    className="h-3.5 w-3.5"
                   >
                     <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2zm14-1v6l5-3-5-3z" />
                   </svg>

@@ -65,7 +65,7 @@ export function Navbar() {
             aria-label="回到首页"
           >
             <div 
-              className="relative h-9 w-9 sm:h-10 sm:w-10 overflow-hidden rounded-xl border border-black/[0.07] dark:border-white/10 bg-neutral-100 dark:bg-[#201e1b] shadow-2xs transition-all group-hover:scale-[1.03] group-hover:border-black/15 dark:group-hover:border-white/20"
+              className="relative h-9 w-9 sm:h-10 sm:w-10 overflow-hidden rounded-full border border-black/[0.08] dark:border-white/15 bg-neutral-100 dark:bg-[#201e1b] shadow-2xs transition-all group-hover:scale-[1.03] group-hover:border-black/15 dark:group-hover:border-white/25 shrink-0"
               style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
             >
               <img

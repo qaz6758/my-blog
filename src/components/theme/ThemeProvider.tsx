@@ -121,21 +121,6 @@ function updateMetaColorScheme(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   try {
-    let meta = document.querySelector(
-      'meta[name="color-scheme"]'
-    );
-
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.setAttribute("name", "color-scheme");
-      document.head.appendChild(meta);
-    }
-
-    meta.setAttribute(
-      "content",
-      newTheme === "dark" ? "dark" : "only light"
-    );
-
     let themeColorMeta = document.querySelector(
       'meta[name="theme-color"]'
     );
@@ -187,17 +172,15 @@ export function ThemeProvider({
     /*
      * DOM class 优先更新。
      *
-     * View Transition 捕获页面快照时，需要先保证 html 的
-     * dark/light 状态已经正确。
+     * 依赖 CSS 原生 color-scheme 规则，绝不频繁改写 style.colorScheme，
+     * 消除移动端 Chromium/WebKit 内核因 Compositor Layer 重构导致的整屏白屏/黑屏闪烁。
      */
     if (newTheme === "dark") {
       root.classList.add("dark");
       root.classList.remove("light");
-      root.style.colorScheme = "dark";
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
-      root.style.colorScheme = "only light";
     }
 
     setThemeState(newTheme);
@@ -223,21 +206,18 @@ export function ThemeProvider({
       }
 
       /*
-       * 只负责普通 background/color transition。
+       * 只负责骨干容器平滑渐变。
        *
-       * 不依赖 View Transition，因此旧设备、浏览器不支持
-       * startViewTransition 时依然可以平滑切换。
+       * 不依赖 View Transition，因此移动端或旧设备切换时依然柔和自然。
        */
       root.classList.add("theme-smooth-transition");
 
       if (newTheme === "dark") {
         root.classList.add("dark");
         root.classList.remove("light");
-        root.style.colorScheme = "dark";
       } else {
         root.classList.remove("dark");
         root.classList.add("light");
-        root.style.colorScheme = "only light";
       }
 
       setThemeState(newTheme);
