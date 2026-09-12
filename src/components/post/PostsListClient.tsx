@@ -308,6 +308,7 @@ export function PostsListClient({
                     >
                       <Link
                         href={targetLink}
+                        prefetch={false}
                         title={post.title}
                         className="
                           group flex items-center py-3.5
@@ -365,6 +366,7 @@ export function PostsListClient({
                     const postItem = (
                       <Link
                         href={targetLink}
+                        prefetch={false}
                         title={post.title}
                         className="
                           group flex items-center py-3.5

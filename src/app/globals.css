@@ -982,3 +982,12 @@ html.view-transition-active *::after {
     );
   box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.65);
 }
+
+/* ============================================================
+ * View Transition 原生动画复位：防止黑色合成层穿透
+ * ============================================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}

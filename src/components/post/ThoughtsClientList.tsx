@@ -258,6 +258,7 @@ export function ThoughtsClientList({
               {/* 查看入口 */}
               <Link
                 href={`/thoughts/${item.id}`}
+                prefetch={false}
                 className="flex items-center gap-1 hover:text-[#b91c1c] dark:hover:text-white transition-colors"
                 style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
               >

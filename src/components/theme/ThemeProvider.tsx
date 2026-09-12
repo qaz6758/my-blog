@@ -348,11 +348,20 @@ export function ThemeProvider({
           "(prefers-reduced-motion: reduce)"
         ).matches;
 
+      const isMobile =
+        typeof window !== "undefined" &&
+        (window.innerWidth < 768 ||
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          ) ||
+          ("ontouchstart" in window && window.innerWidth < 1024));
+
       /*
-       * 用户主动要求关闭动画，或者浏览器不支持 View Transition，
-       * 使用普通平滑渐变。
+       * 移动端（iOS/Android WebView）：直接使用超流畅的 CSS 平滑过渡。
+       * 彻底消除移动端 GPU 在 View Transition 执行动态圆 clip-path 时发生的瓦片合成丢失（黑块闪烁）。
+       * 用户主动要求关闭动画，或者浏览器不支持 View Transition，使用普通平滑渐变。
        */
-      if (options?.disableAnimation || !hasViewTransitions) {
+      if (options?.disableAnimation || !hasViewTransitions || isMobile) {
         applyThemeWithSmoothTransition(nextTheme);
         return;
       }

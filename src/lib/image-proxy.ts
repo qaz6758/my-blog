@@ -11,10 +11,11 @@ export function getProxyImageUrl(url?: string | null): string {
   if (trimmed.startsWith('data:')) return trimmed;
   if (trimmed.includes('/img/?url=')) return trimmed;
 
-  // 网易云音乐的 CDN 在国内非常快，并且只要加了 referrerPolicy="no-referrer" 就不会防盗链。
-  // 如果通过 Cloudflare Worker 反代，反而会绕路到国外节点，导致移动端 WiFi 加载出黑块甚至彻底失败。
+  // 网易云音乐直连常常会因客户端防盗链或网络 TLS 握手重置导致 net::ERR_CONNECTION_CLOSED
+  // 通过全球 CDN wsrv.nl (Cloudflare 边缘缓存节点) 自动剥离 Referer 并分发，彻底消除连接被关闭报错
   if (trimmed.includes('126.net') || trimmed.includes('163.com')) {
-    return trimmed;
+    if (trimmed.includes('wsrv.nl') || trimmed.includes('weserv.nl')) return trimmed;
+    return `https://wsrv.nl/?url=${encodeURIComponent(trimmed)}&af`;
   }
 
   return `https://cdn.vinceou.site/img/?url=${encodeURIComponent(trimmed)}`;
