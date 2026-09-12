@@ -212,16 +212,16 @@ export function PostsListClient({
 
       {/* 年份文章列表 */}
       <div key={`${activeCategory}-${activeTag}`} className="slide-enter-content max-w-4xl mx-auto w-full">
-        {/* 置顶Pinned专栏 (Pinned & Featured) */}
+        {/* 置顶精选专栏 (Pinned & Featured) */}
         {pinnedPosts.length > 0 && (
-          <section className="relative mb-8">
-            <SlideEnter stage={3} className="py-2 mb-1">
-              <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
-                精选
+          <section className="mb-14">
+            <SlideEnter stage={3}>
+              <h2 className="font-serif text-2xl font-medium tracking-wide text-neutral-900 dark:text-neutral-100 mb-4 px-2">
+                Pinned
               </h2>
             </SlideEnter>
 
-            <div className="flex-col space-y-0">
+            <div className="flex-col">
               {pinnedPosts.map((post, index) => {
                 const date = post.published_at || post.created_at;
                 const readTime = getReadTime(post);
@@ -240,36 +240,37 @@ export function PostsListClient({
                         group
                         flex
                         flex-col
-                        py-3
+                        py-3.5
+                        px-2
                         cursor-pointer
-                        border-b border-black/[0.04] dark:border-white/[0.04]
-                        transition-transform
-                        hover:translate-x-[2px]
+                        border-b border-black/[0.05] dark:border-white/[0.05]
                       "
                     >
-                      <div className="flex items-baseline gap-4 sm:gap-6 min-w-0">
-                        <span className="w-[4.5rem] shrink-0 font-mono text-[13px] text-neutral-400/80 dark:text-neutral-500/80 tabular-nums">
+                      <div className="flex items-baseline gap-5">
+                        <span className="w-[4.5rem] shrink-0 font-mono text-[13px] text-neutral-400 dark:text-neutral-500 tabular-nums uppercase">
                           {formatDate(date, false)}
                         </span>
                         
-                        <div className="flex min-w-0 items-start gap-2">
-                          <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 opacity-50 mt-1" />
-                          <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] ">
-                            {post.title}
-                          </h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2 mb-1.5">
+                            <Pin className="h-3.5 w-3.5 shrink-0 -rotate-45 text-neutral-400 dark:text-neutral-500 mt-1" />
+                            <h3 className="text-[17px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc]">
+                              {post.title}
+                            </h3>
+                          </div>
+                          
+                          <div className="font-mono text-[11px] text-neutral-500/70 dark:text-neutral-400/70 tracking-wide pl-5">
+                            {post.category && !activeCategory && (
+                              <span>{post.category}</span>
+                            )}
+                            {post.category && !activeCategory && readTime && (
+                              <span className="mx-1.5">·</span>
+                            )}
+                            {readTime && (
+                              <span>{readTime} min</span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pl-[5.5rem] sm:pl-[6rem] mt-1.5 font-mono text-[11px] sm:text-[12px] text-neutral-400/70 dark:text-neutral-500/70 tracking-wide">
-                        {post.category && !activeCategory && (
-                          <span>{post.category}</span>
-                        )}
-                        {post.category && !activeCategory && readTime && (
-                          <span>·</span>
-                        )}
-                        {readTime && (
-                          <span>{readTime} min</span>
-                        )}
                       </div>
                     </Link>
                   </SlideEnter>
@@ -283,14 +284,14 @@ export function PostsListClient({
           const yearPosts = postsByYear[year];
 
           return (
-            <section key={year} className="relative mb-8">
-              <SlideEnter stage={3} className="py-2 mb-1">
-                <h2 className="font-serif text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
+            <section key={year} className="mb-14">
+              <SlideEnter stage={3}>
+                <h2 className="font-serif text-2xl font-medium tracking-wide text-neutral-900 dark:text-neutral-100 mb-4 px-2">
                   {year}
                 </h2>
               </SlideEnter>
 
-              <div className="flex-col space-y-0">
+              <div className="flex-col">
                 {yearPosts.map((post, index) => {
                   const date = post.published_at || post.created_at;
                   const readTime = getReadTime(post);
@@ -304,33 +305,34 @@ export function PostsListClient({
                         group
                         flex
                         flex-col
-                        py-3
+                        py-3.5
+                        px-2
                         cursor-pointer
-                        border-b border-black/[0.04] dark:border-white/[0.04]
-                        transition-transform
-                        hover:translate-x-[2px]
+                        border-b border-black/[0.05] dark:border-white/[0.05]
                       "
                     >
-                      <div className="flex items-baseline gap-4 sm:gap-6 min-w-0">
-                        <span className="w-[4.5rem] shrink-0 font-mono text-[13px] text-neutral-400/80 dark:text-neutral-500/80 tabular-nums">
+                      <div className="flex items-baseline gap-5">
+                        <span className="w-[4.5rem] shrink-0 font-mono text-[13px] text-neutral-400 dark:text-neutral-500 tabular-nums uppercase">
                           {formatDate(date, false)}
                         </span>
                         
-                        <h3 className="text-[16px] sm:text-[18px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] ">
-                          {post.title}
-                        </h3>
-                      </div>
-
-                      <div className="flex items-center gap-2 pl-[5.5rem] sm:pl-[6rem] mt-1.5 font-mono text-[11px] sm:text-[12px] text-neutral-400/70 dark:text-neutral-500/70 tracking-wide">
-                        {post.category && !activeCategory && (
-                          <span>{post.category}</span>
-                        )}
-                        {post.category && !activeCategory && readTime && (
-                          <span>·</span>
-                        )}
-                        {readTime && (
-                          <span>{readTime} min</span>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[17px] font-medium leading-relaxed text-neutral-900 dark:text-[#eae5dc] mb-1.5">
+                            {post.title}
+                          </h3>
+                          
+                          <div className="font-mono text-[11px] text-neutral-500/70 dark:text-neutral-400/70 tracking-wide">
+                            {post.category && !activeCategory && (
+                              <span>{post.category}</span>
+                            )}
+                            {post.category && !activeCategory && readTime && (
+                              <span className="mx-1.5">·</span>
+                            )}
+                            {readTime && (
+                              <span>{readTime} min</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   );
