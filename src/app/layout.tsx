@@ -55,6 +55,13 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
           crossOrigin="anonymous"
         />
+        {/* 引入 Cormorant Garamond 与 Cinzel 经典古典西文衬线字体 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap"
+          rel="stylesheet"
+        />
         {/* 首屏零毫秒同步锁定主题脚本 */}
         <script
           dangerouslySetInnerHTML={{

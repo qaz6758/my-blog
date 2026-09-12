@@ -41,11 +41,32 @@
     "KaiTi",
     "Kaiti SC",
     serif;
+
+  --font-serif:
+    "Cormorant Garamond",
+    "LXGW WenKai Screen",
+    Georgia,
+    "Times New Roman",
+    "Songti SC",
+    serif;
+
+  --font-cinzel:
+    "Cinzel",
+    "Cormorant Garamond",
+    serif;
 }
 
 /* 霞鹜文楷国风字体类 */
 .font-wenkai {
   font-family: var(--font-wenkai), "LXGW WenKai Screen", "LXGW WenKai", "霞鹜文楷", "STKaiti", "KaiTi", "Kaiti SC", serif;
+}
+
+.font-serif {
+  font-family: "Cormorant Garamond", "LXGW WenKai Screen", Georgia, "Times New Roman", "Songti SC", "SimSun", serif;
+}
+
+.font-cinzel {
+  font-family: "Cinzel", "Cormorant Garamond", Georgia, serif;
 }
 
 /*
