@@ -249,10 +249,10 @@ html.dark {
    * 夜行（Vagabond 精神内核）：
    * 江户夜色松烟深炭、玄武案台、月白与素霜，彻底去除高饱和杂质，澄澈留白
    */
-  --realm-bg: #181614;
-  --realm-surface: #22201d;
-  --realm-surface-secondary: #2b2824;
-  --realm-surface-tertiary: #35312c;
+  --realm-bg: #111213;
+  --realm-surface: #191a1b;
+  --realm-surface-secondary: #222325;
+  --realm-surface-tertiary: #2b2c2f;
 
   --realm-border: rgba(255, 255, 255, 0.08);
   --realm-border-strong: rgba(255, 255, 255, 0.14);

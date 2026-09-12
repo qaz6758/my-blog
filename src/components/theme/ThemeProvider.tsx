@@ -148,7 +148,7 @@ function updateMetaColorScheme(newTheme: Theme) {
 
     themeColorMeta.setAttribute(
       "content",
-      newTheme === "dark" ? "#181614" : "#ede7dc"
+      newTheme === "dark" ? "#111213" : "#ede7dc"
     );
   } catch {
     // 忽略异常

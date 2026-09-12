@@ -52,7 +52,7 @@ export function Navbar() {
 
   return (
     <header 
-      className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.04] bg-[#ede7dc] dark:bg-[#181614] select-none transition-colors"
+      className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.06] bg-[#ede7dc]/80 dark:bg-[#111213]/75 backdrop-blur-md select-none transition-colors"
       style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
     >
       {/* 顶部适度收拢容器 (居中对称排版，微缩进) */}
@@ -170,7 +170,7 @@ export function Navbar() {
             initial="closed"
             animate="open"
             exit="closed"
-            className="absolute inset-x-0 top-full md:hidden bg-[#ede7dc] dark:bg-[#181614] px-6 pt-2 pb-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]"
+            className="absolute inset-x-0 top-full md:hidden bg-[#ede7dc]/95 dark:bg-[#111213]/95 backdrop-blur-md px-6 pt-2 pb-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]"
             style={{ 
               // 极弱的底缘背景差，替代生硬的 border
               backgroundImage: isDark ? "linear-gradient(to bottom, rgba(24,22,20,1) 85%, rgba(20,18,16,1) 100%)" : "none"

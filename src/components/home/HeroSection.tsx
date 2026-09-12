@@ -342,7 +342,7 @@ export function HeroSection() {
                 />
 
                 {/* 中心阅读防干扰柔光遮罩 (保证文字与代码徽章黄金易读性) */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#ede7dc]/90 via-[#ede7dc]/58 to-[#ede7dc]/90 dark:from-[#181614]/90 dark:via-[#181614]/62 dark:to-[#181614]/90 " />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#ede7dc]/90 via-[#ede7dc]/58 to-[#ede7dc]/90 dark:from-[#111213]/90 dark:via-[#111213]/62 dark:to-[#111213]/90 " />
               </div>
 
               {/* 正文内容 (黄金阅读尺寸，霞鹜文楷水墨风，行高与画卷舒展和谐) */}

@@ -21,7 +21,7 @@ const SEASON_MAP = {
 const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
 
   return (
-    <footer className="relative w-full select-none overflow-hidden bg-[#ede7dc] dark:bg-[#181614] text-neutral-600 dark:text-neutral-400 transition-colors duration-300 mt-auto">
+    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 transition-colors duration-300 mt-auto">
       {/* 顶部分割线：极淡水墨虚化化境线，无硬切缝隙 */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/[0.04] dark:via-white/[0.04] to-transparent pointer-events-none z-10" />
 

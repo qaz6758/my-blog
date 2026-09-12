@@ -34,7 +34,7 @@ const cormorant = Cormorant_Garamond({
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ede7dc" },
-    { media: "(prefers-color-scheme: dark)", color: "#181614" },
+    { media: "(prefers-color-scheme: dark)", color: "#111213" },
   ],
   colorScheme: "light dark",
 };
@@ -96,7 +96,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="min-h-screen w-full font-sans bg-[#ede7dc] text-[#1e1b18] selection:bg-[#ded5c4] dark:bg-[#181614] dark:text-[#eae5dc] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
+      <body className="min-h-screen w-full font-sans bg-[#ede7dc] text-[#1e1b18] selection:bg-[#ded5c4] dark:bg-[#111213] dark:text-[#eae5dc] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
         <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
