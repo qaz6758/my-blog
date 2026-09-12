@@ -17,6 +17,7 @@ import {
 import { Song } from "@/components/playlist/SongList";
 import { RepeatMode } from "@/components/playlist/MusicContext";
 import { ImmersivePlayerModal } from "@/components/playlist/ImmersivePlayerModal";
+import { preloadSongCoverColors } from "@/components/playlist/NeatFluidBackground";
 import { getProxyImageUrl } from "@/lib/image-proxy";
 
 const FALLBACK_COVER =
@@ -118,6 +119,21 @@ export function MusicPlayer({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 预提取并缓存当前播放歌曲的流体背景主色调，确保全屏展开时 0 延迟秒开真实色彩
+  useEffect(() => {
+    if (!currentSong) return;
+    const raw =
+      currentSong.cover_url ||
+      (currentSong as any).cover ||
+      (currentSong as any).picUrl ||
+      (currentSong as any).coverUrl ||
+      "";
+    const cover = getProxyImageUrl(raw);
+    if (cover) {
+      preloadSongCoverColors(cover);
+    }
+  }, [currentSong]);
 
   // 动态计算收起状态下黑胶唱片平滑靠左吸附的 X 轴偏移量（考虑屏幕响应式安全边距）
   useEffect(() => {

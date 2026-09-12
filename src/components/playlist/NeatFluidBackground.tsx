@@ -8,10 +8,19 @@ interface NeatFluidBackgroundProps {
   coverUrl: string;
 }
 
-const DEFAULT_COLORS = ["#fa2d48", "#3b82f6", "#8b5cf6", "#f59e0b", "#10b981"];
+const DEFAULT_COLORS = ["#0f172a", "#1e1b4b", "#1e293b", "#312e81", "#172554"];
 
 // 内存缓存：记录提取到的颜色
 const colorCache = new Map<string, string[]>();
+
+/**
+ * 提前预提取歌曲封面色彩并写入缓存，消除点击展开瞬间的异步取色等待
+ */
+export function preloadSongCoverColors(url: string) {
+  if (!url) return;
+  if (colorCache.has(url)) return;
+  extractColorsFromImage(url).catch(() => {});
+}
 
 /**
  * 确保图片通过支持 CORS 的低分辨率代理节点加载，防止 Canvas SecurityError (污染) 与加载超时
@@ -219,6 +228,7 @@ async function extractColorsFromImage(rawUrl: string): Promise<string[]> {
 export function NeatFluidBackground({ coverUrl }: NeatFluidBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const neatRef = useRef<NeatGradient | null>(null);
+  const hasExtractedRef = useRef<boolean>(colorCache.has(coverUrl));
   const colorsRef = useRef<string[]>(colorCache.get(coverUrl) || DEFAULT_COLORS);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -230,9 +240,11 @@ export function NeatFluidBackground({ coverUrl }: NeatFluidBackgroundProps) {
     // 先看缓存
     const cached = colorCache.get(coverUrl);
     if (cached) {
+      hasExtractedRef.current = true;
       colorsRef.current = cached;
       if (neatRef.current) {
         neatRef.current.colors = cached.map((c) => ({ color: c, enabled: true }));
+        setIsLoaded(true);
       }
       return;
     }
@@ -240,10 +252,12 @@ export function NeatFluidBackground({ coverUrl }: NeatFluidBackgroundProps) {
     // 异步提取主色调
     extractColorsFromImage(coverUrl).then((extracted) => {
       if (!isMounted || !extracted || extracted.length === 0) return;
+      hasExtractedRef.current = true;
       colorCache.set(coverUrl, extracted);
       colorsRef.current = extracted;
       if (neatRef.current) {
         neatRef.current.colors = extracted.map((c) => ({ color: c, enabled: true }));
+        setIsLoaded(true);
       }
     });
 
@@ -282,7 +296,12 @@ export function NeatFluidBackground({ coverUrl }: NeatFluidBackgroundProps) {
             backgroundColor: "#050508",
             backgroundAlpha: 1,
           });
-          setIsLoaded(true);
+
+          // 关键点：只有在封面专属色彩已就绪时才淡入展示 (opacity-100)
+          // 若取色仍在进行，Canvas 保持 opacity-0，底层透出 100% 契合的封面弥散光，绝不闪现默认色！
+          if (hasExtractedRef.current) {
+            setIsLoaded(true);
+          }
         }
       } catch (err) {
         console.warn("NeatGradient init error:", err);
