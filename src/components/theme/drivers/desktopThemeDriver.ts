@@ -77,14 +77,52 @@ export function runDesktopThemeTransition({
       };
     };
 
-    // 3. 注入 CSS 自定义属性并锚定旧主题类名（杜绝底部次像素或瓦片渲染间隙漏底闪黑块）
+    // 3. 生成跟随波纹同步扩散的柔光圈（彻底柔化剪切硬边，消除机械生硬感）
+    const halo = document.createElement("div");
+    halo.setAttribute("aria-hidden", "true");
+    halo.style.position = "fixed";
+    halo.style.left = `${x - 24}px`;
+    halo.style.top = `${y - 24}px`;
+    halo.style.width = "48px";
+    halo.style.height = "48px";
+    halo.style.borderRadius = "50%";
+    halo.style.pointerEvents = "none";
+    halo.style.zIndex = "999999";
+    halo.style.boxShadow =
+      nextTheme === "dark"
+        ? "0 0 28px 10px rgba(0, 0, 0, 0.45), inset 0 0 16px rgba(0, 0, 0, 0.25)"
+        : "0 0 32px 10px rgba(212, 163, 89, 0.4), inset 0 0 16px rgba(255, 240, 210, 0.4)";
+    halo.style.border =
+      nextTheme === "dark"
+        ? "1.5px solid rgba(255, 255, 255, 0.15)"
+        : "1.5px solid rgba(185, 28, 28, 0.25)";
+
+    document.body.appendChild(halo);
+
+    const scaleTo = (endRadius * 2) / 48;
+    try {
+      halo.animate(
+        [
+          { transform: "scale(0)", opacity: 0.95 },
+          { transform: `scale(${scaleTo * 0.75})`, opacity: 0.55, offset: 0.75 },
+          { transform: `scale(${scaleTo})`, opacity: 0 },
+        ],
+        {
+          duration: 400,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          fill: "forwards",
+        }
+      );
+    } catch {}
+
+    // 4. 注入 CSS 自定义属性并锚定旧主题类名（杜绝底部次像素或瓦片渲染间隙漏底闪黑块）
     const isCurrentlyDark = root.classList.contains("dark");
     const anchorClass = isCurrentlyDark ? "transition-from-dark" : "transition-from-light";
 
     root.style.setProperty("--theme-ripple-x", `${x}px`);
     root.style.setProperty("--theme-ripple-y", `${y}px`);
     root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
-    root.style.setProperty("--theme-ripple-duration", "380ms");
+    root.style.setProperty("--theme-ripple-duration", "400ms");
 
     root.classList.add("view-transition-active", anchorClass);
 
@@ -92,6 +130,9 @@ export function runDesktopThemeTransition({
     const cleanup = () => {
       if (cleaned) return;
       cleaned = true;
+      if (halo.parentNode) {
+        halo.parentNode.removeChild(halo);
+      }
       root.classList.remove("view-transition-active", "transition-from-dark", "transition-from-light");
       root.style.removeProperty("--theme-ripple-x");
       root.style.removeProperty("--theme-ripple-y");

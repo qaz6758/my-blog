@@ -46,17 +46,19 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
           origin: { x, y },
         });
       }}
-      className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] active:scale-95 transition-all cursor-pointer select-none ${className}`}
+      className={`group flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] active:scale-90 transition-transform duration-200 ease-out cursor-pointer select-none ${className}`}
       style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
       title="切换世界（昼行 / 夜行）"
       aria-label="切换世界（昼行 / 夜行）"
     >
       {mounted ? (
-        isDark ? (
-          <Sun className="h-4 w-4 stroke-[1.75]" />
-        ) : (
-          <Moon className="h-4 w-4 stroke-[1.75]" />
-        )
+        <span className="inline-flex items-center justify-center transition-transform duration-500 ease-out transform group-hover:rotate-12 group-active:scale-90">
+          {isDark ? (
+            <Sun className="h-4 w-4 stroke-[1.75] transition-transform duration-500 rotate-0" />
+          ) : (
+            <Moon className="h-4 w-4 stroke-[1.75] transition-transform duration-500 -rotate-12" />
+          )}
+        </span>
       ) : (
         <div className="h-4 w-4" />
       )}
