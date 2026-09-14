@@ -3,6 +3,7 @@ import React from "react";
 import { fetchThoughtsFromNotion } from "@/lib/data";
 import { ThoughtsClientList } from "@/components/post/ThoughtsClientList";
 
+export const dynamic = "force-static";
 export const revalidate = 5;
 
 export const metadata = {

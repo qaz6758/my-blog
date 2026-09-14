@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Cinzel, Cormorant_Garamond } from "next/font/google";
 import "@/app/globals.css";
 
-import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { MusicProvider } from "@/components/playlist/MusicContext";
 import { FrontendShell } from "@/components/layout/FrontendShell";
@@ -32,16 +31,13 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-export async function generateViewport(): Promise<Viewport> {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  const isDark = themeCookie === "dark";
-
-  return {
-    themeColor: isDark ? "#111213" : "#ede7dc",
-    colorScheme: isDark ? "dark" : "only light",
-  };
-}
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ede7dc" },
+    { media: "(prefers-color-scheme: dark)", color: "#111213" },
+  ],
+  colorScheme: "light dark",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -55,29 +51,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  const isDark = themeCookie === "dark";
-  const isLight = themeCookie === "light";
-  const initialThemeClass = isDark ? "dark" : isLight ? "light" : "";
-
   return (
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${initialThemeClass} ${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
-      style={
-        isDark
-          ? { backgroundColor: "#111213", colorScheme: "dark" }
-          : isLight
-          ? { backgroundColor: "#ede7dc", colorScheme: "only light" }
-          : undefined
-      }
+      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
     >
       <head>
         {/* 1. 首屏关键样式：0ms 消除 FOUC 与刷新白屏/黑底闪烁 */}
@@ -179,7 +162,7 @@ export default async function RootLayout({
       </head>
 
       <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
-        <ThemeProvider initialTheme={isDark ? "dark" : isLight ? "light" : undefined}>
+        <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
             <FrontendShell>

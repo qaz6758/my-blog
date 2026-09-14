@@ -1,5 +1,7 @@
 import { HeroSection } from "@/components/home/HeroSection";
 
+export const dynamic = "force-static";
+
 export default function HomePage() {
   return (
     <div className="relative w-full overflow-hidden">
