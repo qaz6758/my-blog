@@ -90,6 +90,10 @@ html.light {
   --page-text: #1e1b18 !important;
 }
 
+html {
+  background-color: var(--page-bg);
+}
+
 body {
   background-color: var(--page-bg);
   color: var(--page-text);
@@ -488,34 +492,43 @@ html.dark :focus-visible {
 }
 
 ::view-transition {
-  background: transparent !important;
+  background-color: var(--page-bg);
 }
 
-html.light::view-transition {
+/* 锚定起始主题底色，杜绝过渡期边缘与瓦片缝隙露出深色底层 */
+html.transition-from-light::view-transition {
   background-color: #ede7dc !important;
 }
 
-html.dark::view-transition {
+html.transition-from-dark::view-transition {
   background-color: #111213 !important;
 }
 
+/* 
+ * 强制根过渡组禁止尺寸变形动画！
+ * 避免移动端（Via / Android WebView）由于底部工具栏/滚动条微小计算差异触发尺寸补间位移，导致底部漏出黑块。
+ */
 ::view-transition-group(root) {
-  animation-duration: var(--theme-ripple-duration, 0.35s) !important;
+  animation: none !important;
+}
+
+/*
+ * 根快照完全覆盖视口，彻底移除 contain: paint！
+ * contain: paint 在 Android Chromium 下强制约束图层边界，会导致移动端视口与底部工具栏交界处的瓦片光栅化被裁剪抛弃，产生黑块。
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
 }
 
 ::view-transition-old(root) {
-  animation: none !important;
-  mix-blend-mode: normal !important;
-  contain: paint !important;
   z-index: 1;
 }
 
 ::view-transition-new(root) {
   z-index: 9999;
   animation: theme-ripple-expand var(--theme-ripple-duration, 0.35s) cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-  mix-blend-mode: normal !important;
-  will-change: clip-path;
-  contain: paint !important;
 }
 
 /*

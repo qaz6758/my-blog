@@ -77,19 +77,22 @@ export function runDesktopThemeTransition({
       };
     };
 
-    // 3. 注入 CSS 自定义属性 (统一由 CSS @keyframes theme-ripple-expand 驱动)
+    // 3. 注入 CSS 自定义属性并锚定旧主题类名（杜绝底部次像素或瓦片渲染间隙漏底闪黑块）
+    const isCurrentlyDark = root.classList.contains("dark");
+    const anchorClass = isCurrentlyDark ? "transition-from-dark" : "transition-from-light";
+
     root.style.setProperty("--theme-ripple-x", `${x}px`);
     root.style.setProperty("--theme-ripple-y", `${y}px`);
     root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
     root.style.setProperty("--theme-ripple-duration", "380ms");
 
-    root.classList.add("view-transition-active");
+    root.classList.add("view-transition-active", anchorClass);
 
     let cleaned = false;
     const cleanup = () => {
       if (cleaned) return;
       cleaned = true;
-      root.classList.remove("view-transition-active");
+      root.classList.remove("view-transition-active", "transition-from-dark", "transition-from-light");
       root.style.removeProperty("--theme-ripple-x");
       root.style.removeProperty("--theme-ripple-y");
       root.style.removeProperty("--theme-ripple-r");
