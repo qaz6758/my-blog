@@ -433,7 +433,7 @@ export function MusicPlayer({
             )}
           </AnimatePresence>
 
-          {/* 播放器胶囊主体 (丝滑物理弹簧容器：展开居中，收起时自动平滑滑向视口最左侧) */}
+          {/* 播放器胶囊主体 (极致流畅硬件加速容器：展开居中，收起时自动平滑滑向视口最左侧) */}
           <motion.div
             initial={false}
             animate={{
@@ -442,16 +442,14 @@ export function MusicPlayer({
                 : "100%",
               x: isCollapsed ? collapsedDeltaX : 0,
             }}
-            whileHover={isCollapsed ? { scale: 1.08 } : undefined}
-            whileTap={isCollapsed ? { scale: 0.93 } : undefined}
+            whileHover={isCollapsed ? { scale: 1.06 } : undefined}
+            whileTap={isCollapsed ? { scale: 0.95 } : undefined}
             transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 25,
-              mass: 0.8,
+              duration: 0.32,
+              ease: [0.16, 1, 0.3, 1],
             }}
-            style={{ willChange: "width, transform" }}
-            className={`pointer-events-auto relative flex h-[54px] sm:h-[60px] items-center rounded-full border border-black/10 dark:border-white/[0.15] bg-white/90 dark:bg-[#18181a]/90 shadow-[0_15px_40px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.8)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-3xl overflow-hidden ${
+            style={{ willChange: "transform" }}
+            className={`pointer-events-auto relative flex h-[54px] sm:h-[60px] items-center rounded-full border border-black/10 dark:border-white/[0.15] bg-white/90 dark:bg-[#18181a]/90 shadow-[0_12px_36px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.8)] dark:shadow-[0_16px_44px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-xl overflow-hidden ${
               isCrtCollapsing ? "animate-crt-collapse" : ""
             } ${isCollapsed ? "cursor-pointer" : ""}`}
             onClick={(e) => {
@@ -476,6 +474,7 @@ export function MusicPlayer({
                 opacity: { duration: isCollapsed ? 0.24 : 0.12, delay: isCollapsed ? 0.04 : 0 },
                 scale: { duration: 0.26, ease: [0.16, 1, 0.3, 1] },
               }}
+              style={{ willChange: "opacity, transform" }}
               className="absolute inset-0 flex items-center justify-center select-none cursor-pointer z-20"
               onClick={(e) => {
                 e.stopPropagation();
@@ -520,7 +519,10 @@ export function MusicPlayer({
                 opacity: { duration: isCollapsed ? 0.14 : 0.28, delay: isCollapsed ? 0 : 0.05 },
                 scale: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
               }}
-              className="relative flex h-full w-full sm:min-w-[620px] items-center justify-between gap-1.5 sm:gap-4 px-2 sm:px-4 z-10"
+              style={{ willChange: "opacity, transform" }}
+              className={`relative flex h-full w-full sm:min-w-[620px] items-center justify-between gap-1.5 sm:gap-4 px-2 sm:px-4 z-10 ${
+                isCollapsed ? "pointer-events-none select-none" : ""
+              }`}
             >
               {/* 移动端左侧：封面与歌曲信息 */}
               <div className="flex sm:hidden flex-1 items-center gap-2 min-w-0 pr-1 overflow-hidden">

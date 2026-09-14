@@ -6,7 +6,6 @@
  * 驱动以点击按钮为圆心的“日光波纹扩散” View Transitions 动效。
  */
 
-import { flushSync } from "react-dom";
 import { ThemeDriverParams } from "../types";
 
 export function runDesktopThemeTransition({
@@ -36,18 +35,27 @@ export function runDesktopThemeTransition({
     return;
   }
 
-  // 1. 计算动画圆心 (以按钮中心或点击坐标为准)
-  let x = window.innerWidth / 2;
-  let y = window.innerHeight / 2;
+  // 1. 计算动画圆心 (优先使用外部传入的精确物理坐标，或以按钮中心为准)
+  let x = options?.origin?.x;
+  let y = options?.origin?.y;
 
-  const target = event?.currentTarget;
-  if (target instanceof HTMLElement) {
-    const rect = target.getBoundingClientRect();
-    x = rect.left + rect.width / 2;
-    y = rect.top + rect.height / 2;
-  } else if (event && typeof event.clientX === "number") {
-    x = event.clientX;
-    y = event.clientY;
+  if (typeof x !== "number" || typeof y !== "number" || (x === 0 && y === 0)) {
+    const target = event?.currentTarget || (event?.target as HTMLElement)?.closest?.("button");
+    if (target instanceof HTMLElement) {
+      const rect = target.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        x = rect.left + rect.width / 2;
+        y = rect.top + rect.height / 2;
+      }
+    } else if (event && typeof event.clientX === "number" && (event.clientX > 0 || event.clientY > 0)) {
+      x = event.clientX;
+      y = event.clientY;
+    }
+  }
+
+  if (typeof x !== "number" || typeof y !== "number" || (x === 0 && y === 0)) {
+    x = window.innerWidth / 2;
+    y = window.innerHeight / 2;
   }
 
   x = Math.max(0, Math.min(window.innerWidth, x));
@@ -72,9 +80,7 @@ export function runDesktopThemeTransition({
     root.classList.add("view-transition-active");
 
     const transition = transitionDoc.startViewTransition(() => {
-      flushSync(() => {
-        applyThemeDirect(nextTheme);
-      });
+      applyThemeDirect(nextTheme);
     });
 
     transition.finished
@@ -95,7 +101,7 @@ export function runDesktopThemeTransition({
           },
           {
             duration: 420,
-            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
             // 严禁在此使用 fill: "both" 或 fill: "forwards"！
             // 在伪元素销毁后挂起 fill 状态会导致 Chromium Blink 合成器野指针崩溃（引发“重新启动 Chrome”）。
             pseudoElement: "::view-transition-new(root)",

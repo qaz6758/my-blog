@@ -9,7 +9,7 @@ import { WaterArchiveBackground } from '@/components/effects/WaterArchiveBackgro
 
 export function FrontendShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col justify-between relative bg-[#ede7dc] dark:bg-[#111213]">
+    <div className="min-h-screen flex flex-col justify-between relative bg-transparent">
       <Suspense fallback={null}>
         <TopProgressBar />
       </Suspense>

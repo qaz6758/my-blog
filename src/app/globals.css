@@ -1,12 +1,9 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 /*
  * ============================================================
  * Tailwind v4 全局字体映射 (@theme)
- *
- * 规范 font-sans 与 font-mono，确保所有组件的字体层级一致。
+ * 规范 font-sans, font-mono, font-wenkai, font-serif, font-cinzel
  * ============================================================
  */
 
@@ -45,11 +42,16 @@
     serif;
 
   --font-serif:
-    var(--font-cormorant),
+    Charter,
+    "Bitstream Charter",
+    "Sitka Text",
+    Georgia,
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Source Serif 4",
     var(--font-wenkai),
     "LXGW WenKai Screen",
-    Georgia,
-    "Times New Roman",
+    "Songti SC",
     serif;
 
   --font-cinzel:
@@ -59,19 +61,6 @@
     serif;
 }
 
-/* 霞鹜文楷国风字体类 */
-.font-wenkai {
-  font-family: var(--font-wenkai), "LXGW WenKai Screen", "LXGW WenKai", "霞鹜文楷", "STKaiti", "KaiTi", "Kaiti SC", serif;
-}
-
-.font-serif {
-  font-family: var(--font-cormorant), var(--font-wenkai), "LXGW WenKai Screen", "Songti SC", Georgia, "Times New Roman", serif;
-}
-
-.font-cinzel {
-  font-family: var(--font-cinzel), var(--font-cormorant), Georgia, serif;
-}
-
 /*
  * ============================================================
  * Tailwind Dark Mode 变体
@@ -79,6 +68,32 @@
  */
 
 @variant dark (&:where(.dark, .dark *));
+
+/*
+ * ============================================================
+ * 全局底色与排印变量规范（消除首屏 FOUC 与刷新闪烁）
+ * ============================================================
+ */
+
+:root {
+  --page-bg: #ede7dc;
+  --page-text: #1e1b18;
+}
+
+html.dark {
+  --page-bg: #111213 !important;
+  --page-text: #eae5dc !important;
+}
+
+html.light {
+  --page-bg: #ede7dc !important;
+  --page-text: #1e1b18 !important;
+}
+
+body {
+  background-color: var(--page-bg);
+  color: var(--page-text);
+}
 
 /*
  * ============================================================
@@ -97,22 +112,6 @@
 html.dark ::selection {
   background: rgba(234, 229, 220, 0.18);
   color: #ffffff;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(136, 136, 136, 0.2);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(136, 136, 136, 0.4);
 }
 
 /*
@@ -185,13 +184,13 @@ html.dark ::selection {
   color: #ffffff;
 }
 
-:root {
-  color-scheme: light dark;
+:root,
+html.light {
+  color-scheme: only light;
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
 
-  /*
-   * 昼行（Samurai Champloo 精神内核）：
-   * 粗粝暖宣纸底、石墨黑字、落款朱砂与青刃，带手作呼吸与微小不对称
-   */
+  /* 昼行：粗粝暖宣纸底、石墨黑字、落款朱砂与青刃 */
   --realm-bg: #ede7dc;
   --realm-surface: #f5efe3;
   --realm-surface-secondary: #eae3d5;
@@ -208,53 +207,21 @@ html.dark ::selection {
   --realm-accent-indigo: #0369a1;
   --realm-accent-gold: #b45309;
 
-  /* 昼行动效节拍（稍快、轻快、利落） */
   --realm-motion-duration: 0.18s;
   --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* 现有设计变量 100% 映射与兼容 */
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-
-  --surface: var(--realm-surface);
-  --surface-secondary: var(--realm-surface-secondary);
-  --surface-tertiary: var(--realm-surface-tertiary);
-
-  --border: var(--realm-border);
-  --border-strong: var(--realm-border-strong);
-
-  --text-primary: var(--realm-ink-primary);
-  --text-secondary: var(--realm-ink-secondary);
-  --text-tertiary: var(--realm-ink-muted);
+  background-color: #ede7dc;
+  color: #1e1b18;
 }
-
-html.light {
-  color-scheme: light !important;
-  forced-color-adjust: none;
-  -webkit-forced-color-adjust: none;
-  --background: #ede7dc !important;
-  --foreground: #1e1b18 !important;
-  background-color: #ede7dc !important;
-  color: #1e1b18 !important;
-}
-
-/*
- * ============================================================
- * Dark Theme（夜行 · Vagabond 精神内核：江户松烟焦炭与深沉夜色）
- * ============================================================
- */
 
 html.dark {
-  color-scheme: dark !important;
+  color-scheme: dark;
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
-  background-color: #111213 !important;
-  color: #eae5dc !important;
 
-  /*
-   * 夜行（Vagabond 精神内核）：
-   * 江户夜色松烟深炭、玄武案台、月白与素霜，彻底去除高饱和杂质，澄澈留白
-   */
+  /* 夜行：江户夜色松烟深炭、玄武案台、月白与素霜 */
   --realm-bg: #111213;
   --realm-surface: #191a1b;
   --realm-surface-secondary: #222325;
@@ -271,24 +238,13 @@ html.dark {
   --realm-accent-indigo: #d6d3d1;
   --realm-accent-gold: #ffffff;
 
-  /* 夜行动效节拍（沉静、舒缓、如呼吸般缓慢柔和） */
   --realm-motion-duration: 0.32s;
   --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
 
-  /* 现有设计变量 100% 映射与兼容 */
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-
-  --surface: var(--realm-surface);
-  --surface-secondary: var(--realm-surface-secondary);
-  --surface-tertiary: var(--realm-surface-tertiary);
-
-  --border: var(--realm-border);
-  --border-strong: var(--realm-border-strong);
-
-  --text-primary: var(--realm-ink-primary);
-  --text-secondary: var(--realm-ink-secondary);
-  --text-tertiary: var(--realm-ink-muted);
+  background-color: #111213;
+  color: #eae5dc;
 }
 
 /*
@@ -299,14 +255,9 @@ html.dark {
 
 html {
   min-height: 100%;
-  background-color: #ede7dc;
-  background: var(--background);
-  color: var(--foreground);
-  color-scheme: light;
-  transition: none;
-
-  /* 彻底消除 Windows/Edge 展开收起画卷时，因纵向滚动条瞬间出现/消失导致居中布局向左抽动 (Layout Shift) */
   scrollbar-gutter: stable;
+  scrollbar-color: #c4c4c4 transparent;
+  scrollbar-width: thin;
 
   /* 核心：提升中英文混排的清晰度与文本渲染引擎质量 */
   text-rendering: optimizeLegibility;
@@ -317,38 +268,23 @@ html {
 
   /* 彻底禁用浏览器算法伪造的假粗体与假斜体，消除字体重影与模糊发虚 */
   font-synthesis: none;
-
-  /* 开启 Inter 的 OpenType 字符优化（对齐数字高度、规范字符基线） */
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "calt";
 }
 
 html.dark {
-  background-color: #111213 !important;
-  color-scheme: dark !important;
+  scrollbar-color: #3a3a3a transparent;
 }
-
-/*
- * ============================================================
- * BODY
- * ============================================================
- */
 
 body {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
   margin: 0;
-
   background: var(--background);
   color: var(--foreground);
-
-  /* 严密的中西文回退链 */
   font-family: var(--font-sans);
-
-  /* 优化中文阅读的行高与字间距 */
   line-height: 1.65;
   letter-spacing: -0.015em;
-
   overflow-x: hidden;
 }
 
@@ -445,130 +381,32 @@ html.dark :focus-visible {
 
 /*
  * ============================================================
- * Surface & Utility Classes
- * ============================================================
- */
-
-.surface {
-  background: var(--surface);
-  border-color: var(--border);
-}
-
-.surface-secondary {
-  background: var(--surface-secondary);
-  border-color: var(--border);
-}
-
-.surface-tertiary {
-  background: var(--surface-tertiary);
-  border-color: var(--border);
-}
-
-.text-primary {
-  color: var(--text-primary);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-}
-
-.text-tertiary {
-  color: var(--text-tertiary);
-}
-
-.bg-page {
-  background: var(--background);
-}
-
-.bg-surface {
-  background: var(--surface);
-}
-
-.bg-surface-secondary {
-  background: var(--surface-secondary);
-}
-
-.border-surface {
-  border-color: var(--border);
-}
-
-.border-surface-strong {
-  border-color: var(--border-strong);
-}
-
-/*
- * ============================================================
- * Anthony Fu 原版 SlideEnter 级联级联算法 (UnoCSS / antfu.me 同款)
+ * 高性能级联入场动画 (GPU 合成器极速执行，无滤镜开销，锁定高刷)
  * ============================================================
  */
 
 @keyframes slide-enter {
   0% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translate3d(0, var(--slide-enter-offset, 14px), 0);
   }
   100% {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
-
-
-.slide-enter-content > * {
-  --enter-stage: 0;
-  animation: slide-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both 1;
-  animation-delay: calc(var(--enter-stage) * 50ms);
+.slide-enter {
+  animation: slide-enter var(--slide-enter-duration, 0.45s) cubic-bezier(0.16, 1, 0.3, 1) both 1;
+  animation-delay: var(--slide-enter-delay, 0ms);
 }
 
-.slide-enter-content > *:nth-child(1) { --enter-stage: 1; }
-.slide-enter-content > *:nth-child(2) { --enter-stage: 2; }
-.slide-enter-content > *:nth-child(3) { --enter-stage: 3; }
-.slide-enter-content > *:nth-child(4) { --enter-stage: 4; }
-.slide-enter-content > *:nth-child(5) { --enter-stage: 5; }
-.slide-enter-content > *:nth-child(6) { --enter-stage: 6; }
-.slide-enter-content > *:nth-child(7) { --enter-stage: 7; }
-.slide-enter-content > *:nth-child(8) { --enter-stage: 8; }
-.slide-enter-content > *:nth-child(9) { --enter-stage: 9; }
-.slide-enter-content > *:nth-child(10) { --enter-stage: 10; }
-.slide-enter-content > *:nth-child(11) { --enter-stage: 11; }
-.slide-enter-content > *:nth-child(12) { --enter-stage: 12; }
-.slide-enter-content > *:nth-child(13) { --enter-stage: 13; }
-.slide-enter-content > *:nth-child(14) { --enter-stage: 14; }
-.slide-enter-content > *:nth-child(15) { --enter-stage: 15; }
-.slide-enter-content > *:nth-child(16) { --enter-stage: 16; }
-.slide-enter-content > *:nth-child(17) { --enter-stage: 17; }
-.slide-enter-content > *:nth-child(18) { --enter-stage: 18; }
-.slide-enter-content > *:nth-child(19) { --enter-stage: 19; }
-.slide-enter-content > *:nth-child(20) { --enter-stage: 20; }
-
 @media (prefers-reduced-motion: reduce) {
-  .slide-enter,
-  .slide-enter-content > * {
+  .slide-enter {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
-}
-
-@supports (padding: max(0px)) {
-  body {
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
-
-/* 仅在主要容器背景上做平滑渐变，坚决不给根节点挂载全局 color 继承过渡（杜绝移动端数千文本节点样式重算掉帧卡顿） */
-.theme-smooth-transition body,
-.theme-smooth-transition header,
-.theme-smooth-transition footer,
-.theme-smooth-transition nav,
-.theme-smooth-transition .surface,
-.theme-smooth-transition .bg-page {
-  transition:
-    background-color 0.2s ease-out,
-    border-color 0.2s ease-out;
-  transition-delay: 0s;
 }
 
 /*
@@ -588,7 +426,6 @@ html.dark :focus-visible {
   /* 日间模式：沉淀发黄的做旧羊皮纸/牛皮纸，带暗角与纹理 */
   background-color: #f7f1e1 !important;
   background-image: 
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.25) 0%, rgba(180, 140, 80, 0.14) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.055'/%3E%3C/svg%3E") !important;
   
   /* 有机不规则手撕毛边 + 真实碎角破损剪裁 */
@@ -621,7 +458,6 @@ html.dark :focus-visible {
   /* 夜行：玄武案台与松烟墨岩质感，与 #181614 暖黑底色浑然一体 */
   background-color: #201e1b !important;
   background-image: 
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.035) 0%, rgba(0, 0, 0, 0.35) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E") !important;
   box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.3) !important;
   filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.35)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
@@ -631,70 +467,6 @@ html.dark :focus-visible {
   filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.45)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
 }
 
-/*
- * ============================================================
- * 仿古竹卷轴与编连经纬纹理 (Bamboo Scroll & Slats Texture)
- * ============================================================
- */
-
-.bamboo-scroll-body {
-  /* 日间模式：温润茶香仿古竹简编连，每枚竹片宽约 32px */
-  background-color: #ede5cf;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.25) 0px,
-      rgba(238, 228, 204, 0.9) 2px,
-      rgba(224, 212, 185, 0.95) 16px,
-      rgba(206, 192, 162, 0.8) 30px,
-      rgba(155, 136, 105, 0.5) 31px,
-      rgba(90, 72, 50, 0.55) 32px
-    );
-  box-shadow:
-    inset 0 10px 24px rgba(120, 90, 50, 0.12),
-    inset 0 -10px 24px rgba(120, 90, 50, 0.12),
-    0 12px 36px rgba(0, 0, 0, 0.06);
-}
-
-.dark .bamboo-scroll-body {
-  /* 深色模式：玄木乌竹 / 沉香墨竹卷轴，冷峻深沉，质地温润如墨玉 */
-  background-color: #232220;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.035) 0px,
-      rgba(42, 40, 38, 0.92) 2px,
-      rgba(36, 34, 32, 0.95) 16px,
-      rgba(28, 27, 25, 0.88) 30px,
-      rgba(14, 13, 12, 0.85) 31px,
-      rgba(7, 7, 6, 0.95) 32px
-    );
-  box-shadow:
-    inset 0 12px 30px rgba(0, 0, 0, 0.4),
-    inset 0 -12px 30px rgba(0, 0, 0, 0.4),
-    0 16px 48px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-.bamboo-cord-line {
-  background-color: #8c7150;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.dark .bamboo-cord-line {
-  background-color: #6d573d;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-}
-
-.bamboo-cord-knot {
-  background-color: #5c442c;
-  border: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.dark .bamboo-cord-knot {
-  background-color: #3d2f1f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
 
 
 
@@ -736,13 +508,10 @@ html.dark::view-transition {
 }
 
 /*
- * 在 View Transition 圆形波纹扩散期间，临时切断全 DOM 树的 CSS transition，
- * 彻底消除移动端与 PC 端样式重算风暴（消除卡顿与闪屏），让 GPU 算力 100% 专供圆形波纹。
+ * 在 View Transition 圆形波纹扩散期间，临时切断根节点 CSS transition，
+ * 避免通用选择器引发的全 DOM 树样式重算风暴（消除移动端掉帧卡顿），让 GPU 算力专供圆形波纹。
  */
-html.view-transition-active,
-html.view-transition-active *,
-html.view-transition-active *::before,
-html.view-transition-active *::after {
+html.view-transition-active {
   transition: none !important;
 }
 
@@ -803,167 +572,7 @@ html.view-transition-active *::after {
   pointer-events: none !important;
 }
 
-/*
- * ============================================================
- * 仿古水墨画卷轴与质感圆木轴头 (Vintage Hanging Scroll & Wooden Rods)
- * ============================================================
- */
 
-/* 1. 圆木横杆本体 (年代陈旧感老檀木/老红木质感) */
-.scroll-rod-body {
-  flex: 1;
-  position: relative;
-  background: linear-gradient(
-    180deg,
-    #221208 0%,
-    #4e2c16 20%,
-    #7a4928 38%,
-    #8e5832 44%,
-    #4d2915 72%,
-    #1c0c05 100%
-  );
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.7);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-}
-
-.scroll-rod-body::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 35px,
-    rgba(0, 0, 0, 0.1) 35px,
-    rgba(0, 0, 0, 0.1) 36px,
-    transparent 36px,
-    transparent 72px,
-    rgba(255, 255, 255, 0.04) 72px,
-    rgba(255, 255, 255, 0.04) 73px
-  );
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-/* 深色模式：碳化冷峻墨木/乌木包浆质感 */
-.dark .scroll-rod-body {
-  background: linear-gradient(
-    180deg,
-    #161311 0%,
-    #2b241e 22%,
-    #483c32 40%,
-    #56473b 46%,
-    #28211a 74%,
-    #0f0d0b 100%
-  );
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.85);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-
-/* 2. 车削古法轴头：外凸马蹄轴盖 (Knob Cap) */
-.scroll-knob-cap-left {
-  width: 9px;
-  border-radius: 5px 2px 2px 5px;
-  background: linear-gradient(
-    180deg,
-    #1d1008 0%,
-    #693e23 24%,
-    #8c5732 44%,
-    #432614 74%,
-    #150a04 100%
-  );
-  box-shadow: -2px 2px 6px rgba(0, 0, 0, 0.5), inset 1px 1px 1px rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.dark .scroll-knob-cap-left {
-  background: linear-gradient(
-    180deg,
-    #14110f 0%,
-    #382f27 24%,
-    #4f4237 44%,
-    #241e18 74%,
-    #0c0a09 100%
-  );
-  box-shadow: -2px 2px 6px rgba(0, 0, 0, 0.7), inset 1px 1px 1px rgba(255, 255, 255, 0.12);
-}
-
-.scroll-knob-cap-right {
-  width: 9px;
-  border-radius: 2px 5px 5px 2px;
-  background: linear-gradient(
-    180deg,
-    #1d1008 0%,
-    #693e23 24%,
-    #8c5732 44%,
-    #432614 74%,
-    #150a04 100%
-  );
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), inset -1px 1px 1px rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.dark .scroll-knob-cap-right {
-  background: linear-gradient(
-    180deg,
-    #14110f 0%,
-    #382f27 24%,
-    #4f4237 44%,
-    #241e18 74%,
-    #0c0a09 100%
-  );
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7), inset -1px 1px 1px rgba(255, 255, 255, 0.12);
-}
-
-/* 3. 轴颈 (Knob Neck) */
-.scroll-knob-neck {
-  background: linear-gradient(
-    180deg,
-    #180d06 0%,
-    #452815 28%,
-    #613b20 50%,
-    #311a0d 80%,
-    #110703 100%
-  );
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.14);
-}
-
-.dark .scroll-knob-neck {
-  background: linear-gradient(
-    180deg,
-    #100d0c 0%,
-    #25201b 28%,
-    #3b322a 50%,
-    #1d1814 80%,
-    #090807 100%
-  );
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
-}
-
-/* 4. 轴套环 (Knob Collar Rim) */
-.scroll-knob-collar {
-  background: linear-gradient(
-    180deg,
-    #22120a 0%,
-    #7a4b2c 30%,
-    #4a2a17 70%,
-    #180b05 100%
-  );
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-.dark .scroll-knob-collar {
-  background: linear-gradient(
-    180deg,
-    #161311 0%,
-    #44382e 30%,
-    #2c241d 70%,
-    #0e0b0a 100%
-  );
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-}
 
 /* 5. 古卷画芯背景与装裱 (Scroll Canvas Paper - 浪客行生宣与新闻纸质感) */
 .scroll-canvas-bg {

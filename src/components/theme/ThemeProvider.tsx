@@ -109,17 +109,20 @@ function updateMetaColorScheme(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   try {
-    let themeColorMeta = document.querySelector('meta[name="theme-color"]');
-    if (!themeColorMeta) {
-      themeColorMeta = document.createElement("meta");
-      themeColorMeta.setAttribute("name", "theme-color");
-      document.head.appendChild(themeColorMeta);
-    }
+    const themeColor = newTheme === "dark" ? "#111213" : "#ede7dc";
+    const colorScheme = newTheme === "dark" ? "dark" : "only light";
 
-    themeColorMeta.setAttribute(
-      "content",
-      newTheme === "dark" ? "#111213" : "#ede7dc"
-    );
+    // 仅原地更新属性，坚决不从 DOM 树中 remove() 节点，保护 React 19 HostHoistable (tag 26) 虚拟 DOM 树完整性
+    const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
+    themeColorMetas.forEach((m) => {
+      m.removeAttribute("media");
+      m.setAttribute("content", themeColor);
+    });
+
+    const colorSchemeMetas = document.querySelectorAll('meta[name="color-scheme"]');
+    colorSchemeMetas.forEach((m) => {
+      m.setAttribute("content", colorScheme);
+    });
   } catch {}
 }
 
@@ -158,7 +161,7 @@ export function ThemeProvider({
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
-      root.style.colorScheme = "light";
+      root.style.colorScheme = "only light";
       root.style.backgroundColor = "#ede7dc";
     }
 
@@ -175,7 +178,16 @@ export function ThemeProvider({
   useEffect(() => {
     const current = getInitialTheme(initialTheme);
     setThemeState(current);
-    applyThemeDirect(current);
+
+    const root = document.documentElement;
+    const isDomDark = root.classList.contains("dark");
+    // 仅在 DOM 实际状态与当前计算主题不一致时才重新应用，避免初次水合不必要的 DOM 重新绘制与补间闪烁
+    if ((current === "dark" && !isDomDark) || (current === "light" && isDomDark)) {
+      applyThemeDirect(current);
+    } else {
+      persistTheme(current);
+      updateMetaColorScheme(current);
+    }
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 

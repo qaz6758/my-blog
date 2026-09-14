@@ -353,23 +353,24 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[15px] sm:text-[16px] leading-[1.8] text-neutral-750 dark:text-[#a3a3a3]
-    [&_p]:mb-5
-    [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-10 [&_h1]:mb-4 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100 [&_h1]:tracking-tight
-    [&_h2]:text-xl sm:[&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h2]:tracking-tight
-    [&_h3]:text-lg sm:[&_h3]:text-lg [&_h3]:font-bold [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
-    [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
-    [&_strong]:font-semibold [&_strong]:text-neutral-950 dark:[&_strong]:text-white
-    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-5 [&_ul]:space-y-2
-    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-5 [&_ol]:space-y-2
-    [&_li]:leading-relaxed
-    [&_img]:rounded-lg sm:[&_img]:rounded-xl [&_img]:mx-auto [&_img]:my-6 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005]
+    text-[17px] sm:text-[18px] leading-[2] text-[#292623] dark:text-[#eae5dc] font-serif tracking-normal
+    [&_p]:mb-[1.3rem]
+    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-12 [&_h1]:mb-6 [&_h1]:text-[#292623] dark:[&_h1]:text-[#eae5dc] [&_h1]:tracking-wide
+    [&_h2]:scroll-mt-24 [&_h2]:text-[20px] sm:[&_h2]:text-[22px] [&_h2]:font-medium [&_h2]:mt-16 [&_h2]:mb-8 [&_h2]:pb-4 [&_h2]:border-b [&_h2]:border-black/[0.06] dark:[&_h2]:border-white/[0.06] [&_h2]:text-[#292623] dark:[&_h2]:text-[#eae5dc] [&_h2]:tracking-wider
+    [&_h3]:scroll-mt-24 [&_h3]:text-lg sm:[&_h3]:text-[19px] [&_h3]:font-medium [&_h3]:mt-10 [&_h3]:mb-4 [&_h3]:text-[#292623] dark:[&_h3]:text-[#eae5dc] [&_h3]:tracking-wider
+    [&_h4]:scroll-mt-24 [&_h4]:text-base [&_h4]:font-medium [&_h4]:mt-8 [&_h4]:mb-3 [&_h4]:text-[#292623] dark:[&_h4]:text-[#eae5dc]
+    [&_strong]:font-bold [&_strong]:text-[#1a1816] dark:[&_strong]:text-white
+    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-[1.3rem] [&_ul]:space-y-2
+    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-[1.3rem] [&_ol]:space-y-2
+    [&_li]:leading-[2]
+    [&_img]:rounded-sm [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
     [&_a]:prose-link
-    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-6
-    [&_th]:border [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2.5 [&_th]:bg-neutral-100/70 dark:[&_th]:bg-neutral-900/70 [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
-    [&_td]:border [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2.5 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
-    [&_tr:nth-child(even)]:bg-neutral-500/[0.02] dark:[&_tr:nth-child(even)]:bg-neutral-800/[0.15]
-    [&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
+    [&_blockquote]:border-l-[1.5px] [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:pl-6 [&_blockquote]:py-1 [&_blockquote]:my-8 [&_blockquote]:text-neutral-500 dark:[&_blockquote]:text-[#9d9589] [&_blockquote]:italic
+    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-8
+    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-medium [&_th]:text-[#292623] dark:[&_th]:text-[#eae5dc] [&_th]:text-left
+    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-neutral-700 dark:[&_td]:text-[#9d9589]
+    [&_tr:nth-child(even)]:bg-transparent
+    [&_hr]:my-12 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
 
   return (

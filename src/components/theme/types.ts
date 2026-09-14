@@ -5,6 +5,7 @@ export type Theme = "light" | "dark";
 
 export interface ToggleThemeOptions {
   disableAnimation?: boolean;
+  origin?: { x: number; y: number };
 }
 
 export interface ThemeContextType {

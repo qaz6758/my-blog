@@ -24,7 +24,15 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={(e) => toggleTheme(e)}
+      onClick={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        toggleTheme(e, {
+          origin: {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          },
+        });
+      }}
       className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] active:scale-95 transition-all cursor-pointer select-none ${className}`}
       style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
       title="切换世界（昼行 / 夜行）"
@@ -52,8 +60,7 @@ export function Navbar() {
 
   return (
     <header 
-      className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.06] bg-[#ede7dc]/80 dark:bg-[#111213]/75 backdrop-blur-md select-none transition-colors"
-      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+      className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.06] bg-[#ede7dc]/80 dark:bg-[#111213]/75 backdrop-blur-md select-none"
     >
       {/* 顶部适度收拢容器 (居中对称排版，微缩进) */}
       <div className="relative mx-auto flex h-full w-full max-w-5xl items-center justify-between px-4 sm:px-6 md:px-8">

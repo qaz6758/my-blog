@@ -11,7 +11,6 @@
  *    视觉柔和、极具侘寂美感，同时保证满帧 (60fps/120fps) 丝滑切换！
  */
 
-import { flushSync } from "react-dom";
 import { ThemeDriverParams } from "../types";
 
 export function runMobileThemeTransition({
@@ -51,18 +50,32 @@ export function runMobileThemeTransition({
         };
       };
 
-      // 1. 计算动画圆心 (以触控按钮中心或点击坐标为准)
-      let x = window.innerWidth - 48;
-      let y = 32;
+      // 1. 计算动画圆心 (优先使用外部传入的精确物理坐标，或以触控按钮中心为准，严禁 (0,0) 左上角异常)
+      let x = options?.origin?.x;
+      let y = options?.origin?.y;
 
-      const target = event?.currentTarget;
-      if (target instanceof HTMLElement) {
-        const rect = target.getBoundingClientRect();
-        x = rect.left + rect.width / 2;
-        y = rect.top + rect.height / 2;
-      } else if (event && typeof (event as any).clientX === "number") {
-        x = (event as any).clientX;
-        y = (event as any).clientY;
+      if (typeof x !== "number" || typeof y !== "number" || (x === 0 && y === 0)) {
+        const target = event?.currentTarget || (event?.target as HTMLElement)?.closest?.("button");
+        if (target instanceof HTMLElement) {
+          const rect = target.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+          }
+        } else if (
+          event &&
+          typeof (event as any).clientX === "number" &&
+          ((event as any).clientX > 0 || (event as any).clientY > 0)
+        ) {
+          x = (event as any).clientX;
+          y = (event as any).clientY;
+        }
+      }
+
+      // 终极安全保底：若依然未获取到有效物理坐标，默认取顶部导航栏右侧按钮中心，绝不从左上角 (0, 0) 触发
+      if (typeof x !== "number" || typeof y !== "number" || (x === 0 && y === 0)) {
+        x = window.innerWidth - 48;
+        y = 36;
       }
 
       x = Math.max(0, Math.min(window.innerWidth, x));
@@ -79,9 +92,7 @@ export function runMobileThemeTransition({
       root.classList.add("view-transition-active");
 
       const transition = transitionDoc.startViewTransition(() => {
-        flushSync(() => {
-          applyThemeDirect(nextTheme);
-        });
+        applyThemeDirect(nextTheme);
       });
 
       transition.finished
@@ -94,7 +105,7 @@ export function runMobileThemeTransition({
       transition.ready
         .then(() => {
           /*
-           * 移动端满血日光波纹：以触控点为圆心精准扩散，与 PC 端完全一致！
+           * 移动端满血日光波纹：0ms 极速起跑，以触控点为圆心精准平滑扩散
            * 严禁挂载 fill: "both"，生命周期结束主动 cancel()，杜绝 Blink 悬空指针。
            */
           const animation = document.documentElement.animate(
@@ -105,8 +116,8 @@ export function runMobileThemeTransition({
               ],
             },
             {
-              duration: 400,
-              easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+              duration: 420,
+              easing: "cubic-bezier(0.22, 1, 0.36, 1)",
               pseudoElement: "::view-transition-new(root)",
             }
           );

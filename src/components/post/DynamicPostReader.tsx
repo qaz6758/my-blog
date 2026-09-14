@@ -183,141 +183,187 @@ export function DynamicPostReader({
         /* 2. 真实博客正文（平滑淡入） */
         <motion.div
           key={post.id}
-          initial={{ opacity: 0, y: 6 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={SMOOTH_TRANSITION}
-          className="relative min-h-screen w-full flex flex-col justify-between"
+          className="relative min-h-screen w-full flex flex-col items-center justify-between"
         >
-          {/* 左侧固定目录 (支持鼠标悬停正文字体范围淡入淡出，以及点击三条杠常驻，无背景纯净极简) */}
-          <aside
-            onMouseEnter={handlePointerEnter}
-            onMouseLeave={handlePointerLeave}
-            className="hidden xl:block fixed top-28 left-6 sm:left-8 w-44 pointer-events-auto z-20"
-          >
-            <TableOfContents isArticleHovered={isArticleHovered} />
-          </aside>
+          {/* 三栏布局容器 */}
+          <div className="mx-auto flex max-w-[1360px] w-full justify-center px-4 sm:px-6 xl:px-8">
+            
+            {/* 左侧：辅助信息轨道 (文章信息 + 上下一篇) */}
+            <aside className="hidden xl:flex w-[260px] flex-col shrink-0 sticky top-32 h-[calc(100vh-128px)] overflow-y-auto pr-10 pt-2">
+              <div className="space-y-12">
+                {/* 文章信息块 */}
+                <div className="space-y-6">
+                  {post.category && (
+                    <div className="text-xs text-neutral-500 dark:text-[#9d9589] tracking-wider mb-2">
+                      {post.category}
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3 font-mono text-xs text-neutral-400 dark:text-[#777168]">
+                    {/* {post.pinned && <div className="flex items-center gap-2"><span className="text-neutral-500">📌</span> 置顶</div>} */}
+                    {(post.published_at || post.created_at) && (
+                      <div className="flex items-center gap-2">
+                        <span>{formatDate(post.published_at || post.created_at || "").replace(/-/g, '.')}</span>
+                      </div>
+                    )}
+                    {/* Mock reading time */}
+                    <div className="flex items-center gap-2">
+                      <span>8 min read</span>
+                    </div>
+                  </div>
 
-          {/* 主体容器：移除全屏 hover 监听，绝不在两侧留白区域误触发 */}
-          <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28 flex-1">
-            {/* 正文版心：仅当鼠标进入真实文章字体与阅读区域时才触发目录 */}
-            <div
-              onMouseEnter={handlePointerEnter}
-              onMouseLeave={handlePointerLeave}
-              className="mx-auto w-full max-w-[65ch]"
-            >
-              {/* 顶部返回导航 */}
-              <div className="mb-6">
-                <Link
-                  href="/posts"
-                  className="group inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-[#b91c1c] dark:text-[#777168] dark:hover:text-white transition-colors cursor-pointer select-none"
-                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                >
-                  <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }} />
-                  <span>cd ..</span>
-                </Link>
+                  {post.tags && (
+                    <div className="pt-2">
+                      <div className="text-xs text-neutral-400 dark:text-[#777168] mb-3">标签</div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {(Array.isArray(post.tags)
+                          ? post.tags
+                          : String(post.tags).split(/[,，\s]+/).filter(Boolean)
+                        ).map((tag, index) => (
+                          <Link
+                            key={`${tag}-${index}`}
+                            href={`/posts?tag=${encodeURIComponent(tag)}`}
+                            className="text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
+                          >
+                            #{tag}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 上下一篇导航 */}
+                <nav className="flex flex-col gap-8 pt-6 border-t border-black/[0.04] dark:border-white/[0.04]">
+                  {prevPost && (
+                    <Link
+                      href={`/posts/${prevPost.slug || prevPost.id}`}
+                      className="group flex flex-col gap-2 transition-colors"
+                    >
+                      <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors">
+                        <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                        上一篇
+                      </span>
+                      <span className="text-[13px] text-neutral-700 dark:text-neutral-300 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-2 leading-relaxed transition-colors">
+                        {prevPost.title}
+                      </span>
+                    </Link>
+                  )}
+                  {nextPost && (
+                    <Link
+                      href={`/posts/${nextPost.slug || nextPost.id}`}
+                      className="group flex flex-col gap-2 transition-colors"
+                    >
+                      <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors">
+                        下一篇
+                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                      <span className="text-[13px] text-neutral-700 dark:text-neutral-300 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-2 leading-relaxed transition-colors">
+                        {nextPost.title}
+                      </span>
+                    </Link>
+                  )}
+                </nav>
               </div>
+            </aside>
 
-              {/* 头部大标题与极简单行日期 */}
-              <header className="mb-8">
-                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-neutral-900 dark:text-[#eae5dc] leading-[1.2]">
+            {/* 中间：正文绝对中心 (760px - 820px) */}
+            <main className="relative z-10 w-full max-w-[780px] shrink-0 pt-24 pb-20 px-0 sm:px-6">
+              
+              {/* 头部大标题与极简单行日期（移动端显示信息） */}
+              <header className="mb-14 relative">
+                <div className="absolute -left-12 top-2 hidden xl:block">
+                  <div className="w-6 h-6 border border-[#b91c1c]/40 flex items-center justify-center text-[#b91c1c] text-[10px] rounded-[2px] opacity-60 mix-blend-multiply dark:mix-blend-lighten transform -rotate-6 select-none font-wenkai">
+                    印
+                  </div>
+                </div>
+                
+                <div className="xl:hidden text-xs text-neutral-500 dark:text-[#9d9589] tracking-wider mb-4 flex items-center gap-3">
+                  <span>{post.category || "思考与技术"}</span>
+                  <div className="w-4 h-4 border border-[#b91c1c]/40 flex items-center justify-center text-[#b91c1c] text-[8px] rounded-[1px] opacity-60 mix-blend-multiply dark:mix-blend-lighten transform -rotate-3 select-none font-wenkai">
+                    印
+                  </div>
+                </div>
+                
+                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-[#292623] dark:text-[#eae5dc] leading-[1.3] font-serif relative inline-block">
                   {post.title}
                 </h1>
-
-                {post.published_at || post.created_at ? (
-                  <p className="mt-2 text-sm text-neutral-400 dark:text-[#9d9589] opacity-60">
-                    {formatDate(post.published_at || post.created_at || "")}
-                  </p>
-                ) : null}
+                
+                {/* 移动端辅助信息 */}
+                <div className="xl:hidden mt-6 flex flex-wrap items-center gap-3 text-xs font-mono text-neutral-400 dark:text-[#777168]">
+                  {(post.published_at || post.created_at) && (
+                    <span>{formatDate(post.published_at || post.created_at || "").replace(/-/g, '.')}</span>
+                  )}
+                  <span className="opacity-40">·</span>
+                  <span>8 min read</span>
+                </div>
               </header>
 
               {/* 正文渲染区 */}
-              <article className="post-article min-w-0">
+              <article className="post-article min-w-0 font-serif" style={{ fontSize: "1.125rem", lineHeight: "2", letterSpacing: "normal" }}>
                 <LazyPostContent
                   content={post.content || post.summary || ""}
                   isHtml={isHtmlContent}
                 />
               </article>
 
-              {/* 标签列表 */}
-              {post.tags && (
-                <div className="mt-12 flex flex-wrap items-center gap-2 border-t border-black/[0.08] dark:border-white/[0.08] pt-6">
-                  <TagIcon className="h-3.5 w-3.5 text-neutral-400 opacity-60" />
-                  {(Array.isArray(post.tags)
-                    ? post.tags
-                    : String(post.tags).split(/[,，\s]+/).filter(Boolean)
-                  ).map((tag, index) => (
-                    <Link
-                      key={`${tag}-${index}`}
-                      href={`/posts?tag=${encodeURIComponent(tag)}`}
-                      className="text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
-                      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                    >
-                      #{tag}
-                    </Link>
-                  ))}
-                </div>
-              )}
+              {/* 移动端上下一篇 导航 */}
+              <div className="xl:hidden">
+                {(prevPost || nextPost) && (
+                  <nav className="my-16 grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-black/[0.08] dark:border-white/[0.08] pt-8">
+                    {prevPost ? (
+                      <Link
+                        href={`/posts/${prevPost.slug || prevPost.id}`}
+                        className="group flex flex-col gap-2 text-left transition-colors"
+                      >
+                        <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors">
+                          <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                          上一篇
+                        </span>
+                        <span className="text-[14px] text-neutral-700 dark:text-neutral-300 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-1 transition-colors">
+                          {prevPost.title}
+                        </span>
+                      </Link>
+                    ) : (
+                      <div />
+                    )}
 
-              {/* 上一篇 / 下一篇 导航 */}
-              {(prevPost || nextPost) && (
-                <nav className="my-10 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-b border-black/[0.08] dark:border-white/[0.08] py-5">
-                  {prevPost ? (
-                    <Link
-                      href={`/posts/${prevPost.slug || prevPost.id}`}
-                      className="group flex flex-col gap-1 text-left transition-colors hover:text-[#b91c1c] dark:hover:text-white"
-                      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                    >
-                      <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                        <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" style={{ transitionDuration: "var(--realm-motion-duration)" }} />
-                        上一篇
-                      </span>
-                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-1 transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                        {prevPost.title}
-                      </span>
-                    </Link>
-                  ) : (
-                    <div />
-                  )}
-
-                  {nextPost ? (
-                    <Link
-                      href={`/posts/${nextPost.slug || nextPost.id}`}
-                      className="group flex flex-col gap-1 text-right sm:items-end transition-colors hover:text-[#b91c1c] dark:hover:text-white"
-                      style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                    >
-                      <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 justify-end group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                        下一篇
-                        <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" style={{ transitionDuration: "var(--realm-motion-duration)" }} />
-                      </span>
-                      <span className="text-[14px] text-neutral-800 dark:text-neutral-200 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-1 transition-colors" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                        {nextPost.title}
-                      </span>
-                    </Link>
-                  ) : (
-                    <div />
-                  )}
-                </nav>
-              )}
-
-              {/* 底部返回 */}
-              <div className="mt-8 mb-4">
-                <Link
-                  href="/posts"
-                  className="group inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
-                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                >
-                  <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" style={{ transitionDuration: "var(--realm-motion-duration)" }} />
-                  <span>cd ..</span>
-                </Link>
+                    {nextPost ? (
+                      <Link
+                        href={`/posts/${nextPost.slug || nextPost.id}`}
+                        className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
+                      >
+                        <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 justify-end group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors">
+                          下一篇
+                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                        <span className="text-[14px] text-neutral-700 dark:text-neutral-300 group-hover:text-[#b91c1c] dark:group-hover:text-white font-medium line-clamp-1 transition-colors">
+                          {nextPost.title}
+                        </span>
+                      </Link>
+                    ) : (
+                      <div />
+                    )}
+                  </nav>
+                )}
               </div>
 
               {/* 评论区 */}
-              <div className="mt-12">
+              <div className="mt-20">
                 <LazyCommentSection postId={String(post.id)} />
               </div>
-            </div>
-          </main>
+            </main>
+
+            {/* 右侧：目录与阅读进度 */}
+            <aside className="hidden xl:flex w-[260px] flex-col shrink-0 sticky top-32 h-[calc(100vh-128px)] overflow-y-auto pl-12 pt-2">
+              <TableOfContents />
+            </aside>
+            
+          </div>
         </motion.div>
       ) : mode === "thought" && thought ? (
         /* 3. 随想录详情 */

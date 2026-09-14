@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Cinzel, Cormorant_Garamond } from "next/font/google";
 import "@/app/globals.css";
 
+import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { MusicProvider } from "@/components/playlist/MusicContext";
 import { FrontendShell } from "@/components/layout/FrontendShell";
@@ -31,13 +32,16 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ede7dc" },
-    { media: "(prefers-color-scheme: dark)", color: "#111213" },
-  ],
-  colorScheme: "light dark",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("theme")?.value;
+  const isDark = themeCookie === "dark";
+
+  return {
+    themeColor: isDark ? "#111213" : "#ede7dc",
+    colorScheme: isDark ? "dark" : "only light",
+  };
+}
 
 export const metadata: Metadata = {
   title: {
@@ -51,55 +55,131 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("theme")?.value;
+  const isDark = themeCookie === "dark";
+  const isLight = themeCookie === "light";
+  const initialThemeClass = isDark ? "dark" : isLight ? "light" : "";
+
   return (
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`bg-[#ede7dc] dark:bg-[#111213] ${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
+      className={`${initialThemeClass} ${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
+      style={
+        isDark
+          ? { backgroundColor: "#111213", colorScheme: "dark" }
+          : isLight
+          ? { backgroundColor: "#ede7dc", colorScheme: "only light" }
+          : undefined
+      }
     >
       <head>
-        {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
-          crossOrigin="anonymous"
+        {/* 1. 首屏关键样式：0ms 消除 FOUC 与刷新白屏/黑底闪烁 */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              :root {
+                background-color: #ede7dc;
+                color-scheme: only light;
+              }
+              html.light {
+                background-color: #ede7dc !important;
+                color-scheme: only light !important;
+              }
+              html.dark {
+                background-color: #111213 !important;
+                color-scheme: dark !important;
+              }
+              /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
+              html.no-transitions,
+              html.no-transitions *,
+              html.no-transitions *::before,
+              html.no-transitions *::after {
+                -webkit-transition: none !important;
+                -moz-transition: none !important;
+                -o-transition: none !important;
+                -ms-transition: none !important;
+                transition: none !important;
+              }
+            `,
+          }}
         />
-        {/* 首屏零毫秒同步锁定主题脚本 */}
+        {/* 2. 首屏零毫秒同步锁定主题脚本 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
-                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\s*)theme=([^;]+)/) || [])[1];
-                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var docEl = document.documentElement;
-                  var cl = docEl.classList;
+                  docEl.classList.add('no-transitions');
+                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
+                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
+                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var themeColor = isDark ? '#111213' : '#ede7dc';
+                  var colorScheme = isDark ? 'dark' : 'only light';
+
                   if (isDark) {
-                    cl.add('dark');
-                    cl.remove('light');
-                    docEl.style.colorScheme = 'dark';
-                    docEl.style.backgroundColor = '#111213';
+                    docEl.classList.add('dark');
+                    docEl.classList.remove('light');
                   } else {
-                    cl.remove('dark');
-                    cl.add('light');
-                    docEl.style.colorScheme = 'light';
-                    docEl.style.backgroundColor = '#ede7dc';
+                    docEl.classList.remove('dark');
+                    docEl.classList.add('light');
+                  }
+                  docEl.style.colorScheme = colorScheme;
+                  docEl.style.backgroundColor = themeColor;
+
+                  // 净化与同步所有 theme-color meta，杜绝深色 media query 劫持 Chrome 原生清屏画布
+                  var themeMetas = document.querySelectorAll('meta[name="theme-color"]');
+                  themeMetas.forEach(function(m) {
+                    m.removeAttribute('media');
+                    m.setAttribute('content', themeColor);
+                  });
+                  var csMeta = document.querySelector('meta[name="color-scheme"]');
+                  if (csMeta) {
+                    csMeta.setAttribute('content', colorScheme);
+                  }
+
+                  // 零延迟同步 cookie，保证后续每次刷新服务端 100% 字节直出
+                  if (saved && !document.cookie.includes('theme=')) {
+                    document.cookie = 'theme=' + saved + '; path=/; max-age=31536000; SameSite=Lax';
+                  }
+
+                  function removeNoTransitions() {
+                    requestAnimationFrame(function() {
+                      requestAnimationFrame(function() {
+                        docEl.classList.remove('no-transitions');
+                      });
+                    });
+                  }
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', removeNoTransitions);
+                  } else {
+                    removeNoTransitions();
                   }
                 } catch (e) {}
               })();
             `,
           }}
         />
+        {/* 预连接字体与静态 CDN，消除渲染挂起与排版跳跃 */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+        {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
+          crossOrigin="anonymous"
+        />
       </head>
 
-      <body className="min-h-screen w-full font-sans bg-[#ede7dc] text-[#1e1b18] selection:bg-[#ded5c4] dark:bg-[#111213] dark:text-[#eae5dc] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
-        <ThemeProvider>
+      <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
+        <ThemeProvider initialTheme={isDark ? "dark" : isLight ? "light" : undefined}>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
             <FrontendShell>

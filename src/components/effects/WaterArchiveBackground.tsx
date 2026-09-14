@@ -6,34 +6,9 @@ import React from "react";
 export function WaterArchiveBackground() {
   return (
     <div
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none bg-[#ede7dc] dark:bg-[#111213]"
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none bg-transparent"
       aria-hidden="true"
     >
-      {/* 1. 中心柔和水晕漫射光 (Soft Caustic Water Diffusion) */}
-      {/* 暗黑模式：矿物炭黑与柔和月光冷光斑 */}
-      <div
-        className="absolute inset-0 opacity-0 dark:opacity-100 transition-opacity duration-200 ease-out pointer-events-none"
-        style={{
-          background: `
-            radial-gradient(ellipse 75% 55% at 50% 24%, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.012) 50%, transparent 80%),
-            radial-gradient(circle 600px at 80% 70%, rgba(255, 255, 255, 0.018) 0%, transparent 70%),
-            radial-gradient(circle 500px at 20% 80%, rgba(255, 255, 255, 0.012) 0%, transparent 60%),
-            #111213
-          `,
-        }}
-      />
-      {/* 浅色模式：暖调宣纸上的温润水晕反光 (含实色底色，彻底杜绝任何透明透黑) */}
-      <div
-        className="absolute inset-0 opacity-100 dark:opacity-0 transition-opacity duration-200 ease-out pointer-events-none"
-        style={{
-          background: `
-            radial-gradient(ellipse 75% 55% at 50% 24%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 80%),
-            radial-gradient(circle 600px at 80% 70%, rgba(0, 0, 0, 0.015) 0%, transparent 70%),
-            radial-gradient(circle 500px at 20% 80%, rgba(0, 0, 0, 0.01) 0%, transparent 60%),
-            #ede7dc
-          `,
-        }}
-      />
 
       {/* 2. 幽微水波等高线层：柔焦羽化，如同静潭暗涌 */}
       <svg
