@@ -89,47 +89,41 @@ export function runMobileThemeTransition({
         )
       );
 
+      // 3. 注入 CSS 自定义属性 (解法 1：规避 Android WebView JS pseudoElement 解析为 (0,0) 的 Bug)
+      root.style.setProperty("--theme-ripple-x", `${x}px`);
+      root.style.setProperty("--theme-ripple-y", `${y}px`);
+      root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
+      root.style.setProperty("--theme-ripple-duration", "320ms");
+
       root.classList.add("view-transition-active");
+
+      let cleaned = false;
+      const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        root.classList.remove("view-transition-active");
+        root.style.removeProperty("--theme-ripple-x");
+        root.style.removeProperty("--theme-ripple-y");
+        root.style.removeProperty("--theme-ripple-r");
+        root.style.removeProperty("--theme-ripple-duration");
+        onComplete?.();
+      };
+
+      // 4. 移动端防卡死看门狗 (解法 2：400ms 超时强制恢复，彻底杜绝半路卡死)
+      const watchdog = setTimeout(cleanup, 400);
 
       const transition = transitionDoc.startViewTransition(() => {
         applyThemeDirect(nextTheme);
       });
 
       transition.finished
-        .finally(() => {
-          root.classList.remove("view-transition-active");
-          onComplete?.();
-        })
-        .catch(() => {});
-
-      transition.ready
         .then(() => {
-          /*
-           * 移动端满血日光波纹：0ms 极速起跑，以触控点为圆心精准平滑扩散
-           * 严禁挂载 fill: "both"，生命周期结束主动 cancel()，杜绝 Blink 悬空指针。
-           */
-          const animation = document.documentElement.animate(
-            {
-              clipPath: [
-                `circle(0px at ${x}px ${y}px)`,
-                `circle(${endRadius}px at ${x}px ${y}px)`,
-              ],
-            },
-            {
-              duration: 420,
-              easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-              pseudoElement: "::view-transition-new(root)",
-            }
-          );
-
-          animation.finished
-            .then(() => {
-              animation.cancel();
-            })
-            .catch(() => {});
+          clearTimeout(watchdog);
+          cleanup();
         })
         .catch(() => {
-          // 过渡取消无需重复应用
+          clearTimeout(watchdog);
+          cleanup();
         });
 
       return;
@@ -138,7 +132,7 @@ export function runMobileThemeTransition({
     }
   }
 
-  // 场景 B：移动端 Safari / 旧版 WebView / 降级环境：使用高性能纯硬件加速“水墨帷幕”
+  // 场景 B：移动端 Safari / 旧版 WebView / 降级环境：使用高性能纯硬件加速“水墨帷幕” (解法 2 硬件级平滑兜底)
   runMobileVeilTransition(nextTheme, applyThemeDirect, onComplete);
 }
 

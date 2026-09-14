@@ -472,9 +472,20 @@ html.dark :focus-visible {
 
 /*
  * ============================================================
- * 原生 View Transitions API (Anthony Fu 原版日光波纹过渡)
+ * 原生 View Transitions API (CSS 变量注入驱动 + 硬件级防卡死波纹体系)
+ * 彻底解决 Android WebView (Via 等) JS pseudoElement 解析为 (0, 0) 的 Bug，
+ * 并通过动态时长统一消除 400ms 强制截胡卡死。
  * ============================================================
  */
+
+@keyframes theme-ripple-expand {
+  from {
+    clip-path: circle(0px at var(--theme-ripple-x, 50%) var(--theme-ripple-y, 50%));
+  }
+  to {
+    clip-path: circle(var(--theme-ripple-r, 150vmax) at var(--theme-ripple-x, 50%) var(--theme-ripple-y, 50%));
+  }
+}
 
 ::view-transition {
   background: transparent !important;
@@ -489,29 +500,32 @@ html.dark::view-transition {
 }
 
 ::view-transition-group(root) {
-  animation-duration: 0.4s;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none !important;
-  mix-blend-mode: normal !important;
-  contain: paint !important;
+  animation-duration: var(--theme-ripple-duration, 0.35s) !important;
 }
 
 ::view-transition-old(root) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+  contain: paint !important;
   z-index: 1;
 }
 
 ::view-transition-new(root) {
   z-index: 9999;
+  animation: theme-ripple-expand var(--theme-ripple-duration, 0.35s) cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  mix-blend-mode: normal !important;
+  will-change: clip-path;
+  contain: paint !important;
 }
 
 /*
- * 在 View Transition 圆形波纹扩散期间，临时切断根节点 CSS transition，
- * 避免通用选择器引发的全 DOM 树样式重算风暴（消除移动端掉帧卡顿），让 GPU 算力专供圆形波纹。
+ * 在 View Transition 圆形波纹扩散期间，临时切断全 DOM 树所有元素的 CSS transition，
+ * 彻底杜绝全局样式重算风暴（Recalculate Style Storm），将 100% GPU/CPU 算力让渡给波纹，杜绝掉帧卡死。
  */
-html.view-transition-active {
+html.view-transition-active,
+html.view-transition-active *,
+html.view-transition-active *::before,
+html.view-transition-active *::after {
   transition: none !important;
 }
 

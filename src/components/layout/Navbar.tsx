@@ -25,12 +25,25 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
+        let x = 0;
+        let y = 0;
+        if (e.currentTarget instanceof HTMLElement) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+          }
+        }
+        if (x === 0 && y === 0 && typeof e.clientX === "number" && (e.clientX > 0 || e.clientY > 0)) {
+          x = e.clientX;
+          y = e.clientY;
+        }
+        if ((x === 0 && y === 0) && typeof window !== "undefined") {
+          x = window.innerWidth - 44;
+          y = 28;
+        }
         toggleTheme(e, {
-          origin: {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2,
-          },
+          origin: { x, y },
         });
       }}
       className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] active:scale-95 transition-all cursor-pointer select-none ${className}`}

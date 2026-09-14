@@ -77,45 +77,40 @@ export function runDesktopThemeTransition({
       };
     };
 
+    // 3. 注入 CSS 自定义属性 (统一由 CSS @keyframes theme-ripple-expand 驱动)
+    root.style.setProperty("--theme-ripple-x", `${x}px`);
+    root.style.setProperty("--theme-ripple-y", `${y}px`);
+    root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
+    root.style.setProperty("--theme-ripple-duration", "380ms");
+
     root.classList.add("view-transition-active");
+
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      root.classList.remove("view-transition-active");
+      root.style.removeProperty("--theme-ripple-x");
+      root.style.removeProperty("--theme-ripple-y");
+      root.style.removeProperty("--theme-ripple-r");
+      root.style.removeProperty("--theme-ripple-duration");
+      onComplete?.();
+    };
+
+    const watchdog = setTimeout(cleanup, 500);
 
     const transition = transitionDoc.startViewTransition(() => {
       applyThemeDirect(nextTheme);
     });
 
     transition.finished
-      .finally(() => {
-        root.classList.remove("view-transition-active");
-        onComplete?.();
-      })
-      .catch(() => {});
-
-    transition.ready
       .then(() => {
-        const animation = document.documentElement.animate(
-          {
-            clipPath: [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`,
-            ],
-          },
-          {
-            duration: 420,
-            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-            // 严禁在此使用 fill: "both" 或 fill: "forwards"！
-            // 在伪元素销毁后挂起 fill 状态会导致 Chromium Blink 合成器野指针崩溃（引发“重新启动 Chrome”）。
-            pseudoElement: "::view-transition-new(root)",
-          }
-        );
-
-        animation.finished
-          .then(() => {
-            animation.cancel();
-          })
-          .catch(() => {});
+        clearTimeout(watchdog);
+        cleanup();
       })
       .catch(() => {
-        // 过渡被打断或取消，DOM 已在 callback 中翻转，无需重复应用
+        clearTimeout(watchdog);
+        cleanup();
       });
   } catch {
     applyThemeDirect(nextTheme);
