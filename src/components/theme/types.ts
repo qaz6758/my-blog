@@ -21,9 +21,7 @@ export interface ThemeContextType {
 
 export interface ThemeDriverParams {
   nextTheme: Theme;
-  currentTheme: Theme;
-  applyThemeDirect: (newTheme: Theme, skipMeta?: boolean) => void;
-  updateMeta?: (newTheme: Theme) => void;
+  applyThemeDirect: (newTheme: Theme) => void;
   event?: React.MouseEvent<HTMLElement>;
   options?: ToggleThemeOptions;
   onComplete?: () => void;

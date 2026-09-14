@@ -491,23 +491,11 @@ html.dark :focus-visible {
   background: transparent !important;
 }
 
-/*
- * 优化 2：托底画布防漏光中立化 (Anchor Canvas to Origin Theme)
- * 在波纹扩散期间，底座死死锁定在旧主题背景色，杜绝手机底栏/动态视口次像素缝隙提前露色闪烁
- */
-html.transition-from-light::view-transition {
+html.light::view-transition {
   background-color: #ede7dc !important;
 }
 
-html.transition-from-dark::view-transition {
-  background-color: #111213 !important;
-}
-
-html.light:not(.transition-from-dark)::view-transition {
-  background-color: #ede7dc !important;
-}
-
-html.dark:not(.transition-from-light)::view-transition {
+html.dark::view-transition {
   background-color: #111213 !important;
 }
 
