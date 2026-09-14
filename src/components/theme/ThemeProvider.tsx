@@ -148,7 +148,7 @@ export function ThemeProvider({
    * 基础主题底层应用：原子更新 DOM class、colorScheme 与 root 背景
    * ============================================================
    */
-  const applyThemeDirect = useCallback((newTheme: Theme) => {
+  const applyThemeDirect = useCallback((newTheme: Theme, skipMeta = false) => {
     if (typeof document === "undefined") return;
 
     const root = document.documentElement;
@@ -167,7 +167,9 @@ export function ThemeProvider({
 
     setThemeState(newTheme);
     persistTheme(newTheme);
-    updateMetaColorScheme(newTheme);
+    if (!skipMeta) {
+      updateMetaColorScheme(newTheme);
+    }
   }, []);
 
   /*
@@ -237,13 +239,16 @@ export function ThemeProvider({
 
       const root = document.documentElement;
       const isCurrentlyDark = root.classList.contains("dark");
+      const currentTheme: Theme = isCurrentlyDark ? "dark" : "light";
       const nextTheme: Theme = isCurrentlyDark ? "light" : "dark";
 
       if (isMobileDevice()) {
         // [手机端通道]：满血日光波纹（与 PC 端完全一致的以触控点为中心的扩散）
         runMobileThemeTransition({
           nextTheme,
+          currentTheme,
           applyThemeDirect,
+          updateMeta: updateMetaColorScheme,
           event,
           options,
           onComplete: handleComplete,
@@ -252,7 +257,9 @@ export function ThemeProvider({
         // [PC 桌面端通道]：调用专属精准指针日光波纹引擎
         runDesktopThemeTransition({
           nextTheme,
+          currentTheme,
           applyThemeDirect,
+          updateMeta: updateMetaColorScheme,
           event,
           options,
           onComplete: handleComplete,

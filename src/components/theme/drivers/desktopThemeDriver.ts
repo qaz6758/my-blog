@@ -10,7 +10,9 @@ import { ThemeDriverParams } from "../types";
 
 export function runDesktopThemeTransition({
   nextTheme,
+  currentTheme,
   applyThemeDirect,
+  updateMeta,
   event,
   options,
   onComplete,
@@ -31,6 +33,7 @@ export function runDesktopThemeTransition({
   // 用户主动要求关闭动画，或浏览器不支持 View Transition，直接原子切换
   if (options?.disableAnimation || !hasViewTransitions) {
     applyThemeDirect(nextTheme);
+    updateMeta?.(nextTheme);
     onComplete?.();
     return;
   }
@@ -77,19 +80,21 @@ export function runDesktopThemeTransition({
       };
     };
 
-    // 3. 注入 CSS 自定义属性 (统一由 CSS @keyframes theme-ripple-expand 驱动)
+    // 3. 优化 1 & 2：注入 CSS 自定义属性与旧主题锚定类名（统一杜绝次像素漏底）
+    const anchorClass = currentTheme === "dark" ? "transition-from-dark" : "transition-from-light";
+    root.classList.add("view-transition-active", anchorClass);
+
     root.style.setProperty("--theme-ripple-x", `${x}px`);
     root.style.setProperty("--theme-ripple-y", `${y}px`);
     root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
     root.style.setProperty("--theme-ripple-duration", "380ms");
 
-    root.classList.add("view-transition-active");
-
     let cleaned = false;
     const cleanup = () => {
       if (cleaned) return;
       cleaned = true;
-      root.classList.remove("view-transition-active");
+      updateMeta?.(nextTheme);
+      root.classList.remove("view-transition-active", "transition-from-dark", "transition-from-light");
       root.style.removeProperty("--theme-ripple-x");
       root.style.removeProperty("--theme-ripple-y");
       root.style.removeProperty("--theme-ripple-r");
@@ -99,21 +104,29 @@ export function runDesktopThemeTransition({
 
     const watchdog = setTimeout(cleanup, 500);
 
+    // 延迟同步系统底栏/状态栏，等波纹扩散至 85% 左右自然融合
+    const metaTimer = setTimeout(() => {
+      updateMeta?.(nextTheme);
+    }, 320);
+
     const transition = transitionDoc.startViewTransition(() => {
-      applyThemeDirect(nextTheme);
+      applyThemeDirect(nextTheme, true);
     });
 
     transition.finished
       .then(() => {
         clearTimeout(watchdog);
+        clearTimeout(metaTimer);
         cleanup();
       })
       .catch(() => {
         clearTimeout(watchdog);
+        clearTimeout(metaTimer);
         cleanup();
       });
   } catch {
     applyThemeDirect(nextTheme);
+    updateMeta?.(nextTheme);
     onComplete?.();
   }
 }

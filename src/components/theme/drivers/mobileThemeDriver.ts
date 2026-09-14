@@ -15,7 +15,9 @@ import { ThemeDriverParams } from "../types";
 
 export function runMobileThemeTransition({
   nextTheme,
+  currentTheme,
   applyThemeDirect,
+  updateMeta,
   event,
   options,
   onComplete,
@@ -27,6 +29,7 @@ export function runMobileThemeTransition({
   // 用户主动要求关闭动效，直接原子切换
   if (options?.disableAnimation) {
     applyThemeDirect(nextTheme);
+    updateMeta?.(nextTheme);
     onComplete?.();
     return;
   }
@@ -89,19 +92,22 @@ export function runMobileThemeTransition({
         )
       );
 
-      // 3. 注入 CSS 自定义属性 (解法 1：规避 Android WebView JS pseudoElement 解析为 (0,0) 的 Bug)
+      // 3. 优化 1 & 2：注入 CSS 自定义属性与旧主题锚定类名（杜绝次像素漏底）
+      const anchorClass = currentTheme === "dark" ? "transition-from-dark" : "transition-from-light";
+      root.classList.add("view-transition-active", anchorClass);
+
       root.style.setProperty("--theme-ripple-x", `${x}px`);
       root.style.setProperty("--theme-ripple-y", `${y}px`);
       root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
       root.style.setProperty("--theme-ripple-duration", "320ms");
 
-      root.classList.add("view-transition-active");
-
       let cleaned = false;
       const cleanup = () => {
         if (cleaned) return;
         cleaned = true;
-        root.classList.remove("view-transition-active");
+        // 动画完成时同步更新手机底栏/状态栏 theme-color（优化 1：与波纹抵达终点完美合拍）
+        updateMeta?.(nextTheme);
+        root.classList.remove("view-transition-active", "transition-from-dark", "transition-from-light");
         root.style.removeProperty("--theme-ripple-x");
         root.style.removeProperty("--theme-ripple-y");
         root.style.removeProperty("--theme-ripple-r");
@@ -109,20 +115,28 @@ export function runMobileThemeTransition({
         onComplete?.();
       };
 
-      // 4. 移动端防卡死看门狗 (解法 2：400ms 超时强制恢复，彻底杜绝半路卡死)
+      // 4. 移动端防卡死看门狗 (400ms 超时强制恢复，彻底杜绝半路卡死)
       const watchdog = setTimeout(cleanup, 400);
 
+      // 5. 延迟同步：在波纹扩散至 80% (约 260ms) 时预先平滑启动底栏变色，实现无缝衔接
+      const metaTimer = setTimeout(() => {
+        updateMeta?.(nextTheme);
+      }, 260);
+
       const transition = transitionDoc.startViewTransition(() => {
-        applyThemeDirect(nextTheme);
+        // 关键：传 skipMeta = true，在 0ms 决不刷新系统底栏，杜绝底下抢跑变色闪烁！
+        applyThemeDirect(nextTheme, true);
       });
 
       transition.finished
         .then(() => {
           clearTimeout(watchdog);
+          clearTimeout(metaTimer);
           cleanup();
         })
         .catch(() => {
           clearTimeout(watchdog);
+          clearTimeout(metaTimer);
           cleanup();
         });
 
@@ -133,7 +147,7 @@ export function runMobileThemeTransition({
   }
 
   // 场景 B：移动端 Safari / 旧版 WebView / 降级环境：使用高性能纯硬件加速“水墨帷幕” (解法 2 硬件级平滑兜底)
-  runMobileVeilTransition(nextTheme, applyThemeDirect, onComplete);
+  runMobileVeilTransition(nextTheme, applyThemeDirect, onComplete, updateMeta);
 }
 
 /**
@@ -143,8 +157,9 @@ export function runMobileThemeTransition({
  */
 function runMobileVeilTransition(
   nextTheme: "light" | "dark",
-  applyThemeDirect: (theme: "light" | "dark") => void,
-  onComplete?: () => void
+  applyThemeDirect: (theme: "light" | "dark", skipMeta?: boolean) => void,
+  onComplete?: () => void,
+  updateMeta?: (theme: "light" | "dark") => void
 ): void {
   const veil = document.createElement("div");
   const targetBg = nextTheme === "dark" ? "#111213" : "#ede7dc";
@@ -160,13 +175,14 @@ function runMobileVeilTransition(
 
   document.body.appendChild(veil);
 
-  // 底层 DOM 瞬时翻转，文本与背景对比度保持 100% 恒定
-  applyThemeDirect(nextTheme);
+  // 底层 DOM 瞬时翻转，暂缓更新系统 meta
+  applyThemeDirect(nextTheme, true);
 
   let cleaned = false;
   const cleanUp = () => {
     if (cleaned) return;
     cleaned = true;
+    updateMeta?.(nextTheme);
     veil.removeEventListener("transitionend", cleanUp);
     if (veil.parentNode) {
       veil.parentNode.removeChild(veil);
