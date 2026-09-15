@@ -391,7 +391,7 @@ export function MusicPlayer({
                         onClick={() => onSelectSong?.(song)}
                         className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left transition-colors cursor-pointer ${
                           isCurrent
-                            ? "bg-black/5 dark:bg-white/10 text-neutral-950 dark:text-white font-medium"
+                            ? "bg-[#FA2D48] text-white font-medium shadow-sm shadow-[#FA2D48]/30"
                             : "text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-neutral-950 dark:hover:text-white"
                         }`}
                       >
@@ -408,7 +408,7 @@ export function MusicPlayer({
                                 alt={song.title}
                                 referrerPolicy="no-referrer"
                                 onError={(e) => handleMusicCoverError(e, raw, 120)}
-                                className="h-7 w-7 rounded-[4px] object-cover shrink-0"
+                                className="h-7 w-7 rounded-[4px] object-cover shrink-0 shadow-sm"
                               />
                             );
                           })()}
@@ -416,15 +416,17 @@ export function MusicPlayer({
                             <p className="truncate text-xs font-medium">
                               {song.title}
                             </p>
-                            <p className="truncate text-[10px] text-neutral-400">
+                            <p
+                              className={`truncate text-[10px] ${
+                                isCurrent
+                                  ? "text-white/80"
+                                  : "text-neutral-400"
+                              }`}
+                            >
                               {song.artist}
                             </p>
                           </div>
                         </div>
-
-                        {isCurrent && (
-                          <span className="flex h-1.5 w-1.5 rounded-full bg-[#FA2D48] shadow-[0_0_8px_rgba(250,45,72,0.9)] shrink-0" />
-                        )}
                       </button>
                     );
                   })}
