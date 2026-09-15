@@ -32,7 +32,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const viewport: Viewport = {
-  colorScheme: "light dark",
+  themeColor: "#ede7dc",
+  colorScheme: "only light",
 };
 
 export const metadata: Metadata = {
@@ -69,7 +70,7 @@ export default function RootLayout({
                   docEl.classList.add('no-transitions');
                   var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
                   var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
-                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = saved === 'dark';
                   var themeColor = isDark ? '#111213' : '#ede7dc';
                   var colorScheme = isDark ? 'dark' : 'only light';
 
@@ -121,24 +122,19 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               :root {
-                color-scheme: light dark;
+                --page-bg: #ede7dc;
+                --page-text: #1e1b18;
               }
-              @media (prefers-color-scheme: dark) {
-                :root {
-                  background-color: #111213;
-                }
-              }
-              @media (prefers-color-scheme: light) {
-                :root {
-                  background-color: #ede7dc;
-                }
-              }
-              html.light {
+              html.light,
+              html.light body {
                 background-color: #ede7dc !important;
+                color: #1e1b18 !important;
                 color-scheme: only light !important;
               }
-              html.dark {
+              html.dark,
+              html.dark body {
                 background-color: #111213 !important;
+                color: #eae5dc !important;
                 color-scheme: dark !important;
               }
               /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
@@ -166,33 +162,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
-        {/* 0ms 正文前置阻断脚本：在浏览器解析任何正文 DOM 前立刻焊死主题 */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var docEl = document.documentElement;
-                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
-                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
-                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if (isDark) {
-                    docEl.classList.add('dark');
-                    docEl.classList.remove('light');
-                    docEl.style.backgroundColor = '#111213';
-                    docEl.style.colorScheme = 'dark';
-                  } else {
-                    docEl.classList.remove('dark');
-                    docEl.classList.add('light');
-                    docEl.style.backgroundColor = '#ede7dc';
-                    docEl.style.colorScheme = 'only light';
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
+      <body className="min-h-screen w-full font-sans bg-[#ede7dc] dark:bg-[#111213] text-[#1e1b18] dark:text-[#eae5dc] selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
         <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>

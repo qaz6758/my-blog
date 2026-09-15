@@ -87,10 +87,6 @@ function getInitialTheme(defaultFallback: Theme = "light"): Theme {
     const root = document.documentElement;
     if (root.classList.contains("dark")) return "dark";
     if (root.classList.contains("light")) return "light";
-
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
   } catch {}
 
   return defaultFallback;
@@ -158,11 +154,19 @@ export function ThemeProvider({
       root.classList.remove("light");
       root.style.colorScheme = "dark";
       root.style.backgroundColor = "#111213";
+      if (document.body) {
+        document.body.style.backgroundColor = "#111213";
+        document.body.style.color = "#eae5dc";
+      }
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
       root.style.colorScheme = "only light";
       root.style.backgroundColor = "#ede7dc";
+      if (document.body) {
+        document.body.style.backgroundColor = "#ede7dc";
+        document.body.style.color = "#1e1b18";
+      }
     }
 
     setThemeState(newTheme);
@@ -172,35 +176,12 @@ export function ThemeProvider({
 
   /*
    * ============================================================
-   * 客户端初始化 + 系统主题实时监听
+   * 客户端初始化：强制将 DOM 状态与当前主题原子对齐
    * ============================================================
    */
   useEffect(() => {
     const current = getInitialTheme(initialTheme);
-    setThemeState(current);
-
-    const root = document.documentElement;
-    const isDomDark = root.classList.contains("dark");
-    // 仅在 DOM 实际状态与当前计算主题不一致时才重新应用，避免初次水合不必要的 DOM 重新绘制与补间闪烁
-    if ((current === "dark" && !isDomDark) || (current === "light" && isDomDark)) {
-      applyThemeDirect(current);
-    } else {
-      persistTheme(current);
-      updateMetaColorScheme(current);
-    }
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const handleChange = (event: MediaQueryListEvent) => {
-      const currentStored = getStoredTheme();
-      if (!currentStored) {
-        const nextSystemTheme: Theme = event.matches ? "dark" : "light";
-        applyThemeDirect(nextSystemTheme);
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    applyThemeDirect(current);
   }, [initialTheme, applyThemeDirect]);
 
   const isTransitioningRef = React.useRef(false);

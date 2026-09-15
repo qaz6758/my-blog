@@ -80,13 +80,6 @@
   --page-text: #1e1b18;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page-bg: #111213;
-    --page-text: #eae5dc;
-  }
-}
-
 html.dark {
   --page-bg: #111213 !important;
   --page-text: #eae5dc !important;
@@ -105,6 +98,20 @@ html {
 body {
   background-color: var(--page-bg);
   color: var(--page-text);
+}
+
+html.light,
+html.light body {
+  background-color: #ede7dc !important;
+  color: #1e1b18 !important;
+  color-scheme: only light !important;
+}
+
+html.dark,
+html.dark body {
+  background-color: #111213 !important;
+  color: #eae5dc !important;
+  color-scheme: dark !important;
 }
 
 /*
@@ -221,34 +228,6 @@ html.dark ::selection {
   --foreground: var(--realm-ink-primary);
   background-color: var(--page-bg);
   color: var(--page-text);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --realm-bg: #111213;
-    --realm-surface: #191a1b;
-    --realm-surface-secondary: #222325;
-    --realm-surface-tertiary: #2b2c2f;
-
-    --realm-border: rgba(255, 255, 255, 0.08);
-    --realm-border-strong: rgba(255, 255, 255, 0.14);
-
-    --realm-ink-primary: #eae5dc;
-    --realm-ink-secondary: #9d9589;
-    --realm-ink-muted: #6f685c;
-
-    --realm-accent-cinnabar: #eae5dc;
-    --realm-accent-indigo: #d6d3d1;
-    --realm-accent-gold: #ffffff;
-
-    --realm-motion-duration: 0.32s;
-    --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
-
-    --background: var(--realm-bg);
-    --foreground: var(--realm-ink-primary);
-    background-color: var(--page-bg);
-    color: var(--page-text);
-  }
 }
 
 html.light {
