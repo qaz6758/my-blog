@@ -127,56 +127,60 @@ function processAndOptimizeHtml(rawHtml: string): string {
 </div>`;
   });
 
-  // 6. 将原生 <blockquote> 中的 [!NOTE] / [!TIP] 等转为高质感 GitHub Alert 引用卡片
+  // 6. 将原生 <blockquote> 转为高质感 GitHub Alert / Note 引用卡片（方案 B：无论是否有 [!NOTE]，所有引用块全部变成 Note 提示卡片）
   cleaned = cleaned.replace(/<blockquote\b([^>]*)>([\s\S]*?)<\/blockquote>/gi, (match, attrs, inner) => {
     const textOnly = inner.replace(/<[^>]+>/g, "").trim();
     const alertMatch = textOnly.match(/^(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)/i);
 
+    const configMap: Record<string, { title: string; border: string; color: string; svg: string }> = {
+      note: {
+        title: "Note",
+        border: "border-[#0969da] dark:border-[#2f81f7]",
+        color: "text-[#0969da] dark:text-[#2f81f7]",
+        svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
+      },
+      tip: {
+        title: "Tip",
+        border: "border-[#1a7f37] dark:border-[#3fb950]",
+        color: "text-[#1a7f37] dark:text-[#3fb950]",
+        svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+      },
+      important: {
+        title: "Important",
+        border: "border-[#8250df] dark:border-[#a371f7]",
+        color: "text-[#8250df] dark:text-[#a371f7]",
+        svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+      },
+      warning: {
+        title: "Warning",
+        border: "border-[#9a6700] dark:border-[#d29922]",
+        color: "text-[#9a6700] dark:text-[#d29922]",
+        svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+      },
+      caution: {
+        title: "Caution",
+        border: "border-[#cf222e] dark:border-[#f85149]",
+        color: "text-[#cf222e] dark:text-[#f85149]",
+        svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>`,
+      },
+    };
+
+    let typeKey = "note";
+    let cleanedInner = inner;
+
     if (alertMatch) {
       const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
-      const typeKey = rawKey.includes("warn") ? "warning" : rawKey.includes("tip") ? "tip" : rawKey.includes("import") ? "important" : rawKey.includes("caut") ? "caution" : "note";
+      typeKey = rawKey.includes("warn") ? "warning" : rawKey.includes("tip") ? "tip" : rawKey.includes("import") ? "important" : rawKey.includes("caut") ? "caution" : "note";
 
-      const cleanedInner = inner.replace(
+      cleanedInner = inner.replace(
         /^\s*(<p[^>]*>)?\s*(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)\s*(<br\s*\/?>)?/i,
         "$1"
       );
+    }
 
-      const configMap: Record<string, { title: string; border: string; color: string; svg: string }> = {
-        note: {
-          title: "Note",
-          border: "border-[#0969da] dark:border-[#2f81f7]",
-          color: "text-[#0969da] dark:text-[#2f81f7]",
-          svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
-        },
-        tip: {
-          title: "Tip",
-          border: "border-[#1a7f37] dark:border-[#3fb950]",
-          color: "text-[#1a7f37] dark:text-[#3fb950]",
-          svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
-        },
-        important: {
-          title: "Important",
-          border: "border-[#8250df] dark:border-[#a371f7]",
-          color: "text-[#8250df] dark:text-[#a371f7]",
-          svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
-        },
-        warning: {
-          title: "Warning",
-          border: "border-[#9a6700] dark:border-[#d29922]",
-          color: "text-[#9a6700] dark:text-[#d29922]",
-          svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
-        },
-        caution: {
-          title: "Caution",
-          border: "border-[#cf222e] dark:border-[#f85149]",
-          color: "text-[#cf222e] dark:text-[#f85149]",
-          svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>`,
-        },
-      };
+    const c = configMap[typeKey] || configMap.note;
 
-      const c = configMap[typeKey] || configMap.note;
-
-      return `<div class="my-6 border-l-[3.5px] ${c.border} pl-4.5 sm:pl-5 py-1.5 not-italic select-text">
+    return `<div class="my-6 border-l-[3.5px] ${c.border} pl-4.5 sm:pl-5 py-1.5 not-italic select-text">
   <div class="flex items-center gap-2 text-[14px] sm:text-[14.5px] font-semibold ${c.color} mb-2 select-none tracking-tight">
     ${c.svg}
     <span>${c.title}</span>
@@ -185,9 +189,6 @@ function processAndOptimizeHtml(rawHtml: string): string {
     ${cleanedInner}
   </div>
 </div>`;
-    }
-
-    return `<blockquote ${attrs} class="my-6 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4.5 sm:pl-5 py-1.5 text-neutral-700 dark:text-[#b0a99f] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5 not-italic select-text">${inner}</blockquote>`;
   });
 
   return cleaned;
@@ -559,7 +560,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     [&_li]:leading-[2]
     [&_img]:rounded-sm [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
     [&_a]:prose-link
-    [&_blockquote]:border-l-[3.5px] [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:pl-4.5 sm:[&_blockquote]:pl-5 [&_blockquote]:py-1.5 [&_blockquote]:my-6 [&_blockquote]:text-neutral-700 dark:[&_blockquote]:text-[#b0a99f] [&_blockquote]:not-italic
+    [&_blockquote]:border-l-[3.5px] [&_blockquote]:border-[#0969da] dark:[&_blockquote]:border-[#2f81f7] [&_blockquote]:pl-4.5 sm:[&_blockquote]:pl-5 [&_blockquote]:py-1.5 [&_blockquote]:my-6 [&_blockquote]:text-neutral-700 dark:[&_blockquote]:text-[#b0a99f] [&_blockquote]:not-italic
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-8
     [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-medium [&_th]:text-[#292623] dark:[&_th]:text-[#eae5dc] [&_th]:text-left
     [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-neutral-700 dark:[&_td]:text-[#9d9589]
@@ -609,38 +610,27 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // 高质感 GitHub Alert / Note 引用卡片（自动识别 Note/Tip/Important/Warning/Caution 并优雅剥离前缀）
+              // 高质感 GitHub Alert / Note 引用卡片（方案 B：全面变成 Note 卡片）
               blockquote: ({ children, node, ...props }) => {
                 const text = getNodeText(children).trim();
-                const alertConfig = getAlertConfig(text);
-
-                if (alertConfig) {
-                  const Icon = alertConfig.icon;
-                  const cleanChildren = stripAlertPrefix(children);
-
-                  return (
-                    <div
-                      className={`my-6 border-l-[3.5px] ${alertConfig.borderColor} pl-4.5 sm:pl-5 py-1.5 not-italic select-text`}
-                    >
-                      <div
-                        className={`flex items-center gap-2 text-[14px] sm:text-[14.5px] font-semibold ${alertConfig.titleColor} mb-2 select-none tracking-tight`}
-                      >
-                        <Icon className="h-4 w-4 stroke-[2.2] shrink-0" />
-                        <span>{alertConfig.title}</span>
-                      </div>
-                      <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-800 dark:text-[#eae5dc] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
-                        {cleanChildren}
-                      </div>
-                    </div>
-                  );
-                }
+                const alertConfig = getAlertConfig(text) || ALERT_MAP.note;
+                const Icon = alertConfig.icon;
+                const cleanChildren = stripAlertPrefix(children);
 
                 return (
                   <blockquote
-                    className="my-6 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4.5 sm:pl-5 py-1.5 text-neutral-700 dark:text-[#b0a99f] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5 not-italic select-text"
+                    className={`my-6 border-l-[3.5px] ${alertConfig.borderColor} pl-4.5 sm:pl-5 py-1.5 not-italic select-text`}
                     {...props}
                   >
-                    {children}
+                    <div
+                      className={`flex items-center gap-2 text-[14px] sm:text-[14.5px] font-semibold ${alertConfig.titleColor} mb-2 select-none tracking-tight`}
+                    >
+                      <Icon className="h-4 w-4 stroke-[2.2] shrink-0" />
+                      <span>{alertConfig.title}</span>
+                    </div>
+                    <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-800 dark:text-[#eae5dc] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                      {cleanChildren}
+                    </div>
                   </blockquote>
                 );
               },
