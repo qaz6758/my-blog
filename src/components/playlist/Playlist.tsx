@@ -78,6 +78,7 @@ export function Playlist({
           /* ===================== 1. 宽屏画廊网格 ===================== */
           <motion.div
             key="playlist-grid"
+            data-playlist-grid=""
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

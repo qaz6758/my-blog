@@ -31,8 +31,6 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
-import { cookies } from "next/headers";
-
 export const viewport: Viewport = {
   colorScheme: "light dark",
 };
@@ -49,24 +47,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  const isDark = themeCookie === "dark";
-
   return (
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${isDark ? "dark" : "light"} ${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
-      style={{
-        backgroundColor: isDark ? "#111213" : "#ede7dc",
-        colorScheme: isDark ? "dark" : "only light",
-      }}
+      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
     >
       <head>
         {/* 1. 首屏零毫秒同步锁定主题脚本（置于最顶端，解析最先执行） */}
@@ -79,7 +69,8 @@ export default async function RootLayout({
                   docEl.classList.add('no-transitions');
                   var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
                   var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
-                  var isDark = saved === 'dark';
+                  var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = saved ? saved === 'dark' : systemDark;
                   var themeColor = isDark ? '#111213' : '#ede7dc';
                   var colorScheme = isDark ? 'dark' : 'only light';
 
@@ -133,6 +124,16 @@ export default async function RootLayout({
               :root {
                 --page-bg: #ede7dc;
                 --page-text: #1e1b18;
+              }
+              @media (prefers-color-scheme: dark) {
+                :root {
+                  color-scheme: dark;
+                }
+                html:not(.light),
+                html:not(.light) body {
+                  background-color: #111213 !important;
+                  color: #eae5dc !important;
+                }
               }
               html.light,
               html.light body {
@@ -188,7 +189,33 @@ export default async function RootLayout({
       </head>
 
       <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
-        <ThemeProvider initialTheme={isDark ? "dark" : "light"}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var docEl = document.documentElement;
+                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
+                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
+                  var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = saved ? saved === 'dark' : systemDark;
+                  if (isDark) {
+                    docEl.classList.add('dark');
+                    docEl.classList.remove('light');
+                    docEl.style.backgroundColor = '#111213';
+                    docEl.style.colorScheme = 'dark';
+                  } else {
+                    docEl.classList.remove('dark');
+                    docEl.classList.add('light');
+                    docEl.style.backgroundColor = '#ede7dc';
+                    docEl.style.colorScheme = 'only light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+        <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
             <FrontendShell>

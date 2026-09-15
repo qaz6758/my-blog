@@ -34,6 +34,11 @@ export default function PlaylistClient({
   const handleSelectPlaylist = (id: string | null) => {
     setSelectedPlaylistId(id);
     if (typeof window !== "undefined") {
+      if (id) {
+        document.documentElement.classList.add("hide-playlist-grid");
+      } else {
+        document.documentElement.classList.remove("hide-playlist-grid");
+      }
       const url = new URL(window.location.href);
       if (id) {
         url.searchParams.set("id", id);
@@ -48,7 +53,13 @@ export default function PlaylistClient({
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
-      setSelectedPlaylistId(params.get("id") || params.get("playlist") || null);
+      const id = params.get("id") || params.get("playlist") || null;
+      setSelectedPlaylistId(id);
+      if (id) {
+        document.documentElement.classList.add("hide-playlist-grid");
+      } else {
+        document.documentElement.classList.remove("hide-playlist-grid");
+      }
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
