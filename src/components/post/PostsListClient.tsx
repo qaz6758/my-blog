@@ -40,11 +40,7 @@ function getReadTime(post: PostItem): number | null {
 function formatPostDate(dateString: string) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return "";
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-  return months[date.getMonth()] + " " + date.getDate();
+  return (date.getMonth() + 1) + "月" + date.getDate() + "日";
 }
 
 export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
@@ -82,56 +78,29 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
 
   return (
     <div className="w-full text-left">
-      {/* 顶部多维媒体矩阵 (Anthony Fu antfu.me 标志性设计：主标题 + 弱化子频道横向展开) */}
-      <div className="mb-10 sm:mb-14 flex flex-wrap items-baseline gap-3 sm:gap-4 select-none">
-        <h1 className="text-[32px] sm:text-[38px] font-bold tracking-[-0.03em] text-neutral-900 dark:text-[#ece7df] font-sans">
-          Blog
+      {/* 顶部洗练标题：温润文心，宣纸留白，零多余横线与修饰 */}
+      <div className="mb-12 sm:mb-16">
+        <h1 className="text-[32px] sm:text-[38px] font-wenkai font-normal tracking-[0.02em] text-neutral-900 dark:text-[#ece7df] select-none">
+          文章
         </h1>
-        <Link
-          href="/thoughts"
-          className="text-[20px] sm:text-[24px] font-medium tracking-tight text-neutral-400/40 hover:text-neutral-700 dark:text-[#777168]/40 dark:hover:text-[#ece7df] transition-colors font-sans"
-        >
-          Thinking
-        </Link>
-        <Link
-          href="/playlist"
-          className="text-[20px] sm:text-[24px] font-medium tracking-tight text-neutral-400/40 hover:text-neutral-700 dark:text-[#777168]/40 dark:hover:text-[#ece7df] transition-colors font-sans"
-        >
-          Playlist
-        </Link>
-        <Link
-          href="/gallery"
-          className="text-[20px] sm:text-[24px] font-medium tracking-tight text-neutral-400/40 hover:text-neutral-700 dark:text-[#777168]/40 dark:hover:text-[#ece7df] transition-colors font-sans"
-        >
-          Gallery
-        </Link>
       </div>
 
-      {/* 按年份编年史排版 */}
-      <div className="space-y-12 sm:space-y-14">
+      {/* 按年份编年史编排 */}
+      <div className="space-y-12 sm:space-y-16">
         {years.map((year) => {
           const yearPosts = postsByYear[year];
 
           return (
             <section key={year} className="relative">
-              {/* Anthony Fu 经典空心艺术年份水印 (自然占位 h-16 ~ h-20，左探出，绝不与文章撞车) */}
-              <div
-                className="relative h-16 sm:h-20 pointer-events-none select-none"
-                aria-hidden="true"
-              >
-                <span
-                  className="absolute -left-6 sm:-left-12 -top-5 sm:-top-8 text-[7em] sm:text-[8em] font-bold font-mono tracking-tighter leading-none text-transparent"
-                  style={{
-                    WebkitTextStroke: "1.5px #888888",
-                    opacity: 0.08,
-                  }}
-                >
+              {/* 年份标记：克制、静穆的书页时间锚点 */}
+              <div className="mb-4 sm:mb-5 select-none">
+                <span className="font-mono text-[17px] sm:text-[19px] font-medium tracking-wider text-neutral-400 dark:text-[#777168]">
                   {year}
                 </span>
               </div>
 
-              {/* 文章列表 (清爽正常字重，单行平滑流式排版，零横线) */}
-              <div className="relative z-10 flex flex-col space-y-2.5 sm:space-y-3">
+              {/* 文章列表：左侧标题温润雅致，右侧日期静穆收束 */}
+              <div className="flex flex-col space-y-2 sm:space-y-2.5">
                 {yearPosts.map((post) => {
                   const date = post.published_at || post.created_at;
                   const formattedDate = formatPostDate(date);
@@ -143,12 +112,12 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       key={post.id}
                       href={targetLink}
                       prefetch={true}
-                      className="group flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-left py-0.5 transition-opacity"
+                      className="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 py-2 text-left transition-colors"
                     >
-                      <span className="text-[15.5px] sm:text-[16.5px] font-normal text-neutral-800 dark:text-[#ded8ce] group-hover:text-neutral-950 dark:group-hover:text-white transition-colors">
+                      <span className="text-[15.5px] sm:text-[16.5px] font-normal leading-relaxed text-neutral-800 dark:text-[#ded8ce] group-hover:text-[#7f1d1d] dark:group-hover:text-white transition-colors">
                         {post.title}
                       </span>
-                      <span className="text-[12.5px] sm:text-[13px] font-sans text-neutral-400 dark:text-[#777168] whitespace-nowrap opacity-60 select-none">
+                      <span className="shrink-0 font-mono text-[12px] sm:text-[12.5px] text-neutral-400 dark:text-[#777168] whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity">
                         {formattedDate}
                         {readTime ? " · " + readTime + "min" : ""}
                       </span>
@@ -162,9 +131,9 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
       </div>
 
       {posts.length === 0 && (
-        <div className="py-20 text-center">
-          <p className="text-[15px] text-neutral-500 dark:text-neutral-400 font-sans">
-            No posts yet.
+        <div className="py-24 text-center">
+          <p className="text-[15px] font-wenkai text-neutral-500 dark:text-neutral-400">
+            暂无文章
           </p>
         </div>
       )}
