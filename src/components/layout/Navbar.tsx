@@ -18,7 +18,7 @@ const NAV_LINKS = [
   { name: "Thinking", href: "/thoughts" },
 ];
 
-function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string }) {
+function BrandLogo({ className = "h-9 w-9 sm:h-11 sm:w-11" }: { className?: string }) {
   return (
     <div className={`relative flex items-center justify-center select-none ${className}`}>
       <svg
@@ -69,13 +69,13 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
           origin: { x, y },
         });
       }}
-      className={`flex h-8 w-8 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none ${className}`}
+      className={`flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none ${className}`}
       title="切换世界（昼行 / 夜行）"
       aria-label="切换世界（昼行 / 夜行）"
     >
       <span className="inline-flex items-center justify-center transition-transform duration-300 ease-out transform group-hover:rotate-12">
-        <Sun className="h-[17px] w-[17px] stroke-[1.8] hidden dark:block" />
-        <Moon className="h-[17px] w-[17px] stroke-[1.8] block dark:hidden" />
+        <Sun className="h-[19px] w-[19px] stroke-[1.9] hidden dark:block" />
+        <Moon className="h-[19px] w-[19px] stroke-[1.9] block dark:hidden" />
       </span>
     </button>
   );
@@ -131,7 +131,7 @@ export function Navbar() {
 
   return (
     <header 
-      className={`fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] bg-transparent select-none transition-transform duration-300 ease-out ${
+      className={`fixed inset-x-0 top-0 z-40 h-16 sm:h-[76px] bg-transparent select-none transition-transform duration-300 ease-out ${
         isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
@@ -157,8 +157,8 @@ export function Navbar() {
         </div>
 
         {/* ===================== 右侧：文字导航 + 图标群带 Tooltip（Anthony Fu 像素级复刻） ===================== */}
-        <div className="hidden md:flex items-center gap-5 lg:gap-6">
-          <nav className="flex items-center gap-5 lg:gap-6 select-none">
+        <div className="hidden md:flex items-center gap-6 lg:gap-7">
+          <nav className="flex items-center gap-6 lg:gap-7 select-none">
             {NAV_LINKS.map((link) => {
               const isActive =
                 pathname === link.href ||
@@ -168,7 +168,7 @@ export function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-[13.5px] sm:text-[14px] tracking-[0.01em] transition-opacity duration-200 select-none cursor-pointer py-1 ${
+                  className={`text-[15px] sm:text-[16px] tracking-normal transition-opacity duration-200 select-none cursor-pointer py-1 ${
                     isActive
                       ? "opacity-100 font-medium text-neutral-950 dark:text-[#eae5dc]"
                       : "opacity-60 hover:opacity-100 text-neutral-800 dark:text-neutral-200"
@@ -181,17 +181,17 @@ export function Navbar() {
           </nav>
 
           {/* 右侧功能区：无任何竖线，全流式平铺衔接 */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             {/* GitHub */}
             <div className="group relative flex items-center justify-center">
               <a
                 href="https://github.com/qaz6758"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
+                className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
                 aria-label="GitHub Profile"
               >
-                <svg className="h-[17px] w-[17px]" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="h-[20px] w-[20px]" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                 </svg>
               </a>
@@ -205,10 +205,10 @@ export function Navbar() {
               <Link
                 href="/api/rss"
                 target="_blank"
-                className="flex h-8 w-8 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
+                className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
                 aria-label="RSS Feed"
               >
-                <Rss className="h-4 w-4 stroke-[1.9]" />
+                <Rss className="h-[19px] w-[19px] stroke-[2]" />
               </Link>
               <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded bg-[#18181b] border border-white/10 text-white px-2 py-0.5 text-[11px] font-mono shadow-md whitespace-nowrap z-50">
                 RSS
@@ -232,7 +232,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
             aria-label="切换菜单"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
