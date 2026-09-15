@@ -14,11 +14,40 @@ interface PlaylistClientProps {
 
 export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClientProps) {
   const [playlists, setPlaylists] = useState<PlaylistCategory[]>(initialPlaylists);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("id") || params.get("playlist") || null;
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(initialPlaylists.length === 0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { currentSong, isPlaying, playSong, playAll } = useMusic();
+
+  const handleSelectPlaylist = (id: string | null) => {
+    setSelectedPlaylistId(id);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (id) {
+        url.searchParams.set("id", id);
+      } else {
+        url.searchParams.delete("id");
+        url.searchParams.delete("playlist");
+      }
+      window.history.pushState({ playlistId: id }, "", url.pathname + (url.search ? url.search : ""));
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSelectedPlaylistId(params.get("id") || params.get("playlist") || null);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const loadNotionPlaylists = async () => {
     if (playlists.length === 0) setIsLoading(true);
@@ -107,7 +136,7 @@ export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClient
       selectedPlaylistId={selectedPlaylistId}
       currentSongId={currentSong?.id}
       isPlaying={isPlaying}
-      onSelectPlaylist={setSelectedPlaylistId}
+      onSelectPlaylist={handleSelectPlaylist}
       onPlayAll={handlePlayAll}
       onSelectSong={handleSelectSong}
     />

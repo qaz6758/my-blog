@@ -39,22 +39,6 @@ export function Playlist({
   onPlayAll,
   onSelectSong,
 }: PlaylistProps) {
-  // ===================== 移动端手势/物理返回键拦截 =====================
-  useEffect(() => {
-    if (!selectedPlaylistId) return;
-
-    window.history.pushState({ playlistDetailOpen: true }, "");
-
-    const handlePopState = () => {
-      onSelectPlaylist(null);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [selectedPlaylistId, onSelectPlaylist]);
-
   const handleSelectPlaylist = (id: string | null) => {
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -63,11 +47,7 @@ export function Playlist({
   };
 
   const handleBackToList = () => {
-    if (window.history.state?.playlistDetailOpen) {
-      window.history.back();
-    } else {
-      handleSelectPlaylist(null);
-    }
+    handleSelectPlaylist(null);
   };
 
   const activePlaylist = playlists.find((p) => p.id === selectedPlaylistId);

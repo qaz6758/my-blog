@@ -91,12 +91,10 @@ html.light {
 }
 
 html {
-  background-color: var(--page-bg);
   scrollbar-gutter: stable;
 }
 
 body {
-  background-color: var(--page-bg);
   color: var(--page-text);
 }
 
