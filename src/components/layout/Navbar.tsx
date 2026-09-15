@@ -182,8 +182,8 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* 右侧功能区：GitHub + RSS + 昼夜切换 (Anthony Fu 同款气泡 Tooltip) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 pl-2 sm:pl-3 border-l border-black/[0.08] dark:border-white/[0.08]">
+          {/* 右侧功能区：无任何竖线，全流式平铺衔接 */}
+          <div className="flex items-center gap-3">
             {/* GitHub */}
             <div className="group relative flex items-center justify-center">
               <a
