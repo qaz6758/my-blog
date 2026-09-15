@@ -193,16 +193,15 @@ export function DynamicPostReader({
           <div className="mx-auto flex max-w-[1360px] w-full justify-center px-4 sm:px-6 xl:px-8">
             
             {/* 左侧：辅助信息轨道 (文章信息 + 上下一篇) */}
-            <aside className="hidden xl:flex w-[260px] flex-col shrink-0 sticky top-32 h-[calc(100vh-128px)] overflow-y-auto pr-10 pt-2">
+            <aside className="hidden xl:flex w-[260px] flex-col shrink-0 sticky top-32 h-[calc(100vh-128px)] overflow-y-auto pl-2 pr-10 pt-2">
               <div className="space-y-10">
                 {/* 返回文章列表 */}
                 <div>
                   <Link
                     href="/posts"
                     className="group inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-neutral-900 dark:text-[#777168] dark:hover:text-[#eae5dc] transition-colors cursor-pointer select-none"
-                    title="返回文章列表"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+                    <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
                     <span>cd ..</span>
                   </Link>
                 </div>
@@ -289,13 +288,12 @@ export function DynamicPostReader({
               {/* 头部大标题与极简单行日期（移动端显示信息） */}
               <header className="mb-14 relative">
                 {/* 移动端返回导航 */}
-                <div className="xl:hidden mb-6">
+                <div className="xl:hidden mb-6 pl-1">
                   <Link
                     href="/posts"
                     className="group inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 hover:text-neutral-900 dark:text-[#777168] dark:hover:text-[#eae5dc] transition-colors cursor-pointer select-none"
-                    title="返回文章列表"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+                    <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
                     <span>cd ..</span>
                   </Link>
                 </div>
