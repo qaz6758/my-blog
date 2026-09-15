@@ -26,18 +26,16 @@ function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="w-full h-full text-neutral-800 dark:text-[#f3f0ea] transition-all duration-300 transform group-hover:scale-105"
-        aria-label="Vince Ou (VO)"
+        aria-label="OW (Vince Ou)"
       >
-        <title>Vince Ou @ vinceou.site</title>
+        <title>OW @ vinceou.site</title>
         <path
-          d="M 20 36 C 22 26 30 24 35 32 C 38 38 41 62 46 76 C 48 81 53 80 56 73 C 62 55 67 36 71 27 C 77 19 88 22 89 35 C 90 50 83 74 71 77 C 59 81 52 64 56 46 C 60 27 77 21 83 30 C 86 34 88 36 94 34"
+          d="M 36 14 C 20 20 13 46 16 72 C 19 86 28 88 36 82 C 43 74 46 44 42 24 C 40 14 34 16 32 24 C 31 32 38 36 48 34 C 51 46 51 70 54 84 C 56 90 61 88 64 74 C 69 54 71 44 74 42 C 77 42 75 62 77 82 C 79 90 84 88 87 72 C 92 48 94 26 95 12"
           stroke="currentColor"
-          strokeWidth="3.6"
+          strokeWidth="3.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx="21" cy="36" r="1.5" fill="currentColor" opacity="0.8" />
-        <circle cx="94" cy="34" r="1.5" fill="currentColor" opacity="0.8" />
       </svg>
     </div>
   );
@@ -139,13 +137,13 @@ export function Navbar() {
     >
       {/* 顶部通透全延展容器 (对齐 Anthony Fu antfu.me 极致两极排版：全屏展开，两端极致呼吸) */}
       <div className="relative mx-auto flex h-full w-full items-center justify-between px-6 sm:px-10 md:px-14 lg:px-16">
-        {/* ===================== 左侧：手写连笔 VO 艺术签名 Logo + 状态胶囊 ===================== */}
+        {/* ===================== 左侧：手写连笔 OW 艺术签名 Logo + 状态胶囊 ===================== */}
         <div className="flex items-center gap-3">
           <Link
             href="/"
             className="group flex items-center shrink-0 cursor-pointer select-none opacity-80 hover:opacity-100 transition-opacity duration-200"
             aria-label="回到首页"
-            title="Vince Ou @ vinceou.site"
+            title="OW @ vinceou.site"
           >
             <BrandLogo />
           </Link>

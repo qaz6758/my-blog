@@ -67,14 +67,14 @@ export function HeroSection() {
   const { name } = siteConfig;
 
   return (
-    <div className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden pt-32 sm:pt-40 pb-12 sm:pb-16 px-4 sm:px-6">
+    <div className="relative w-full overflow-hidden pt-28 sm:pt-36 pb-20 sm:pb-28 px-6 sm:px-8">
       <motion.main
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="relative z-10 mx-auto w-full max-w-[640px] flex flex-col items-center my-auto"
+        className="relative z-10 mx-auto w-full max-w-[660px] flex flex-col items-start text-left"
       >
-        {/* ===================== 1. 居中圆形头像 ===================== */}
+        {/* ===================== 1. 左对齐圆形头像 ===================== */}
         <motion.div
           variants={itemVariants}
           whileHover={{ scale: 1.04, rotate: 1.2 }}
@@ -92,7 +92,7 @@ export function HeroSection() {
         </motion.div>
 
         {/* ===================== 2. 核心身份标题 ===================== */}
-        <motion.div variants={itemVariants} className="text-center mb-6 sm:mb-8">
+        <motion.div variants={itemVariants} className="text-left mb-6 sm:mb-8">
           <h1 className="text-[34px] sm:text-[44px] font-semibold tracking-[-0.035em] text-neutral-900 dark:text-[#ece7df] select-none font-serif">
             {name}
           </h1>
@@ -103,7 +103,7 @@ export function HeroSection() {
           {/* 第一段：身份白描 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-justify"
+            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
           >
             嘿！我是 {name}，一名热爱音乐以及网站开发的全栈初学者。
           </motion.p>
@@ -111,7 +111,7 @@ export function HeroSection() {
           {/* 第二段：内省与对抗 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-justify"
+            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
           >
             在这个被快餐娱乐与既定准则裹挟的时代，对我而言失去分享欲是正常的，却也是危险的。人们总在谈论对抗荒诞、失衡与提线木偶般的外部世界，但真正漫长而频繁的，其实是与自我的交战——当思想变革过于剧烈，而实际能力尚未企及，所以难免产生无力与厌恶感。
           </motion.p>
@@ -119,7 +119,7 @@ export function HeroSection() {
           {/* 第三段：信念宣言 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-justify"
+            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
           >
             但不必长久陷入痛苦。我选择在此留下自己能留下的一切，无论是逻辑的代码，还是感性的艺术。秉持着{" "}
             <span className="font-medium text-[#7f1d1d] dark:text-[#e7e2d8]">
@@ -131,7 +131,7 @@ export function HeroSection() {
           {/* 第四段：多维通路引言 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-justify"
+            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
           >
             除了代码构建，我也在旅途与日常中凝固光影，欢迎漫步我的{" "}
             <TextLink href="/gallery">摄影画廊</TextLink>、聆听我的{" "}
@@ -144,9 +144,9 @@ export function HeroSection() {
         {/* ===================== 4. 底部联络与社交 (纯文字水墨风格 · 零多余图标) ===================== */}
         <motion.div
           variants={itemVariants}
-          className="mt-10 sm:mt-12 flex w-full flex-col items-center space-y-2.5 pt-2 text-center select-none"
+          className="mt-10 sm:mt-12 flex w-full flex-col items-start space-y-2.5 pt-2 text-left select-none"
         >
-          <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1.5 text-[13px] sm:text-[14px] font-serif">
+          <div className="flex flex-wrap items-center justify-start gap-x-3.5 gap-y-1.5 text-[13px] sm:text-[14px] font-serif">
             <a
               href="https://github.com/qaz6758"
               target="_blank"
@@ -185,7 +185,7 @@ export function HeroSection() {
           </div>
 
           {/* 邮箱 */}
-          <p className="pt-0.5 text-xs text-neutral-400 dark:text-[#777168]">
+          <p className="pt-0.5 text-xs text-neutral-400 dark:text-[#777168] text-left">
             Or mail me at{" "}
             <a
               href="mailto:theyole114@outlook.com"
