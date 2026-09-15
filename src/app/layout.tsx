@@ -32,8 +32,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#ede7dc",
-  colorScheme: "only light",
+  colorScheme: "light dark",
 };
 
 export const metadata: Metadata = {
@@ -154,15 +153,31 @@ export default function RootLayout({
         {/* 预连接字体与静态 CDN，消除渲染挂起与排版跳跃 */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-        {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}
+        {/* 预连接并异步非阻塞加载 霞鹜文楷字体，彻底杜绝外部网络请求挂起 HTML 解析与主题脚本 */}
+        <link
+          rel="preload"
+          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
+          as="style"
+          crossOrigin="anonymous"
+        />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
           crossOrigin="anonymous"
+          media="print"
+          // @ts-ignore
+          onLoad="this.media='all'"
         />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
+            crossOrigin="anonymous"
+          />
+        </noscript>
       </head>
 
-      <body className="min-h-screen w-full font-sans bg-[#ede7dc] dark:bg-[#111213] text-[#1e1b18] dark:text-[#eae5dc] selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
+      <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
         <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
