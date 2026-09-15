@@ -1,7 +1,7 @@
 // components/layout/Navbar.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +19,7 @@ const NAV_LINKS = [
 ];
 
 function ThemeToggleButton({ className = "" }: { className?: string }) {
-  const { isDark, toggleTheme, mounted } = useTheme();
+  const { toggleTheme } = useTheme();
 
   return (
     <button
@@ -51,17 +51,10 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
       title="切换世界（昼行 / 夜行）"
       aria-label="切换世界（昼行 / 夜行）"
     >
-      {mounted ? (
-        <span className="inline-flex items-center justify-center transition-transform duration-500 ease-out transform group-hover:rotate-12 group-active:scale-90">
-          {isDark ? (
-            <Sun className="h-4 w-4 stroke-[1.75] transition-transform duration-500 rotate-0" />
-          ) : (
-            <Moon className="h-4 w-4 stroke-[1.75] transition-transform duration-500 -rotate-12" />
-          )}
-        </span>
-      ) : (
-        <div className="h-4 w-4" />
-      )}
+      <span className="inline-flex items-center justify-center transition-transform duration-300 ease-out transform group-hover:rotate-12 group-active:scale-90">
+        <Sun className="h-4 w-4 stroke-[1.75] hidden dark:block" />
+        <Moon className="h-4 w-4 stroke-[1.75] block dark:hidden" />
+      </span>
     </button>
   );
 }
@@ -69,13 +62,56 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
 export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
   const liveStatus = useLiveStatus();
   const { isDark } = useTheme();
   const isOnline = (liveStatus.activity === "music" && liveStatus.music !== null) || liveStatus.app !== null;
 
+  // 路由跳转时恒定呼出导航栏
+  useEffect(() => {
+    setIsVisible(true);
+  }, [pathname]);
+
+  // 下滑平滑隐退，上滑即时呼出，顶部 60px 恒定展示
+  useEffect(() => {
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+
+          // 顶部前 60px 恒定展示
+          if (currentScrollY <= 60) {
+            setIsVisible(true);
+          } else {
+            const diff = currentScrollY - lastScrollYRef.current;
+            // 下滑超过 8px 且菜单未展开时隐退
+            if (diff > 8 && !mobileMenuOpen) {
+              setIsVisible(false);
+            } else if (diff < -8) {
+              // 上滑超过 8px 顺畅呼出
+              setIsVisible(true);
+            }
+          }
+
+          lastScrollYRef.current = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [mobileMenuOpen]);
+
   return (
     <header 
-      className="fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] border-b border-black/[0.06] dark:border-white/[0.06] bg-[#ede7dc]/80 dark:bg-[#111213]/75 backdrop-blur-md select-none"
+      className={`fixed inset-x-0 top-0 z-40 h-16 sm:h-[68px] bg-transparent select-none transition-transform duration-300 ease-out ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
     >
       {/* 顶部适度收拢容器 (居中对称排版，微缩进) */}
       <div className="relative mx-auto flex h-full w-full max-w-5xl items-center justify-between px-4 sm:px-6 md:px-8">
