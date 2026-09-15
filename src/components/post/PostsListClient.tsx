@@ -82,38 +82,56 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
 
   return (
     <div className="w-full text-left">
-      {/* 页面标题：纯净极简，零横线，零多余说明 (对齐 Anthony Fu antfu.me) */}
-      <div className="mb-10 sm:mb-14">
-        <h1 className="text-[32px] sm:text-[40px] font-bold tracking-[-0.03em] text-neutral-900 dark:text-[#ece7df] select-none font-sans">
+      {/* 顶部多维媒体矩阵 (Anthony Fu antfu.me 标志性设计：主标题 + 弱化子频道横向展开) */}
+      <div className="mb-10 sm:mb-14 flex flex-wrap items-baseline gap-3 sm:gap-4 select-none">
+        <h1 className="text-[32px] sm:text-[38px] font-bold tracking-[-0.03em] text-neutral-900 dark:text-[#ece7df] font-sans">
           Blog
         </h1>
+        <Link
+          href="/thoughts"
+          className="text-[20px] sm:text-[24px] font-medium tracking-tight text-neutral-400/40 hover:text-neutral-700 dark:text-[#777168]/40 dark:hover:text-[#ece7df] transition-colors font-sans"
+        >
+          Thinking
+        </Link>
+        <Link
+          href="/playlist"
+          className="text-[20px] sm:text-[24px] font-medium tracking-tight text-neutral-400/40 hover:text-neutral-700 dark:text-[#777168]/40 dark:hover:text-[#ece7df] transition-colors font-sans"
+        >
+          Playlist
+        </Link>
+        <Link
+          href="/gallery"
+          className="text-[20px] sm:text-[24px] font-medium tracking-tight text-neutral-400/40 hover:text-neutral-700 dark:text-[#777168]/40 dark:hover:text-[#ece7df] transition-colors font-sans"
+        >
+          Gallery
+        </Link>
       </div>
 
       {/* 按年份编年史排版 */}
-      <div className="space-y-14 sm:space-y-16">
+      <div className="space-y-12 sm:space-y-14">
         {years.map((year) => {
           const yearPosts = postsByYear[year];
 
           return (
             <section key={year} className="relative">
-              {/* Anthony Fu 经典空心艺术年份水印 (放置于每年首篇文章背后) */}
+              {/* Anthony Fu 经典空心艺术年份水印 (自然占位 h-16 ~ h-20，左探出，绝不与文章撞车) */}
               <div
-                className="pointer-events-none select-none -mb-10 sm:-mb-14 -top-5 sm:-top-7 relative z-0"
+                className="relative h-16 sm:h-20 pointer-events-none select-none"
                 aria-hidden="true"
               >
                 <span
-                  className="text-[6.5rem] sm:text-[8rem] font-bold font-mono tracking-tighter leading-none text-transparent"
+                  className="absolute -left-6 sm:-left-12 -top-5 sm:-top-8 text-[7em] sm:text-[8em] font-bold font-mono tracking-tighter leading-none text-transparent"
                   style={{
-                    WebkitTextStroke: "1.5px currentColor",
-                    opacity: 0.10,
+                    WebkitTextStroke: "1.5px #888888",
+                    opacity: 0.08,
                   }}
                 >
                   {year}
                 </span>
               </div>
 
-              {/* 文章列表 (零横线、零多余标签/摘要、标题直接靠左对齐，日期时长紧随其后) */}
-              <div className="relative z-10 flex flex-col space-y-3 sm:space-y-3.5 pt-1">
+              {/* 文章列表 (清爽正常字重，单行平滑流式排版，零横线) */}
+              <div className="relative z-10 flex flex-col space-y-2.5 sm:space-y-3">
                 {yearPosts.map((post) => {
                   const date = post.published_at || post.created_at;
                   const formattedDate = formatPostDate(date);
@@ -125,12 +143,12 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       key={post.id}
                       href={targetLink}
                       prefetch={true}
-                      className="group flex flex-wrap items-baseline gap-x-2.5 gap-y-1 text-left transition-opacity duration-150"
+                      className="group flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-left py-0.5 transition-opacity"
                     >
-                      <span className="text-[15.5px] sm:text-[16.5px] font-normal sm:font-medium text-neutral-800 dark:text-[#ece7df] group-hover:text-[#7f1d1d] dark:group-hover:text-white transition-colors">
+                      <span className="text-[15.5px] sm:text-[16.5px] font-normal text-neutral-800 dark:text-[#ded8ce] group-hover:text-neutral-950 dark:group-hover:text-white transition-colors">
                         {post.title}
                       </span>
-                      <span className="text-[12.5px] sm:text-[13.5px] font-sans text-neutral-400 dark:text-[#777168] whitespace-nowrap select-none">
+                      <span className="text-[12.5px] sm:text-[13px] font-sans text-neutral-400 dark:text-[#777168] whitespace-nowrap opacity-60 select-none">
                         {formattedDate}
                         {readTime ? " · " + readTime + "min" : ""}
                       </span>
