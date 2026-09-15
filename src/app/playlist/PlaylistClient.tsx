@@ -10,11 +10,16 @@ import { PlaylistSkeleton } from "@/components/playlist/PlaylistSkeleton";
 
 interface PlaylistClientProps {
   initialPlaylists?: PlaylistCategory[];
+  initialPlaylistId?: string | null;
 }
 
-export default function PlaylistClient({ initialPlaylists = [] }: PlaylistClientProps) {
+export default function PlaylistClient({
+  initialPlaylists = [],
+  initialPlaylistId = null,
+}: PlaylistClientProps) {
   const [playlists, setPlaylists] = useState<PlaylistCategory[]>(initialPlaylists);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(() => {
+    if (initialPlaylistId) return initialPlaylistId;
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       return params.get("id") || params.get("playlist") || null;

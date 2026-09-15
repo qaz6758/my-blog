@@ -224,8 +224,6 @@ html.dark ::selection {
 
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-  background-color: var(--page-bg);
-  color: var(--page-text);
 }
 
 html.light {

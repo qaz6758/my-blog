@@ -31,6 +31,8 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+import { cookies } from "next/headers";
+
 export const viewport: Viewport = {
   colorScheme: "light dark",
 };
@@ -47,16 +49,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("theme")?.value;
+  const isDark = themeCookie === "dark";
+
   return (
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
+      className={`${isDark ? "dark" : "light"} ${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
+      style={{
+        backgroundColor: isDark ? "#111213" : "#ede7dc",
+        colorScheme: isDark ? "dark" : "only light",
+      }}
     >
       <head>
         {/* 1. 首屏零毫秒同步锁定主题脚本（置于最顶端，解析最先执行） */}
@@ -178,7 +188,7 @@ export default function RootLayout({
       </head>
 
       <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
-        <ThemeProvider>
+        <ThemeProvider initialTheme={isDark ? "dark" : "light"}>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>
             <FrontendShell>

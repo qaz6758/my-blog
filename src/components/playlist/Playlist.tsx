@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, ArrowLeft } from "lucide-react";
 import { Song, SongList } from "@/components/playlist/SongList";
+import { PlaylistSkeleton } from "@/components/playlist/PlaylistSkeleton";
 import { getProxyImageUrl } from "@/lib/image-proxy";
 
 const FALLBACK_COVER =
@@ -51,6 +52,24 @@ export function Playlist({
   };
 
   const activePlaylist = playlists.find((p) => p.id === selectedPlaylistId);
+
+  if (selectedPlaylistId && !activePlaylist) {
+    return (
+      <div className="w-full">
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={handleBackToList}
+            className="inline-flex items-center gap-2 font-mono text-xs sm:text-sm text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors cursor-pointer select-none"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>cd .. / 返回歌单</span>
+          </button>
+        </div>
+        <PlaylistSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full relative">
