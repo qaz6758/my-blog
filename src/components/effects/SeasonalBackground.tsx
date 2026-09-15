@@ -66,7 +66,7 @@ function createMapleSprites(): HTMLCanvasElement[] {
   if (typeof document === "undefined") return [];
   const sprites: HTMLCanvasElement[] = [];
 
-  // Sprite 0: 绯红日本红枫 (Scarlet Red Maple)
+  // Sprite 0: 绯红日本红枫 (Scarlet Red Maple - 柔和淡雅)
   {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
@@ -77,27 +77,27 @@ function createMapleSprites(): HTMLCanvasElement[] {
       ctx.beginPath();
       ctx.moveTo(0, 16);
       ctx.quadraticCurveTo(-1.5, 23, 0, 31);
-      ctx.strokeStyle = "#801d12";
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "#70261f";
+      ctx.lineWidth = 1.4;
       ctx.lineCap = "round";
       ctx.stroke();
 
       drawJapaneseMaplePath(ctx);
       const grad = ctx.createRadialGradient(0, 0, 3, 0, -5, 26);
-      grad.addColorStop(0, "#d93829");
-      grad.addColorStop(0.7, "#a82417");
-      grad.addColorStop(1, "#70160c");
+      grad.addColorStop(0, "#bf4f43");
+      grad.addColorStop(0.7, "#8c2d22");
+      grad.addColorStop(1, "#591b14");
       ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(112, 22, 12, 0.6)";
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(89, 27, 20, 0.4)";
+      ctx.lineWidth = 0.7;
       ctx.stroke();
-      drawMapleVeins(ctx, "#63140b");
+      drawMapleVeins(ctx, "#4d1711");
     }
     sprites.push(canvas);
   }
 
-  // Sprite 1: 暖秋金橙枫叶 (Golden Amber Maple)
+  // Sprite 1: 暖秋金橙枫叶 (Golden Amber Maple - 柔和暖褐橙)
   {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
@@ -108,27 +108,27 @@ function createMapleSprites(): HTMLCanvasElement[] {
       ctx.beginPath();
       ctx.moveTo(0, 16);
       ctx.quadraticCurveTo(-1.5, 23, 0, 31);
-      ctx.strokeStyle = "#9c4602";
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "#854117";
+      ctx.lineWidth = 1.4;
       ctx.lineCap = "round";
       ctx.stroke();
 
       drawJapaneseMaplePath(ctx);
       const grad = ctx.createRadialGradient(0, 0, 3, 0, -5, 26);
-      grad.addColorStop(0, "#f59e0b");
-      grad.addColorStop(0.6, "#d97706");
-      grad.addColorStop(1, "#9a3412");
+      grad.addColorStop(0, "#cc8833");
+      grad.addColorStop(0.6, "#aa5e19");
+      grad.addColorStop(1, "#7a3312");
       ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(154, 52, 18, 0.6)";
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(122, 51, 18, 0.4)";
+      ctx.lineWidth = 0.7;
       ctx.stroke();
-      drawMapleVeins(ctx, "#7c2d12");
+      drawMapleVeins(ctx, "#662c10");
     }
     sprites.push(canvas);
   }
 
-  // Sprite 2: 金秋银杏金扇叶 (Golden Ginkgo Fan Leaf)
+  // Sprite 2: 金秋银杏金扇叶 (Golden Ginkgo Fan Leaf - 温润暖草黄)
   {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
@@ -140,8 +140,8 @@ function createMapleSprites(): HTMLCanvasElement[] {
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.quadraticCurveTo(-2, 12, -1, 24);
-      ctx.strokeStyle = "#a16207";
-      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = "#8c6819";
+      ctx.lineWidth = 1.2;
       ctx.stroke();
 
       // 银杏叶扇形轮廓 (带中央典雅缺口)
@@ -155,18 +155,18 @@ function createMapleSprites(): HTMLCanvasElement[] {
       ctx.closePath();
 
       const grad = ctx.createRadialGradient(0, -16, 2, 0, -16, 25);
-      grad.addColorStop(0, "#fef08a");
-      grad.addColorStop(0.5, "#eab308");
-      grad.addColorStop(1, "#ca8a04");
+      grad.addColorStop(0, "#dfc376");
+      grad.addColorStop(0.5, "#ba9232");
+      grad.addColorStop(1, "#8c6819");
       ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(161, 98, 7, 0.5)";
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(140, 104, 25, 0.35)";
+      ctx.lineWidth = 0.7;
       ctx.stroke();
 
       // 辐射微细叶脉
-      ctx.strokeStyle = "rgba(161, 98, 7, 0.35)";
-      ctx.lineWidth = 0.6;
+      ctx.strokeStyle = "rgba(140, 104, 25, 0.25)";
+      ctx.lineWidth = 0.5;
       for (let a = -0.7; a <= 0.7; a += 0.22) {
         ctx.beginPath();
         ctx.moveTo(0, 0);
@@ -197,17 +197,17 @@ function createMapleSprites(): HTMLCanvasElement[] {
       ctx.closePath();
 
       const grad = ctx.createLinearGradient(-16, -16, 16, 16);
-      grad.addColorStop(0, "#b45309");
-      grad.addColorStop(0.5, "#78350f");
-      grad.addColorStop(1, "#451a03");
+      grad.addColorStop(0, "#8a5229");
+      grad.addColorStop(0.5, "#5e3012");
+      grad.addColorStop(1, "#381808");
       ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(69, 26, 3, 0.6)";
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = "rgba(56, 24, 8, 0.4)";
+      ctx.lineWidth = 0.7;
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(245, 158, 11, 0.35)";
-      ctx.lineWidth = 0.6;
+      ctx.strokeStyle = "rgba(204, 136, 51, 0.25)";
+      ctx.lineWidth = 0.5;
       ctx.beginPath();
       ctx.moveTo(-10, -6);
       ctx.lineTo(10, 8);
@@ -220,7 +220,7 @@ function createMapleSprites(): HTMLCanvasElement[] {
     sprites.push(canvas);
   }
 
-  // Sprite 4: 近景柔焦大红枫 (Near Bokeh Autumn Flurry)
+  // Sprite 4: 近景柔焦大红枫 (Near Bokeh Autumn Flurry - 轻薄光斑)
   {
     const canvas = document.createElement("canvas");
     canvas.width = 64;
@@ -229,10 +229,10 @@ function createMapleSprites(): HTMLCanvasElement[] {
     if (ctx) {
       ctx.translate(32, 32);
       const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 26);
-      grad.addColorStop(0, "rgba(220, 38, 38, 0.9)");
-      grad.addColorStop(0.35, "rgba(234, 88, 12, 0.65)");
-      grad.addColorStop(0.7, "rgba(245, 158, 11, 0.25)");
-      grad.addColorStop(1, "rgba(245, 158, 11, 0)");
+      grad.addColorStop(0, "rgba(191, 79, 67, 0.45)");
+      grad.addColorStop(0.35, "rgba(204, 136, 51, 0.28)");
+      grad.addColorStop(0.7, "rgba(223, 195, 118, 0.1)");
+      grad.addColorStop(1, "rgba(223, 195, 118, 0)");
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(0, 0, 26, 0, Math.PI * 2);
@@ -739,7 +739,7 @@ export function SeasonalBackground() {
           rotSpeed: 0,
           flip: 0,
           flipSpeed: 0,
-          opacity: 0.18 + Math.random() * 0.20,
+          opacity: 0.08 + Math.random() * 0.10,
           spriteIndex: Math.floor(Math.random() * 4),
           layer: 0,
         });
@@ -774,7 +774,7 @@ export function SeasonalBackground() {
           rotSpeed: (Math.random() - 0.5) * 0.006, // 极其舒缓的微自转
           flip: Math.random() * Math.PI * 2,
           flipSpeed: 0.009 + Math.random() * 0.010, // 悠缓优雅的 3D 翻转
-          opacity: 0.58 + Math.random() * 0.22,
+          opacity: 0.24 + Math.random() * 0.12, // 舒适淡雅透明度 (约0.24~0.36)，不喧宾夺主抢文字视线
           spriteIndex: Math.floor(Math.random() * 4),
           layer: 1,
         });
@@ -809,7 +809,7 @@ export function SeasonalBackground() {
           rotSpeed: (Math.random() - 0.5) * 0.005,
           flip: Math.random() * Math.PI * 2,
           flipSpeed: 0.008 + Math.random() * 0.008,
-          opacity: 0.22 + Math.random() * 0.16, // 轻薄透明
+          opacity: 0.08 + Math.random() * 0.08, // 极淡柔焦掠影
           spriteIndex: isWinter ? 3 : isSummer ? 3 : 4,
           layer: 2,
         });
@@ -879,12 +879,12 @@ export function SeasonalBackground() {
             // 远景细碎微尘：极其细腻柔和的点状微光
             ctx.globalAlpha = p.opacity;
             ctx.fillStyle = isWinter
-              ? "#ffffff"
+              ? "rgba(255, 255, 255, 0.7)"
               : isAutumn
-              ? p.spriteIndex % 2 === 0 ? "#f59e0b" : "#ea580c"
+              ? p.spriteIndex % 2 === 0 ? "#c2803b" : "#a85028"
               : isSpring
-              ? p.spriteIndex % 2 === 0 ? "#ffb7c5" : "#ffffff"
-              : p.spriteIndex % 2 === 0 ? "#a8ff78" : "#fde047";
+              ? p.spriteIndex % 2 === 0 ? "#f4a8b8" : "rgba(255, 255, 255, 0.7)"
+              : p.spriteIndex % 2 === 0 ? "#86efac" : "#fde047";
             ctx.beginPath();
             ctx.arc(drawX, drawY, p.size, 0, Math.PI * 2);
             ctx.fill();
