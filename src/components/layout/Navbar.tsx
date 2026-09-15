@@ -270,10 +270,10 @@ export function Navbar() {
             initial="closed"
             animate="open"
             exit="closed"
-            className="absolute inset-x-0 top-full md:hidden bg-[#ede7dc]/95 dark:bg-[#111213]/95 backdrop-blur-md px-6 pt-2 pb-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]"
+            className="absolute inset-x-0 top-full md:hidden bg-white/95 dark:bg-[#050505]/95 backdrop-blur-md px-6 pt-2 pb-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]"
             style={{ 
               // 极弱的底缘背景差，替代生硬的 border
-              backgroundImage: isDark ? "linear-gradient(to bottom, rgba(24,22,20,1) 85%, rgba(20,18,16,1) 100%)" : "none"
+              backgroundImage: isDark ? "linear-gradient(to bottom, rgba(5,5,5,1) 85%, rgba(10,10,10,1) 100%)" : "none"
             }}
           >
             {isOnline && (

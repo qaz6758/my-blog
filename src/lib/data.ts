@@ -99,6 +99,23 @@ export function formatThoughtDate(dateStr: string): { relative: string; full: st
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
 
+  // 1. 判断是否是同一天（今天）
+  const isToday =
+    now.getFullYear() === year &&
+    now.getMonth() + 1 === month &&
+    now.getDate() === day;
+
+  // 2. 检查是否为 Notion 仅选择日期时默认填充的 00:00:00（无具体时分）
+  const isDefaultMidnight =
+    date.getHours() === 0 &&
+    date.getMinutes() === 0 &&
+    (/00:00(?::00)?$/.test(dateStr.trim()) || !/(\d{1,2}):(\d{1,2})/.test(dateStr));
+
+  // 如果是今天，且未指定具体时分（默认零点），直接显示为“今天”，避免误算为十几个小时前
+  if (isToday && isDefaultMidnight) {
+    return { relative: '今天', full };
+  }
+
   // 未来时间或 5 分钟以内
   if (diffMs < 5 * 60 * 1000) {
     return { relative: '刚刚', full };

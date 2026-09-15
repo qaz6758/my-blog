@@ -19,7 +19,7 @@ export function TopProgressLine() {
       }}
     >
       <div
-        className="w-full h-full bg-gradient-to-r from-transparent via-[#8c7150] to-neutral-800 dark:via-[#c8ab83]/70 dark:to-[#ede7dc] animate-top-progress"
+        className="w-full h-full bg-gradient-to-r from-transparent via-neutral-400 to-neutral-800 dark:via-neutral-500 dark:to-white animate-top-progress"
       />
     </div>
   );
@@ -132,7 +132,7 @@ export function TopProgressBar() {
       }}
     >
       <div
-        className="relative h-full bg-gradient-to-r from-transparent via-[#8c7150]/60 to-neutral-800 dark:via-[#c8ab83]/60 dark:to-[#ede7dc]"
+        className="relative h-full bg-gradient-to-r from-transparent via-neutral-400 to-neutral-800 dark:via-neutral-500 dark:to-white"
         style={{
           width: `${progress}%`,
           transition:
@@ -142,7 +142,7 @@ export function TopProgressBar() {
         }}
       >
         {/* 前端微光发丝光晕（极细柔和，绝无刺眼粗白雾） */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 h-[2px] w-8 bg-gradient-to-r from-transparent to-white/90 dark:to-[#ede7dc] blur-[0.5px]" />
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 h-[2px] w-8 bg-gradient-to-r from-transparent to-white/90 dark:to-white blur-[0.5px]" />
       </div>
     </div>
   );

@@ -93,17 +93,17 @@ export function HeroSection() {
 
         {/* ===================== 2. 核心身份标题 ===================== */}
         <motion.div variants={itemVariants} className="text-left mb-6 sm:mb-8">
-          <h1 className="text-[34px] sm:text-[44px] font-semibold tracking-[-0.035em] text-neutral-900 dark:text-[#ece7df] select-none font-serif">
+          <h1 className="text-[34px] sm:text-[44px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 select-none font-sans">
             {name}
           </h1>
         </motion.div>
 
-        {/* ===================== 3. 自然流体文学正文 (纯粹文心 · 宣纸留白) ===================== */}
-        <div className="w-full space-y-6 text-neutral-900 dark:text-[#eae5dc]">
+        {/* ===================== 3. 现代纯粹正文 (清爽黑体 · 极简呼吸感) ===================== */}
+        <div className="w-full space-y-5 text-neutral-700 dark:text-neutral-200">
           {/* 第一段：身份白描 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
+            className="font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left"
           >
             嘿！我是 {name}，一名热爱音乐以及网站开发的全栈初学者。
           </motion.p>
@@ -111,7 +111,7 @@ export function HeroSection() {
           {/* 第二段：内省与对抗 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
+            className="font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left"
           >
             在这个被快餐娱乐与既定准则裹挟的时代，对我而言失去分享欲是正常的，却也是危险的。人们总在谈论对抗荒诞、失衡与提线木偶般的外部世界，但真正漫长而频繁的，其实是与自我的交战——当思想变革过于剧烈，而实际能力尚未企及，所以难免产生无力与厌恶感。
           </motion.p>
@@ -119,10 +119,10 @@ export function HeroSection() {
           {/* 第三段：信念宣言 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
+            className="font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left"
           >
             但不必长久陷入痛苦。我选择在此留下自己能留下的一切，无论是逻辑的代码，还是感性的艺术。秉持着{" "}
-            <span className="font-medium text-[#7f1d1d] dark:text-[#e7e2d8]">
+            <span className="font-medium text-neutral-950 dark:text-white">
               “破碎重组，再破碎的循环，让自己成为自己”
             </span>{" "}
             的信念，持续打磨自己的开源项目与个人数字花园。
@@ -131,7 +131,7 @@ export function HeroSection() {
           {/* 第四段：多维通路引言 */}
           <motion.p
             variants={itemVariants}
-            className="font-wenkai text-[15.5px] sm:text-[16.5px] leading-[2.05] tracking-[0.025em] text-left"
+            className="font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left"
           >
             除了代码构建，我也在旅途与日常中凝固光影，欢迎漫步我的{" "}
             <TextLink href="/gallery">摄影画廊</TextLink>、聆听我的{" "}

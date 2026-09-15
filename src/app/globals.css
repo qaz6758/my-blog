@@ -78,18 +78,18 @@
  */
 
 :root {
-  --page-bg: #ede7dc;
-  --page-text: #1e1b18;
+  --page-bg: #ffffff;
+  --page-text: #222222;
 }
 
 html.dark {
-  --page-bg: #111213 !important;
-  --page-text: #eae5dc !important;
+  --page-bg: #050505 !important;
+  --page-text: #e5e5e5 !important;
 }
 
 html.light {
-  --page-bg: #ede7dc !important;
-  --page-text: #1e1b18 !important;
+  --page-bg: #ffffff !important;
+  --page-text: #222222 !important;
 }
 
 html {
@@ -102,34 +102,31 @@ body {
 
 html.light,
 html.light body {
-  background-color: #ede7dc !important;
-  color: #1e1b18 !important;
-  color-scheme: only light !important;
+  background-color: #ffffff !important;
+  color: #222222 !important;
+  color-scheme: light !important;
 }
 
 html.dark,
 html.dark body {
-  background-color: #111213 !important;
-  color: #eae5dc !important;
+  background-color: #050505 !important;
+  color: #e5e5e5 !important;
   color-scheme: dark !important;
 }
 
 /*
  * ============================================================
- * 双界交错：日间混沌狂客 (Champloo) × 夜间澄澈水墨 (Vagabond)
+ * 纯净微光选区高亮 (Anthony Fu 同款)
  * ============================================================
  */
 
-/* 昼行：如淡落朱砂轻拂过粗生宣 */
 ::selection {
-  background: rgba(185, 28, 28, 0.18);
-  color: #7f1d1d;
+  background: rgba(125, 125, 125, 0.25);
 }
 
-/* 夜行：如皓月倾泻在焦墨上，澄澈留白 */
 .dark ::selection,
 html.dark ::selection {
-  background: rgba(234, 229, 220, 0.18);
+  background: rgba(255, 255, 255, 0.2);
   color: #ffffff;
 }
 
@@ -264,21 +261,21 @@ html.dark {
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
 
-  /* 夜行：江户夜色松烟深炭、玄武案台、月白与素霜 */
-  --realm-bg: #111213;
-  --realm-surface: #191a1b;
-  --realm-surface-secondary: #222325;
-  --realm-surface-tertiary: #2b2c2f;
+  /* 夜行：Anthony Fu 极致深黑与纯净灰白 */
+  --realm-bg: #050505;
+  --realm-surface: #101010;
+  --realm-surface-secondary: #181818;
+  --realm-surface-tertiary: #222222;
 
   --realm-border: rgba(255, 255, 255, 0.08);
   --realm-border-strong: rgba(255, 255, 255, 0.14);
 
-  --realm-ink-primary: #eae5dc;
-  --realm-ink-secondary: #9d9589;
-  --realm-ink-muted: #6f685c;
+  --realm-ink-primary: #e5e5e5;
+  --realm-ink-secondary: #a3a3a3;
+  --realm-ink-muted: #737373;
 
-  --realm-accent-cinnabar: #eae5dc;
-  --realm-accent-indigo: #d6d3d1;
+  --realm-accent-cinnabar: #ffffff;
+  --realm-accent-indigo: #d4d4d8;
   --realm-accent-gold: #ffffff;
 
   --realm-motion-duration: 0.32s;
@@ -286,8 +283,8 @@ html.dark {
 
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-  background-color: #111213 !important;
-  color: #eae5dc !important;
+  background-color: #050505 !important;
+  color: #e5e5e5 !important;
 }
 
 /*
@@ -536,11 +533,11 @@ html.dark :focus-visible {
 
 /* 锚定起始主题底色，杜绝过渡期边缘与瓦片缝隙露出深色底层 */
 html.transition-from-light::view-transition {
-  background-color: #ede7dc !important;
+  background-color: #ffffff !important;
 }
 
 html.transition-from-dark::view-transition {
-  background-color: #111213 !important;
+  background-color: #050505 !important;
 }
 
 /* 

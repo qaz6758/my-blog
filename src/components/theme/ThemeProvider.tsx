@@ -105,8 +105,8 @@ function updateMetaColorScheme(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   try {
-    const themeColor = newTheme === "dark" ? "#111213" : "#ede7dc";
-    const colorScheme = newTheme === "dark" ? "dark" : "only light";
+    const themeColor = newTheme === "dark" ? "#050505" : "#ffffff";
+    const colorScheme = newTheme === "dark" ? "dark" : "light";
 
     // 仅原地更新属性，坚决不从 DOM 树中 remove() 节点，保护 React 19 HostHoistable (tag 26) 虚拟 DOM 树完整性
     const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
@@ -153,19 +153,19 @@ export function ThemeProvider({
       root.classList.add("dark");
       root.classList.remove("light");
       root.style.colorScheme = "dark";
-      root.style.backgroundColor = "#111213";
+      root.style.backgroundColor = "#050505";
       if (document.body) {
-        document.body.style.backgroundColor = "#111213";
-        document.body.style.color = "#eae5dc";
+        document.body.style.backgroundColor = "#050505";
+        document.body.style.color = "#e5e5e5";
       }
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
-      root.style.colorScheme = "only light";
-      root.style.backgroundColor = "#ede7dc";
+      root.style.colorScheme = "light";
+      root.style.backgroundColor = "#ffffff";
       if (document.body) {
-        document.body.style.backgroundColor = "#ede7dc";
-        document.body.style.color = "#1e1b18";
+        document.body.style.backgroundColor = "#ffffff";
+        document.body.style.color = "#222222";
       }
     }
 

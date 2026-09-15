@@ -78,9 +78,9 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
 
   return (
     <div className="w-full text-left">
-      {/* 顶部洗练标题：温润文心，宣纸留白，零多余横线与修饰 */}
+      {/* 顶部洗练标题：现代纯粹，留白通透 */}
       <div className="mb-12 sm:mb-16">
-        <h1 className="text-[32px] sm:text-[38px] font-wenkai font-normal tracking-[0.02em] text-neutral-900 dark:text-[#ece7df] select-none">
+        <h1 className="text-[32px] sm:text-[36px] font-sans font-bold tracking-tight text-neutral-900 dark:text-neutral-100 select-none">
           文章
         </h1>
       </div>
@@ -94,12 +94,12 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
             <section key={year} className="relative">
               {/* 年份标记：克制、静穆的书页时间锚点 */}
               <div className="mb-4 sm:mb-5 select-none">
-                <span className="font-mono text-[17px] sm:text-[19px] font-medium tracking-wider text-neutral-400 dark:text-[#777168]">
+                <span className="font-mono text-[16px] sm:text-[18px] font-medium tracking-wider text-neutral-400 dark:text-neutral-500">
                   {year}
                 </span>
               </div>
 
-              {/* 文章列表：左侧标题温润雅致，右侧日期静穆收束 */}
+              {/* 文章列表：现代黑体，清晰挺拔，阅读毫无负担 */}
               <div className="flex flex-col space-y-2 sm:space-y-2.5">
                 {yearPosts.map((post) => {
                   const date = post.published_at || post.created_at;
@@ -114,10 +114,10 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       prefetch={true}
                       className="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 py-2 text-left transition-colors"
                     >
-                      <span className="text-[15.5px] sm:text-[16.5px] font-normal leading-relaxed text-neutral-800 dark:text-[#ded8ce] group-hover:text-[#7f1d1d] dark:group-hover:text-white transition-colors">
+                      <span className="text-[15px] sm:text-[16px] font-sans font-normal leading-relaxed text-neutral-700 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white transition-colors">
                         {post.title}
                       </span>
-                      <span className="shrink-0 font-mono text-[12px] sm:text-[12.5px] text-neutral-400 dark:text-[#777168] whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity">
+                      <span className="shrink-0 font-mono text-[12px] sm:text-[12.5px] text-neutral-400 dark:text-neutral-500 whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity">
                         {formattedDate}
                         {readTime ? " · " + readTime + "min" : ""}
                       </span>
@@ -132,7 +132,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
 
       {posts.length === 0 && (
         <div className="py-24 text-center">
-          <p className="text-[15px] font-wenkai text-neutral-500 dark:text-neutral-400">
+          <p className="text-[15px] font-sans text-neutral-500 dark:text-neutral-400">
             暂无文章
           </p>
         </div>

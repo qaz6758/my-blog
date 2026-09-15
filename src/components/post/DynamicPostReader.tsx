@@ -302,12 +302,12 @@ export function DynamicPostReader({
                   <span>{post.category || "思考与技术"}</span>
                 </div>
                 
-                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-[#292623] dark:text-[#eae5dc] leading-[1.3] font-serif relative inline-block">
+                <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 leading-[1.3] font-sans relative inline-block">
                   {post.title}
                 </h1>
                 
                 {/* 移动端辅助信息 */}
-                <div className="xl:hidden mt-6 flex flex-wrap items-center gap-3 text-xs font-mono text-neutral-400 dark:text-[#777168]">
+                <div className="xl:hidden mt-6 flex flex-wrap items-center gap-3 text-xs font-mono text-neutral-400 dark:text-neutral-500">
                   {(post.published_at || post.created_at) && (
                     <span>{formatDate(post.published_at || post.created_at || "").replace(/-/g, '.')}</span>
                   )}
@@ -317,7 +317,7 @@ export function DynamicPostReader({
               </header>
 
               {/* 正文渲染区 */}
-              <article className="post-article min-w-0 font-serif" style={{ fontSize: "1.125rem", lineHeight: "2", letterSpacing: "normal" }}>
+              <article className="post-article min-w-0 font-sans" style={{ fontSize: "1.0625rem", lineHeight: "1.85", letterSpacing: "normal" }}>
                 <LazyPostContent
                   content={post.content || post.summary || ""}
                   isHtml={isHtmlContent}

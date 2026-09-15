@@ -71,8 +71,8 @@ export default function RootLayout({
                   var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
                   var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var isDark = saved ? saved === 'dark' : systemDark;
-                  var themeColor = isDark ? '#111213' : '#ede7dc';
-                  var colorScheme = isDark ? 'dark' : 'only light';
+                  var themeColor = isDark ? '#050505' : '#ffffff';
+                  var colorScheme = isDark ? 'dark' : 'light';
 
                   if (isDark) {
                     docEl.classList.add('dark');
@@ -122,8 +122,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               :root {
-                --page-bg: #ede7dc;
-                --page-text: #1e1b18;
+                --page-bg: #ffffff;
+                --page-text: #222222;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
@@ -131,20 +131,20 @@ export default function RootLayout({
                 }
                 html:not(.light),
                 html:not(.light) body {
-                  background-color: #111213 !important;
-                  color: #eae5dc !important;
+                  background-color: #050505 !important;
+                  color: #e5e5e5 !important;
                 }
               }
               html.light,
               html.light body {
-                background-color: #ede7dc !important;
-                color: #1e1b18 !important;
-                color-scheme: only light !important;
+                background-color: #ffffff !important;
+                color: #222222 !important;
+                color-scheme: light !important;
               }
               html.dark,
               html.dark body {
-                background-color: #111213 !important;
-                color: #eae5dc !important;
+                background-color: #050505 !important;
+                color: #e5e5e5 !important;
                 color-scheme: dark !important;
               }
               /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
@@ -186,13 +186,13 @@ export default function RootLayout({
                   if (isDark) {
                     docEl.classList.add('dark');
                     docEl.classList.remove('light');
-                    docEl.style.backgroundColor = '#111213';
+                    docEl.style.backgroundColor = '#050505';
                     docEl.style.colorScheme = 'dark';
                   } else {
                     docEl.classList.remove('dark');
                     docEl.classList.add('light');
-                    docEl.style.backgroundColor = '#ede7dc';
-                    docEl.style.colorScheme = 'only light';
+                    docEl.style.backgroundColor = '#ffffff';
+                    docEl.style.colorScheme = 'light';
                   }
                 } catch (e) {}
               })();

@@ -106,11 +106,11 @@ function processAndOptimizeHtml(rawHtml: string): string {
   cleaned = cleaned.replace(/<pre\b([^>]*)>([\s\S]*?)<\/pre>/gi, (match, attrs, innerCode) => {
     if (attrs.includes("data-styled")) return match;
 
-    return `<div class="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f7f4ed] dark:bg-[#0e0e10]">
+    return `<div class="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]">
   <button type="button" data-action="copy-code" aria-label="复制代码" class="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none">
     ${COPY_SVG}
   </button>
-  <pre ${attrs} data-styled="true" class="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-[#ded8ce] font-mono">${innerCode}</pre>
+  <pre ${attrs} data-styled="true" class="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono">${innerCode}</pre>
 </div>`;
   });
 
@@ -361,7 +361,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f7f4ed] dark:bg-[#0e0e10]">
+    <div className="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]">
       {/* 悬停浮现的极简复制按钮 (右上角绝对定位，不占任何独立顶栏) */}
       <button
         type="button"
@@ -378,7 +378,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
 
       <pre
         suppressHydrationWarning
-        className="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-[#ded8ce] font-mono"
+        className="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono"
       >
         {highlighted ? (
           <code
@@ -419,7 +419,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
       if (pre.parentElement && !pre.parentElement.classList.contains("code-block-wrapper")) {
         const wrapper = document.createElement("div");
         wrapper.className =
-          "code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f7f4ed] dark:bg-[#0e0e10]";
+          "code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]";
 
         const copyBtn = document.createElement("button");
         copyBtn.type = "button";
@@ -432,7 +432,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
         pre.parentNode?.insertBefore(wrapper, pre);
         wrapper.appendChild(copyBtn);
         wrapper.appendChild(pre);
-        pre.classList.add("overflow-x-auto", "p-4", "sm:p-5", "text-[13px]", "sm:text-[14px]", "leading-relaxed", "text-neutral-800", "dark:text-[#ded8ce]", "font-mono");
+        pre.classList.add("overflow-x-auto", "p-4", "sm:p-5", "text-[13px]", "sm:text-[14px]", "leading-relaxed", "text-neutral-800", "dark:text-neutral-200", "font-mono");
       }
 
       // 2. 语法高亮
@@ -504,22 +504,22 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[17px] sm:text-[18px] leading-[2] text-[#292623] dark:text-[#eae5dc] font-serif tracking-normal
+    text-[15.5px] sm:text-[16.5px] leading-[1.8] text-neutral-800 dark:text-neutral-200 font-sans tracking-normal
     [&_p]:mb-[1.3rem]
-    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-12 [&_h1]:mb-6 [&_h1]:text-[#292623] dark:[&_h1]:text-[#eae5dc] [&_h1]:tracking-wide
-    [&_h2]:scroll-mt-24 [&_h2]:text-[20px] sm:[&_h2]:text-[22px] [&_h2]:font-medium [&_h2]:mt-16 [&_h2]:mb-8 [&_h2]:pb-4 [&_h2]:border-b [&_h2]:border-black/[0.06] dark:[&_h2]:border-white/[0.06] [&_h2]:text-[#292623] dark:[&_h2]:text-[#eae5dc] [&_h2]:tracking-wider
-    [&_h3]:scroll-mt-24 [&_h3]:text-lg sm:[&_h3]:text-[19px] [&_h3]:font-medium [&_h3]:mt-10 [&_h3]:mb-4 [&_h3]:text-[#292623] dark:[&_h3]:text-[#eae5dc] [&_h3]:tracking-wider
-    [&_h4]:scroll-mt-24 [&_h4]:text-base [&_h4]:font-medium [&_h4]:mt-8 [&_h4]:mb-3 [&_h4]:text-[#292623] dark:[&_h4]:text-[#eae5dc]
-    [&_strong]:font-bold [&_strong]:text-[#1a1816] dark:[&_strong]:text-white
+    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-12 [&_h1]:mb-6 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100 [&_h1]:tracking-tight
+    [&_h2]:scroll-mt-24 [&_h2]:text-[20px] sm:[&_h2]:text-[22px] [&_h2]:font-semibold [&_h2]:mt-14 [&_h2]:mb-6 [&_h2]:pb-3 [&_h2]:border-b [&_h2]:border-black/[0.08] dark:[&_h2]:border-white/[0.08] [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h2]:tracking-tight
+    [&_h3]:scroll-mt-24 [&_h3]:text-lg sm:[&_h3]:text-[19px] [&_h3]:font-semibold [&_h3]:mt-10 [&_h3]:mb-4 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
+    [&_h4]:scroll-mt-24 [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-8 [&_h4]:mb-3 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
+    [&_strong]:font-bold [&_strong]:text-neutral-950 dark:[&_strong]:text-white
     [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-[1.3rem] [&_ul]:space-y-2
     [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-[1.3rem] [&_ol]:space-y-2
-    [&_li]:leading-[2]
-    [&_img]:rounded-sm [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
+    [&_li]:leading-[1.8]
+    [&_img]:rounded-md [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
     [&_a]:prose-link
-    [&_blockquote]:border-l-[3.5px] [&_blockquote]:border-[#0969da] dark:[&_blockquote]:border-[#2f81f7] [&_blockquote]:pl-4.5 sm:[&_blockquote]:pl-5 [&_blockquote]:py-1.5 [&_blockquote]:my-6 [&_blockquote]:text-neutral-700 dark:[&_blockquote]:text-[#b0a99f] [&_blockquote]:not-italic
+    [&_blockquote]:border-l-[3.5px] [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:pl-4.5 sm:[&_blockquote]:pl-5 [&_blockquote]:py-1.5 [&_blockquote]:my-6 [&_blockquote]:text-neutral-600 dark:[&_blockquote]:text-neutral-400 [&_blockquote]:not-italic
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-8
-    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-medium [&_th]:text-[#292623] dark:[&_th]:text-[#eae5dc] [&_th]:text-left
-    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-neutral-700 dark:[&_td]:text-[#9d9589]
+    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
+    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
     [&_tr:nth-child(even)]:bg-transparent
     [&_hr]:my-12 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
