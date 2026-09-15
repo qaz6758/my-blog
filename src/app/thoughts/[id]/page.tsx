@@ -54,7 +54,7 @@ export default async function ThoughtDetailPage({
             className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-[#71717a] dark:hover:text-[#f4f4f5] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            返回
+            cd..
           </Link>
         </div>
 
