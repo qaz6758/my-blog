@@ -14,7 +14,7 @@ export function InkMountainBackground() {
         <img
           src="/images/footer-champloo-day.webp"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-right mix-blend-multiply opacity-95 transition-opacity duration-500"
+          className="absolute inset-0 w-full h-full object-cover object-right opacity-95 transition-opacity duration-500"
         />
       </div>
 

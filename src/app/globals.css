@@ -230,18 +230,18 @@ html.light {
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
 
-  /* 昼行：粗粝暖宣纸底、石墨黑字、落款朱砂与青刃 */
-  --realm-bg: #ede7dc;
-  --realm-surface: #f5efe3;
-  --realm-surface-secondary: #eae3d5;
-  --realm-surface-tertiary: #dfd7c5;
+  /* 昼行：现代利落纯白、深灰墨字、极致呼吸感 */
+  --realm-bg: #ffffff;
+  --realm-surface: #f9f9f9;
+  --realm-surface-secondary: #f3f3f3;
+  --realm-surface-tertiary: #eaeaea;
 
-  --realm-border: rgba(50, 40, 30, 0.08);
-  --realm-border-strong: rgba(50, 40, 30, 0.16);
+  --realm-border: rgba(0, 0, 0, 0.08);
+  --realm-border-strong: rgba(0, 0, 0, 0.14);
 
-  --realm-ink-primary: #1e1b18;
-  --realm-ink-secondary: #6e6559;
-  --realm-ink-muted: #9c9284;
+  --realm-ink-primary: #222222;
+  --realm-ink-secondary: #666666;
+  --realm-ink-muted: #999999;
 
   --realm-accent-cinnabar: #b91c1c;
   --realm-accent-indigo: #0369a1;
@@ -252,8 +252,8 @@ html.light {
 
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-  background-color: #ede7dc !important;
-  color: #1e1b18 !important;
+  background-color: #ffffff !important;
+  color: #222222 !important;
 }
 
 html.dark {
@@ -428,7 +428,7 @@ html.dark :focus-visible {
 @keyframes slide-enter {
   0% {
     opacity: 0;
-    transform: translate3d(0, var(--slide-enter-offset, 14px), 0);
+    transform: translate3d(0, var(--slide-enter-offset, 12px), 0);
   }
   100% {
     opacity: 1;
@@ -437,12 +437,39 @@ html.dark :focus-visible {
 }
 
 .slide-enter {
-  animation: slide-enter var(--slide-enter-duration, 0.45s) cubic-bezier(0.16, 1, 0.3, 1) both 1;
+  animation: slide-enter var(--slide-enter-duration, 0.55s) cubic-bezier(0.16, 1, 0.3, 1) both 1;
   animation-delay: var(--slide-enter-delay, 0ms);
 }
 
+/* Anthony Fu 原版 slide-enter-content 阶梯式错落入场 (零 JS、零闪烁、极致物理顿感) */
+.slide-enter-content > * {
+  --enter-stage: 0;
+  --enter-step: 85ms;
+  --enter-initial: 0ms;
+  animation: slide-enter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both 1;
+  animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
+}
+
+.slide-enter-content > *:nth-child(1) { --enter-stage: 1; }
+.slide-enter-content > *:nth-child(2) { --enter-stage: 2; }
+.slide-enter-content > *:nth-child(3) { --enter-stage: 3; }
+.slide-enter-content > *:nth-child(4) { --enter-stage: 4; }
+.slide-enter-content > *:nth-child(5) { --enter-stage: 5; }
+.slide-enter-content > *:nth-child(6) { --enter-stage: 6; }
+.slide-enter-content > *:nth-child(7) { --enter-stage: 7; }
+.slide-enter-content > *:nth-child(8) { --enter-stage: 8; }
+.slide-enter-content > *:nth-child(9) { --enter-stage: 9; }
+.slide-enter-content > *:nth-child(10) { --enter-stage: 10; }
+.slide-enter-content > *:nth-child(11) { --enter-stage: 11; }
+.slide-enter-content > *:nth-child(12) { --enter-stage: 12; }
+.slide-enter-content > *:nth-child(13) { --enter-stage: 13; }
+.slide-enter-content > *:nth-child(14) { --enter-stage: 14; }
+.slide-enter-content > *:nth-child(15) { --enter-stage: 15; }
+.slide-enter-content > *:nth-child(16) { --enter-stage: 16; }
+
 @media (prefers-reduced-motion: reduce) {
-  .slide-enter {
+  .slide-enter,
+  .slide-enter-content > * {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
