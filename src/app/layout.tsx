@@ -63,37 +63,7 @@ export default function RootLayout({
       className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
     >
       <head>
-        {/* 1. 首屏关键样式：0ms 消除 FOUC 与刷新白屏/黑底闪烁 */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              :root {
-                background-color: #ede7dc;
-                color-scheme: only light;
-              }
-              html.light {
-                background-color: #ede7dc !important;
-                color-scheme: only light !important;
-              }
-              html.dark {
-                background-color: #111213 !important;
-                color-scheme: dark !important;
-              }
-              /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
-              html.no-transitions,
-              html.no-transitions *,
-              html.no-transitions *::before,
-              html.no-transitions *::after {
-                -webkit-transition: none !important;
-                -moz-transition: none !important;
-                -o-transition: none !important;
-                -ms-transition: none !important;
-                transition: none !important;
-              }
-            `,
-          }}
-        />
-        {/* 2. 首屏零毫秒同步锁定主题脚本 */}
+        {/* 1. 首屏零毫秒同步锁定主题脚本（置于最顶端，解析最先执行） */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -147,6 +117,41 @@ export default function RootLayout({
                   }
                 } catch (e) {}
               })();
+            `,
+          }}
+        />
+        {/* 2. 首屏关键样式：0ms 消除 FOUC 与刷新白屏/黑底闪烁 */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              :root {
+                background-color: #ede7dc;
+                color-scheme: light dark;
+              }
+              @media (prefers-color-scheme: dark) {
+                :root {
+                  background-color: #111213;
+                }
+              }
+              html.light {
+                background-color: #ede7dc !important;
+                color-scheme: only light !important;
+              }
+              html.dark {
+                background-color: #111213 !important;
+                color-scheme: dark !important;
+              }
+              /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
+              html.no-transitions,
+              html.no-transitions *,
+              html.no-transitions *::before,
+              html.no-transitions *::after {
+                -webkit-transition: none !important;
+                -moz-transition: none !important;
+                -o-transition: none !important;
+                -ms-transition: none !important;
+                transition: none !important;
+              }
             `,
           }}
         />

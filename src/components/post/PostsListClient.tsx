@@ -74,17 +74,13 @@ export function PostsListClient({
   initialCategory = "",
   initialTag = "",
 }: PostsListClientProps) {
-  const [posts, setPosts] = useState<PostItem[]>(initialPosts);
+  const posts = initialPosts;
   const [activeTopic, setActiveTopic] = useState<string>(initialCategory || initialTag || "");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
 
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setPosts(initialPosts);
-  }, [initialPosts]);
 
   useEffect(() => {
     setVisibleCount(BATCH_SIZE);
@@ -344,110 +340,103 @@ export function PostsListClient({
     const targetLink = `/posts/${post.slug || post.id}`;
 
     return (
-      <SlideEnter
+      <Link
         key={post.id}
-        stage={pinned ? index : index + 1}
-        stagger={20}
-        offset={10}
-        duration={400}
+        href={targetLink}
+        prefetch={true}
+        title={post.title}
+        className="group block"
       >
-        <Link
-          href={targetLink}
-          prefetch={true}
-          title={post.title}
-          className="group block"
+        <article
+          className="
+            relative
+            grid
+            grid-cols-[46px_minmax(0,1fr)]
+            gap-3.5
+            border-t
+            first:border-t-0
+            border-black/[0.05]
+            py-5
+            transition-colors
+            duration-200
+            dark:border-white/[0.04]
+            sm:grid-cols-[54px_minmax(0,1fr)_24px]
+            sm:gap-5
+            sm:py-6
+          "
         >
-          <article
-            className="
-              relative
-              grid
-              grid-cols-[46px_minmax(0,1fr)]
-              gap-3.5
-              border-t
-              first:border-t-0
-              border-black/[0.05]
-              py-5
-              transition-colors
-              duration-200
-              dark:border-white/[0.04]
-              sm:grid-cols-[54px_minmax(0,1fr)_24px]
-              sm:gap-5
-              sm:py-6
-            "
-          >
-            {/* 日期栏 (内敛单行题跋：MM.DD，安静不喧宾夺主) */}
-            <div className="relative flex flex-col justify-start pt-1 font-mono select-none">
-              <span className="text-[12.5px] sm:text-[13px] font-medium tracking-tight text-neutral-400 dark:text-[#777168] group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors">
-                {formatted}
-              </span>
-            </div>
+          {/* 日期栏 (内敛单行题跋：MM.DD，安静不喧宾夺主) */}
+          <div className="relative flex flex-col justify-start pt-1 font-mono select-none">
+            <span className="text-[12.5px] sm:text-[13px] font-medium tracking-tight text-neutral-400 dark:text-[#777168] group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors">
+              {formatted}
+            </span>
+          </div>
 
-            {/* 内容主体 (升级为 font-serif: 英文 Charter/Georgia 刚劲饱满，中文霞鹜文楷温润) */}
-            <div className="min-w-0">
-              <h3
+          {/* 内容主体 (升级为 font-serif: 英文 Charter/Georgia 刚劲饱满，中文霞鹜文楷温润) */}
+          <div className="min-w-0">
+            <h3
+              className="
+                font-serif
+                text-[19px]
+                sm:text-[22px]
+                font-normal
+                sm:font-medium
+                leading-[1.45]
+                tracking-[0.01em]
+                text-neutral-800
+                transition-colors
+                duration-200
+                group-hover:text-[#7f1d1d]
+                dark:text-[#eae5dc]
+                dark:group-hover:text-white
+              "
+            >
+              {post.title}
+            </h3>
+
+            {post.summary?.trim() && (
+              <p
                 className="
-                  font-serif
-                  text-[19px]
-                  sm:text-[22px]
-                  font-normal
-                  sm:font-medium
-                  leading-[1.45]
-                  tracking-[0.01em]
-                  text-neutral-800
-                  transition-colors
-                  duration-200
-                  group-hover:text-[#7f1d1d]
-                  dark:text-[#eae5dc]
-                  dark:group-hover:text-white
+                  mt-2
+                  max-w-[720px]
+                  font-sans
+                  text-[13px]
+                  leading-[1.8]
+                  text-neutral-600
+                  dark:text-neutral-400
+                  line-clamp-2
                 "
               >
-                {post.title}
-              </h3>
+                {post.summary.trim()}
+              </p>
+            )}
 
-              {post.summary?.trim() && (
-                <p
-                  className="
-                    mt-2
-                    max-w-[720px]
-                    font-sans
-                    text-[13px]
-                    leading-[1.8]
-                    text-neutral-600
-                    dark:text-neutral-400
-                    line-clamp-2
-                  "
-                >
-                  {post.summary.trim()}
-                </p>
-              )}
-
-              <div className={post.summary?.trim() ? "mt-3.5" : "mt-2.5"}>
-                {renderMeta(post)}
-              </div>
+            <div className={post.summary?.trim() ? "mt-3.5" : "mt-2.5"}>
+              {renderMeta(post)}
             </div>
+          </div>
 
-            {/* 右侧微光指示箭头 */}
-            <div className="hidden items-start justify-end pt-1.5 sm:flex">
-              <ArrowUpRight
-                className="
-                  h-4
-                  w-4
-                  text-neutral-400
-                  opacity-30
-                  transition-all
-                  duration-200
-                  group-hover:opacity-100
-                  group-hover:translate-x-0.5
-                  group-hover:-translate-y-0.5
-                  group-hover:text-[#7f1d1d]
-                  dark:text-neutral-500
-                  dark:group-hover:text-white
-                "
-              />
-            </div>
-          </article>
-        </Link>
-      </SlideEnter>
+          {/* 右侧微光指示箭头 */}
+          <div className="hidden items-start justify-end pt-1.5 sm:flex">
+            <ArrowUpRight
+              className="
+                h-4
+                w-4
+                text-neutral-400
+                opacity-30
+                transition-all
+                duration-200
+                group-hover:opacity-100
+                group-hover:translate-x-0.5
+                group-hover:-translate-y-0.5
+                group-hover:text-[#7f1d1d]
+                dark:text-neutral-500
+                dark:group-hover:text-white
+              "
+            />
+          </div>
+        </article>
+      </Link>
     );
   };
 
@@ -586,7 +575,7 @@ export function PostsListClient({
           <section className="border-b border-black/[0.08] pb-8 pt-4 sm:pb-10 dark:border-white/[0.08]">
             <SlideEnter stage={1}>
               <div>
-                <h1 className="font-wenkai text-[40px] font-normal leading-none tracking-[0.01em] text-neutral-900 dark:text-[#eee8de] sm:text-[48px]">
+                <h1 className="font-wenkai text-[40px] font-normal leading-tight tracking-[0.01em] text-neutral-900 dark:text-[#eee8de] sm:text-[48px] min-h-[48px] sm:min-h-[58px]">
                   文章
                 </h1>
 
@@ -604,46 +593,46 @@ export function PostsListClient({
             </SlideEnter>
           </div>
 
-          {/* 文章时间线主轴 */}
-          <main className="mt-8 lg:mt-10 min-w-0" key={`${activeTopic}-${searchQuery}`}>
-            {/* 当前筛选反馈提示 (当有搜索或筛选且有命中时) */}
-            {(activeTopic || searchQuery) && (
-              <div className="mb-6 flex items-center justify-between text-xs border-b border-black/[0.05] pb-3.5 dark:border-white/[0.05]">
-                <div className="font-sans text-neutral-500 dark:text-neutral-400">
-                  当前筛选命中{" "}
-                  <span className="text-[#7f1d1d] dark:text-[#ede7dc] font-medium font-mono mx-1">
-                    {filteredPosts.length}
-                  </span>{" "}
-                  篇
-                  {activeTopic && (
-                    <span className="ml-1 text-neutral-700 dark:text-neutral-300 font-medium">
-                      （主题：“{activeTopic}”）
-                    </span>
-                  )}
-                  {searchQuery && (
-                    <span className="ml-1.5 opacity-75">
-                      （包含 “{searchQuery}”）
-                    </span>
-                  )}
+          {/* 文章时间线主轴 (整体单次平滑载入，彻底杜绝双重刷新割裂感) */}
+          <SlideEnter stage={2} offset={12} duration={450}>
+            <main className="mt-8 lg:mt-10 min-w-0">
+              {/* 当前筛选反馈提示 (当有搜索或筛选且有命中时) */}
+              {(activeTopic || searchQuery) && (
+                <div className="mb-6 flex items-center justify-between text-xs border-b border-black/[0.05] pb-3.5 dark:border-white/[0.05]">
+                  <div className="font-sans text-neutral-500 dark:text-neutral-400">
+                    当前筛选命中{" "}
+                    <span className="text-[#7f1d1d] dark:text-[#ede7dc] font-medium font-mono mx-1">
+                      {filteredPosts.length}
+                    </span>{" "}
+                    篇
+                    {activeTopic && (
+                      <span className="ml-1 text-neutral-700 dark:text-neutral-300 font-medium">
+                        （主题：“{activeTopic}”）
+                      </span>
+                    )}
+                    {searchQuery && (
+                      <span className="ml-1.5 opacity-75">
+                        （包含 “{searchQuery}”）
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleResetAll}
+                    className="cursor-pointer font-sans text-[11px] tracking-wider text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-800 dark:hover:text-neutral-200"
+                  >
+                    清空全部筛选
+                  </button>
                 </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={handleResetAll}
-                  className="cursor-pointer font-sans text-[11px] tracking-wider text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-800 dark:hover:text-neutral-200"
-                >
-                  清空全部筛选
-                </button>
-              </div>
-            )}
+              {/* ---------------------------------------------------------------- */}
+              {/* Pinned 置顶文章                                                   */}
+              {/* ---------------------------------------------------------------- */}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* Pinned 置顶文章                                                   */}
-            {/* ---------------------------------------------------------------- */}
-
-            {pinnedPosts.length > 0 && (
-              <section className="mb-10">
-                <SlideEnter stage={1} offset={8}>
+              {pinnedPosts.length > 0 && (
+                <section className="mb-10">
                   <div className="flex items-end justify-between border-b border-black/[0.08] pb-3.5 dark:border-white/[0.08]">
                     <div className="flex items-end gap-3">
                       <h2 className="font-wenkai text-[22px] sm:text-[24px] font-normal leading-none text-neutral-800 dark:text-neutral-200">
@@ -655,27 +644,25 @@ export function PostsListClient({
                       {pinnedPosts.length} 篇
                     </span>
                   </div>
-                </SlideEnter>
 
-                <div>
-                  {pinnedPosts.map((post, index) =>
-                    renderPost(post, index, undefined, true)
-                  )}
-                </div>
-              </section>
-            )}
+                  <div>
+                    {pinnedPosts.map((post, index) =>
+                      renderPost(post, index, undefined, true)
+                    )}
+                  </div>
+                </section>
+              )}
 
-            {/* ---------------------------------------------------------------- */}
-            {/* Years 年份编年史                                                  */}
-            {/* ---------------------------------------------------------------- */}
+              {/* ---------------------------------------------------------------- */}
+              {/* Years 年份编年史                                                  */}
+              {/* ---------------------------------------------------------------- */}
 
-            <div>
-              {years.map((year) => {
-                const yearPosts = postsByYear[year];
+              <div>
+                {years.map((year) => {
+                  const yearPosts = postsByYear[year];
 
-                return (
-                  <section key={year} className="mb-12 last:mb-0">
-                    <SlideEnter stage={1} offset={8}>
+                  return (
+                    <section key={year} className="mb-12 last:mb-0">
                       <div className="flex items-end justify-between border-b border-black/[0.08] pb-3.5 dark:border-white/[0.08]">
                         <div className="flex items-end gap-3">
                           <h2 className="font-wenkai text-[26px] sm:text-[28px] font-normal leading-none text-neutral-800 dark:text-neutral-200">
@@ -687,52 +674,49 @@ export function PostsListClient({
                           {yearPosts.length} 篇
                         </span>
                       </div>
-                    </SlideEnter>
 
-                    <div>
-                      {yearPosts.map((post, index) =>
-                        renderPost(post, index, year, false)
-                      )}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
+                      <div>
+                        {yearPosts.map((post, index) =>
+                          renderPost(post, index, year, false)
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
 
-            {/* Loading sentinel */}
-            {hasMore && (
-              <div
-                ref={loadMoreRef}
-                className="h-20 w-full"
-                aria-hidden="true"
-              />
-            )}
+              {/* Loading sentinel */}
+              {hasMore && (
+                <div
+                  ref={loadMoreRef}
+                  className="h-20 w-full"
+                  aria-hidden="true"
+                />
+              )}
 
-            {/* Empty */}
-            {filteredPosts.length === 0 && (
-              <SlideEnter
-                stage={2}
-                className="border-t border-black/[0.06] py-24 text-center dark:border-white/[0.06]"
-              >
-                <p className="font-serif text-[16px] sm:text-[17px] text-neutral-500 dark:text-neutral-400">
-                  {searchQuery
-                    ? `未找到与 “${searchQuery}” 相关的文章`
-                    : activeTopic
-                    ? `“${activeTopic}” 主题下暂无文章`
-                    : "这里还没有文章"}
-                </p>
-                {(searchQuery || activeTopic) && (
-                  <button
-                    type="button"
-                    onClick={handleResetAll}
-                    className="mt-4 px-4 py-1.5 text-xs font-serif tracking-wider rounded border border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer"
-                  >
-                    重置搜索与全部筛选
-                  </button>
-                )}
-              </SlideEnter>
-            )}
-          </main>
+              {/* Empty */}
+              {filteredPosts.length === 0 && (
+                <div className="border-t border-black/[0.06] py-24 text-center dark:border-white/[0.06]">
+                  <p className="font-serif text-[16px] sm:text-[17px] text-neutral-500 dark:text-neutral-400">
+                    {searchQuery
+                      ? `未找到与 “${searchQuery}” 相关的文章`
+                      : activeTopic
+                      ? `“${activeTopic}” 主题下暂无文章`
+                      : "这里还没有文章"}
+                  </p>
+                  {(searchQuery || activeTopic) && (
+                    <button
+                      type="button"
+                      onClick={handleResetAll}
+                      className="mt-4 px-4 py-1.5 text-xs font-serif tracking-wider rounded border border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 text-neutral-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                    >
+                      重置搜索与全部筛选
+                    </button>
+                  )}
+                </div>
+              )}
+            </main>
+          </SlideEnter>
 
           {/* 底部纸面收束 */}
           <div className="mt-16 border-t border-black/[0.08] pt-5 dark:border-white/[0.08]">

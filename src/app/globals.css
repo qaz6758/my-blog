@@ -80,6 +80,13 @@
   --page-text: #1e1b18;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg: #111213;
+    --page-text: #eae5dc;
+  }
+}
+
 html.dark {
   --page-bg: #111213 !important;
   --page-text: #eae5dc !important;
@@ -92,6 +99,7 @@ html.light {
 
 html {
   background-color: var(--page-bg);
+  scrollbar-gutter: stable;
 }
 
 body {
