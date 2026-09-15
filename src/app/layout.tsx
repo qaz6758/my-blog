@@ -32,10 +32,6 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ede7dc" },
-    { media: "(prefers-color-scheme: dark)", color: "#111213" },
-  ],
   colorScheme: "light dark",
 };
 
@@ -125,12 +121,16 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               :root {
-                background-color: #ede7dc;
                 color-scheme: light dark;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
                   background-color: #111213;
+                }
+              }
+              @media (prefers-color-scheme: light) {
+                :root {
+                  background-color: #ede7dc;
                 }
               }
               html.light {
@@ -167,6 +167,32 @@ export default function RootLayout({
       </head>
 
       <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
+        {/* 0ms 正文前置阻断脚本：在浏览器解析任何正文 DOM 前立刻焊死主题 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var docEl = document.documentElement;
+                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
+                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
+                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (isDark) {
+                    docEl.classList.add('dark');
+                    docEl.classList.remove('light');
+                    docEl.style.backgroundColor = '#111213';
+                    docEl.style.colorScheme = 'dark';
+                  } else {
+                    docEl.classList.remove('dark');
+                    docEl.classList.add('light');
+                    docEl.style.backgroundColor = '#ede7dc';
+                    docEl.style.colorScheme = 'only light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <ThemeProvider>
           {/* 包裹全局播放器 Provider */}
           <MusicProvider>

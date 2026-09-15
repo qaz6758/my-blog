@@ -196,7 +196,61 @@ html.dark ::selection {
   color: #ffffff;
 }
 
-:root,
+/* 默认基准变量：优先跟随 --page-bg，绝不在 :root 裸状态写死浅色背景 */
+:root {
+  --realm-bg: var(--page-bg);
+  --realm-surface: #f5efe3;
+  --realm-surface-secondary: #eae3d5;
+  --realm-surface-tertiary: #dfd7c5;
+
+  --realm-border: rgba(50, 40, 30, 0.08);
+  --realm-border-strong: rgba(50, 40, 30, 0.16);
+
+  --realm-ink-primary: var(--page-text);
+  --realm-ink-secondary: #6e6559;
+  --realm-ink-muted: #9c9284;
+
+  --realm-accent-cinnabar: #b91c1c;
+  --realm-accent-indigo: #0369a1;
+  --realm-accent-gold: #b45309;
+
+  --realm-motion-duration: 0.18s;
+  --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --background: var(--realm-bg);
+  --foreground: var(--realm-ink-primary);
+  background-color: var(--page-bg);
+  color: var(--page-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --realm-bg: #111213;
+    --realm-surface: #191a1b;
+    --realm-surface-secondary: #222325;
+    --realm-surface-tertiary: #2b2c2f;
+
+    --realm-border: rgba(255, 255, 255, 0.08);
+    --realm-border-strong: rgba(255, 255, 255, 0.14);
+
+    --realm-ink-primary: #eae5dc;
+    --realm-ink-secondary: #9d9589;
+    --realm-ink-muted: #6f685c;
+
+    --realm-accent-cinnabar: #eae5dc;
+    --realm-accent-indigo: #d6d3d1;
+    --realm-accent-gold: #ffffff;
+
+    --realm-motion-duration: 0.32s;
+    --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
+
+    --background: var(--realm-bg);
+    --foreground: var(--realm-ink-primary);
+    background-color: var(--page-bg);
+    color: var(--page-text);
+  }
+}
+
 html.light {
   color-scheme: only light;
   forced-color-adjust: none;
@@ -224,8 +278,8 @@ html.light {
 
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-  background-color: #ede7dc;
-  color: #1e1b18;
+  background-color: #ede7dc !important;
+  color: #1e1b18 !important;
 }
 
 html.dark {
@@ -255,8 +309,8 @@ html.dark {
 
   --background: var(--realm-bg);
   --foreground: var(--realm-ink-primary);
-  background-color: #111213;
-  color: #eae5dc;
+  background-color: #111213 !important;
+  color: #eae5dc !important;
 }
 
 /*
