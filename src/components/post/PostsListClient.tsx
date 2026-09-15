@@ -4,7 +4,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Search, X } from "lucide-react";
-import { SlideEnter } from "@/components/layout/SlideEnter";
 import { calculateReadTime } from "@/lib/utils";
 
 export interface PostItem {
@@ -81,8 +80,13 @@ export function PostsListClient({
 
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     setVisibleCount(BATCH_SIZE);
   }, [activeTopic, searchQuery]);
 
@@ -573,29 +577,24 @@ export function PostsListClient({
           
           {/* 页面标题区 */}
           <section className="border-b border-black/[0.08] pb-8 pt-4 sm:pb-10 dark:border-white/[0.08]">
-            <SlideEnter stage={1}>
-              <div>
-                <h1 className="font-wenkai text-[40px] font-normal leading-tight tracking-[0.01em] text-neutral-900 dark:text-[#eee8de] sm:text-[48px] min-h-[48px] sm:min-h-[58px]">
-                  文章
-                </h1>
+            <div>
+              <h1 className="font-wenkai text-[40px] font-normal leading-tight tracking-[0.01em] text-neutral-900 dark:text-[#eee8de] sm:text-[48px] min-h-[48px] sm:min-h-[58px]">
+                文章
+              </h1>
 
-                <p className="mt-4 max-w-xl font-sans text-[13px] leading-[2] text-neutral-600 dark:text-neutral-400 sm:text-[14px]">
-                  记录技术探索、网站折腾，以及那些值得留下来的生活碎片 · 共 {posts.length} 篇。
-                </p>
-              </div>
-            </SlideEnter>
+              <p className="mt-4 max-w-xl font-sans text-[13px] leading-[2] text-neutral-600 dark:text-neutral-400 sm:text-[14px]">
+                记录技术探索、网站折腾，以及那些值得留下来的生活碎片 · 共 {posts.length} 篇。
+              </p>
+            </div>
           </section>
 
           {/* 移动端/平板轻盈挂件 (只在 xl 以下显示，且通透不抢戏) */}
           <div className="block xl:hidden mt-6 mb-8">
-            <SlideEnter stage={2}>
-              {renderFilterCard("mobile")}
-            </SlideEnter>
+            {renderFilterCard("mobile")}
           </div>
 
-          {/* 文章时间线主轴 (整体单次平滑载入，彻底杜绝双重刷新割裂感) */}
-          <SlideEnter stage={2} offset={12} duration={450}>
-            <main className="mt-8 lg:mt-10 min-w-0">
+          {/* 文章时间线主轴 (静态直出零延迟，杜绝任何二次刷新割裂感) */}
+          <main className="mt-8 lg:mt-10 min-w-0">
               {/* 当前筛选反馈提示 (当有搜索或筛选且有命中时) */}
               {(activeTopic || searchQuery) && (
                 <div className="mb-6 flex items-center justify-between text-xs border-b border-black/[0.05] pb-3.5 dark:border-white/[0.05]">
@@ -716,7 +715,6 @@ export function PostsListClient({
                 </div>
               )}
             </main>
-          </SlideEnter>
 
           {/* 底部纸面收束 */}
           <div className="mt-16 border-t border-black/[0.08] pt-5 dark:border-white/[0.08]">
@@ -729,9 +727,7 @@ export function PostsListClient({
 
         {/* ================= 2. 右侧独立伴随轨道 (处于文章列表右侧留白，绝不入侵正文) ================= */}
         <aside className="hidden xl:block w-[260px] shrink-0 ml-12 2xl:ml-16 sticky top-28 self-start pt-2">
-          <SlideEnter stage={2}>
-            {renderFilterCard("desktop")}
-          </SlideEnter>
+          {renderFilterCard("desktop")}
         </aside>
 
       </div>
