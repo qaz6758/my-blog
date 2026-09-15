@@ -42,8 +42,11 @@ export default async function Page({
     );
 
     if (currentIndex !== -1) {
-      prevPost = (allPosts[currentIndex + 1] as unknown as PostDetail) || null;
-      nextPost = (allPosts[currentIndex - 1] as unknown as PostDetail) || null;
+      // 顺应正常阅读心智模型与列表阅读流：
+      // prevPost (上一篇 / 较新文章)：列表中排在更上方(时间更新)的文章 (currentIndex - 1)
+      // nextPost (下一篇 / 较早文章)：列表中排在更下方(时间更早)的文章 (currentIndex + 1)
+      prevPost = (allPosts[currentIndex - 1] as unknown as PostDetail) || null;
+      nextPost = (allPosts[currentIndex + 1] as unknown as PostDetail) || null;
     }
   }
 

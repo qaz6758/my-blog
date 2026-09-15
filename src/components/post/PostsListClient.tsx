@@ -88,6 +88,9 @@ export function PostsListClient({
       return;
     }
     setVisibleCount(BATCH_SIZE);
+    if (typeof window !== "undefined" && window.scrollY > 80) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, [activeTopic, searchQuery]);
 
   /* -------------------------------------------------------------------------- */
