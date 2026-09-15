@@ -101,13 +101,14 @@ export function useSeasonalEffect() {
     notify();
   }, []);
 
-  // 始终根据当前真实自然季节（月份）自动切换粒子效果
-  const activeSeason: ActiveSeason = getAutoSeason();
+  // 根据当前模式计算生效季节：auto 模式下根据月份自动流转，手动模式下使用指定季节
+  const activeSeason: ActiveSeason =
+    current.mode === "auto" ? getAutoSeason() : current.mode;
 
   return {
     mounted,
     enabled: current.enabled,
-    mode: "auto" as SeasonMode,
+    mode: current.mode,
     activeSeason,
     toggleEnabled,
     setSeasonMode,
