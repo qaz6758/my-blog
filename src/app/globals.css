@@ -36,10 +36,12 @@
     "LXGW WenKai Screen R",
     "LXGW WenKai",
     "霞鹜文楷",
-    "STKaiti",
-    "KaiTi",
-    "Kaiti SC",
-    serif;
+    -apple-system,
+    BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    sans-serif;
 
   --font-serif:
     Charter,
