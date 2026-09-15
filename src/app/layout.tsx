@@ -21,14 +21,14 @@ const cinzel = Cinzel({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-cinzel",
-  display: "swap",
+  display: "optional",
 });
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-cormorant",
-  display: "swap",
+  display: "optional",
 });
 
 export const viewport: Viewport = {
@@ -161,15 +161,7 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* 预连接字体与静态 CDN */}
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-        {/* 引入 霞鹜文楷 (LXGW WenKai Screen) 水墨国风字体 */}
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css"
-          crossOrigin="anonymous"
-        />
+        {/* 字体已全面切换为系统本地黑体栈（Inter + 苹方 / 微软雅黑），无需外部 CDN 网络字体 */}
       </head>
 
       <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
