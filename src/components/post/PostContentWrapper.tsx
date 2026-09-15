@@ -38,8 +38,8 @@ import "prismjs/components/prism-java";
 import "prismjs/components/prism-c";
 import "prismjs/components/prism-cpp";
 
-const COPY_SVG = `<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>copy</span>`;
-const CHECK_SVG = `<svg class="h-3 w-3 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="text-emerald-500">copied</span>`;
+const COPY_SVG = `<svg class="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+const CHECK_SVG = `<svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 function processAndOptimizeHtml(rawHtml: string): string {
   if (!rawHtml) return "";
@@ -102,28 +102,15 @@ function processAndOptimizeHtml(rawHtml: string): string {
     return `<img ${cleanAttrs} src="${optimizedSrc}" data-original-src="${rawSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   });
 
-  // 5. 将原生 <pre> 代码块转为 Mac 拟真终端窗口排版 (红黄绿三色控制圆点 + 顶部窗口栏)
+  // 5. 将原生 <pre> 代码块转为现代极简代码块 (纯净无顶栏、无红黄绿圆点、无多余横线)
   cleaned = cleaned.replace(/<pre\b([^>]*)>([\s\S]*?)<\/pre>/gi, (match, attrs, innerCode) => {
-    if (attrs.includes("data-mac-styled")) return match;
+    if (attrs.includes("data-styled")) return match;
 
-    const langMatch =
-      innerCode.match(/class=["'][^"']*language-([\w-]+)[^"']*["']/i) ||
-      attrs.match(/class=["'][^"']*language-([\w-]+)[^"']*["']/i);
-    const lang = langMatch ? langMatch[1] : "";
-
-    return `<div class="mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#232326] shadow-sm">
-  <div class="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-[#2c2c2e]/70 px-4 py-2.5 select-none">
-    <div class="flex items-center gap-2">
-      <span class="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50"></span>
-      <span class="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50"></span>
-      <span class="inline-block h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50"></span>
-    </div>
-    <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">${lang || "Terminal"}</span>
-    <button type="button" data-action="copy-code" aria-label="复制代码" class="flex items-center gap-1 rounded border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-neutral-800/70 px-2 py-0.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer select-none">
-      ${COPY_SVG}
-    </button>
-  </div>
-  <pre ${attrs} data-mac-styled="true" class="overflow-x-auto p-4 sm:p-5 text-xs sm:text-[13.5px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono">${innerCode}</pre>
+    return `<div class="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f7f4ed] dark:bg-[#0e0e10]">
+  <button type="button" data-action="copy-code" aria-label="复制代码" class="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none">
+    ${COPY_SVG}
+  </button>
+  <pre ${attrs} data-styled="true" class="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-[#ded8ce] font-mono">${innerCode}</pre>
 </div>`;
   });
 
@@ -374,44 +361,24 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#121214] shadow-sm">
-      <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-neutral-900/60 px-4 py-2.5 select-none">
-        {/* Mac 红黄绿三色控制点 */}
-        <div className="flex items-center gap-2">
-          <span className="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50" />
-          <span className="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50" />
-          <span className="inline-block h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50" />
-        </div>
-
-        {/* 语言标识 */}
-        <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">
-          {language || "code"}
-        </span>
-
-        {/* 复制按钮 */}
-        <button
-          type="button"
-          onClick={handleCopy}
-          aria-label="复制代码"
-          className="flex items-center gap-1 rounded border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-neutral-800/70 px-2 py-0.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer select-none"
-        >
-          {copied ? (
-            <>
-              <Check className="h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500">copied</span>
-            </>
-          ) : (
-            <>
-              <Copy className="h-3 w-3 text-neutral-400" />
-              <span>copy</span>
-            </>
-          )}
-        </button>
-      </div>
+    <div className="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f7f4ed] dark:bg-[#0e0e10]">
+      {/* 悬停浮现的极简复制按钮 (右上角绝对定位，不占任何独立顶栏) */}
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label="复制代码"
+        className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none"
+      >
+        {copied ? (
+          <Check className="h-3.5 w-3.5 text-emerald-500" />
+        ) : (
+          <Copy className="h-3.5 w-3.5 text-neutral-400" />
+        )}
+      </button>
 
       <pre
         suppressHydrationWarning
-        className="overflow-x-auto p-4 sm:p-5 text-xs sm:text-[13.5px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono"
+        className="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-[#ded8ce] font-mono"
       >
         {highlighted ? (
           <code
@@ -448,35 +415,24 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
     const preElements = contentRef.current.querySelectorAll("pre");
 
     preElements.forEach((pre) => {
-      // 1. 如果没有在 mac-code-block 容器中，动态包裹为 Mac 样式
-      if (pre.parentElement && !pre.parentElement.classList.contains("mac-code-block")) {
-        const codeEl = pre.querySelector("code");
-        const match = (codeEl?.className || pre.className || "").match(/language-(\w+)/);
-        const lang = match ? match[1] : "";
-
+      // 1. 如果没有在 code-block-wrapper 容器中，动态包裹为极简样式
+      if (pre.parentElement && !pre.parentElement.classList.contains("code-block-wrapper")) {
         const wrapper = document.createElement("div");
         wrapper.className =
-          "mac-code-block group relative my-6 overflow-hidden rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-[#fbfbfb] dark:bg-[#121214] shadow-sm";
+          "code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f7f4ed] dark:bg-[#0e0e10]";
 
-        const header = document.createElement("div");
-        header.className =
-          "flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.06] bg-neutral-100/70 dark:bg-neutral-900/60 px-4 py-2.5 select-none";
-        header.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="inline-block h-3 w-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50"></span>
-            <span class="inline-block h-3 w-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/50"></span>
-            <span class="inline-block h-3 w-3 rounded-full bg-[#27c93f] border border-[#1aab29]/50"></span>
-          </div>
-          <span class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-500 font-medium">${lang || "Terminal"}</span>
-          <button type="button" data-action="copy-code" aria-label="复制代码" class="flex items-center gap-1 rounded border border-black/[0.06] dark:border-white/[0.08] bg-white/70 dark:bg-neutral-800/70 px-2 py-0.5 text-[11px] font-mono text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-all cursor-pointer select-none">
-            ${COPY_SVG}
-          </button>
-        `;
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.setAttribute("data-action", "copy-code");
+        copyBtn.setAttribute("aria-label", "复制代码");
+        copyBtn.className =
+          "absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none";
+        copyBtn.innerHTML = COPY_SVG;
 
         pre.parentNode?.insertBefore(wrapper, pre);
-        wrapper.appendChild(header);
+        wrapper.appendChild(copyBtn);
         wrapper.appendChild(pre);
-        pre.classList.add("overflow-x-auto", "p-4", "sm:p-5", "text-xs", "sm:text-[13.5px]", "leading-relaxed", "text-neutral-800", "dark:text-neutral-200", "font-mono");
+        pre.classList.add("overflow-x-auto", "p-4", "sm:p-5", "text-[13px]", "sm:text-[14px]", "leading-relaxed", "text-neutral-800", "dark:text-[#ded8ce]", "font-mono");
       }
 
       // 2. 语法高亮
@@ -499,7 +455,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
       e.preventDefault();
       e.stopPropagation();
 
-      const block = copyBtn.closest(".mac-code-block") || copyBtn.closest("pre");
+      const block = copyBtn.closest(".code-block-wrapper") || copyBtn.closest("pre");
       const codeEl = block?.querySelector("code") || block?.querySelector("pre") || block;
       if (!codeEl) return;
 
@@ -571,21 +527,21 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   return (
     <>
       <style>{`
-        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6a737d; font-style: italic; }
-        .dark .token.comment, .dark .token.prolog, .dark .token.doctype, .dark .token.cdata { color: #8b949e; }
+        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #8c857b; font-style: italic; }
+        .dark .token.comment, .dark .token.prolog, .dark .token.doctype, .dark .token.cdata { color: #767067; font-style: italic; }
         .token.punctuation { color: #586069; }
-        .dark .token.punctuation { color: #c9d1d9; }
-        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol { color: #005cc5; }
-        .dark .token.property, .dark .token.tag, .dark .token.boolean, .dark .token.number, .dark .token.constant, .dark .token.symbol { color: #79c0ff; }
-        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: #032f62; }
-        .dark .token.selector, .dark .token.attr-name, .dark .token.string, .dark .token.char, .dark .token.builtin { color: #a5d6ff; }
-        .token.operator, .token.entity, .token.url { color: #6f42c1; }
-        .dark .token.operator, .dark .token.entity, .dark .token.url { color: #d2a8ff; }
-        .token.keyword { color: #d73a49; font-weight: 500; }
-        .dark .token.keyword { color: #ff7b72; font-weight: 500; }
-        .token.function, .token.class-name { color: #6f42c1; }
-        .dark .token.function, .dark .token.class-name { color: #d2a8ff; }
-        .mac-code-block pre {
+        .dark .token.punctuation { color: #9d9589; }
+        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol { color: #b45309; }
+        .dark .token.property, .dark .token.tag, .dark .token.boolean, .dark .token.number, .dark .token.constant, .dark .token.symbol { color: #e59866; }
+        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin { color: #991b1b; }
+        .dark .token.selector, .dark .token.attr-name, .dark .token.string, .dark .token.char, .dark .token.builtin { color: #e06c75; }
+        .token.operator, .token.entity, .token.url { color: #7c3aed; }
+        .dark .token.operator, .dark .token.entity, .dark .token.url { color: #c678dd; }
+        .token.keyword { color: #b91c1c; font-weight: 500; }
+        .dark .token.keyword { color: #e06c75; font-weight: 500; }
+        .token.function, .token.class-name { color: #0284c7; }
+        .dark .token.function, .dark .token.class-name { color: #61afef; }
+        .code-block-wrapper pre {
           margin: 0 !important;
           background: transparent !important;
           border: none !important;
