@@ -5,7 +5,6 @@ import React, { Suspense } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { TopProgressBar } from '@/components/layout/TopProgressBar';
 import { Footer } from '@/components/layout/Footer';
-import { WaterArchiveBackground } from '@/components/effects/WaterArchiveBackground';
 import { SeasonalBackground } from '@/components/effects/SeasonalBackground';
 
 export function FrontendShell({ children }: { children: React.ReactNode }) {
@@ -14,8 +13,6 @@ export function FrontendShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <TopProgressBar />
       </Suspense>
-      {/* 全站统一水墨水晕与水纹等高线背景 */}
-      <WaterArchiveBackground />
       {/* 四季动态粒子特效（春樱/夏萤/秋枫/冬雪） */}
       <SeasonalBackground />
       <Navbar />
