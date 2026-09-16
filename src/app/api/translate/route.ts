@@ -1,7 +1,7 @@
 // src/app/api/translate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 // 服务端内存缓存，防止重复请求外部翻译服务
 const cache = new Map<string, string>();
