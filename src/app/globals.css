@@ -504,15 +504,7 @@ html.dark .ink-divider::after {
   100% { transform: scale(1); opacity: 0.8; }
 }
 
-/* --- 5. 页脚插画黑白化 (Grayscale Footer Art) --- */
-.manga-grayscale {
-  filter: grayscale(1) contrast(1.15);
-  transition: filter 0.3s ease;
-}
 
-.manga-grayscale:hover {
-  filter: grayscale(0.7) contrast(1.1);
-}
 
 
 /*

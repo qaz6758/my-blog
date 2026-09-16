@@ -14,7 +14,7 @@ export function InkMountainBackground() {
         <img
           src="/images/footer-champloo-day.webp"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-right opacity-95 transition-opacity duration-500 manga-grayscale"
+          className="absolute inset-0 w-full h-full object-cover object-right opacity-95 transition-opacity duration-500"
         />
       </div>
 
@@ -25,7 +25,7 @@ export function InkMountainBackground() {
           <img
             src="/images/musashi-peony-cutout.webp"
             alt="Miyamoto Musashi with Peonies"
-            className="h-[84%] sm:h-[90%] md:h-[94%] max-h-[460px] w-auto object-contain object-bottom drop-shadow-[0_12px_30px_rgba(0,0,0,0.9)] manga-grayscale"
+            className="h-[84%] sm:h-[90%] md:h-[94%] max-h-[460px] w-auto object-contain object-bottom drop-shadow-[0_12px_30px_rgba(0,0,0,0.9)]"
           />
         </div>
       </div>
