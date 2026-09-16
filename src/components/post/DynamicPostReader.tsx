@@ -4,14 +4,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Tag as TagIcon, ArrowLeft, ArrowRight, Menu, Globe, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
 import { useI18n } from "@/lib/i18n/I18nContext";
-import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
-import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 // ─── 动态按需加载模块（内联声明，无需额外包装文件） ──────────────
 const PostContentWrapper = dynamic(
@@ -99,21 +97,8 @@ export function DynamicPostReader({
     };
   }, []);
 
-  // 多语言与翻译支持
-  const { locale: globalLocale, t, convertText } = useI18n();
-  // 文章独立阅读语言状态：仅翻译本文章内容与目录，绝不污染全局网站语言偏好
-  const [articleLocale, setArticleLocale] = useState<Locale>(globalLocale || "zh-CN");
-  const [isTranslated, setIsTranslated] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const [translatedTitle, setTranslatedTitle] = useState("");
-  const [translatedContent, setTranslatedContent] = useState("");
-
-  // 当全局语言初次加载或从外部切换时同步一次初始状态
-  useEffect(() => {
-    if (globalLocale) {
-      setArticleLocale(globalLocale);
-    }
-  }, [globalLocale]);
+  // 多语言与文案转换（全局设置，正體中文由 OpenCC 客户端秒转）
+  const { locale: globalLocale, convertText } = useI18n();
 
   // 判断当前文章是否为 RSS 外部聚合文章（评论区仅在博主个人原创文章展示，RSS 聚合文章彻底不出现）
   const isRssArticle = useMemo(() => {
@@ -136,7 +121,7 @@ export function DynamicPostReader({
   const rawContent = post?.content || post?.summary || "";
   const postTitle = post?.title || "";
 
-  // 智能检测文章自身的源语种（通过中文字符采样判断：超过 15 个汉字判定为中文源，否则判定为英文/外文源）
+  // 智能检测文章自身的源语种（通过中文字符采样判断：超过 15 个汉字判定为中文源，否则判定为英文/外文源，供 HTML 语义 lang 属性识别，激活浏览器原生翻译）
   const isSourceZh = useMemo(() => {
     if (!post) return true;
     const sample = (postTitle + " " + rawContent.slice(0, 1000));
@@ -144,140 +129,24 @@ export function DynamicPostReader({
     return zhCount > 15;
   }, [post, postTitle, rawContent]);
 
-  // 当文章独立语言切换时：自动在后台翻译并无缝呈现，无需用户额外点击繁琐横条
-  useEffect(() => {
-    if (!post) return;
-
-    // 判定当前所选语言是否即为文章源语言（源语言直接展示原文，无需网络请求）
-    const isOriginal = isSourceZh
-      ? articleLocale === "zh-CN" || articleLocale === "zh-TW"
-      : articleLocale === "en";
-
-    if (isOriginal) {
-      setIsTranslated(false);
-      setTranslatedTitle("");
-      setTranslatedContent("");
-      return;
-    }
-
-    const sourceLang = isSourceZh ? "zh-CN" : "auto";
-    const targetLang = articleLocale;
-
-    // 1. 优先读取本地会话缓存（秒开），并做严格防脏防空校验
-    try {
-      const cacheKey = `blog_trans_${post.id}_${articleLocale}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (
-          parsed.title &&
-          parsed.content &&
-          (parsed.title !== postTitle || parsed.content !== rawContent)
-        ) {
-          setTranslatedTitle(parsed.title);
-          setTranslatedContent(parsed.content);
-          setIsTranslated(true);
-          return;
-        } else {
-          sessionStorage.removeItem(cacheKey);
-        }
-      }
-    } catch {}
-
-    // 2. 发起翻译：先尝试服务端接口；若服务端因机房 IP 被限流，由浏览器客户端直接兜底请求！
-    let active = true;
-    setTranslating(true);
-
-    const doTranslate = async () => {
-      let tTitle = "";
-      let tContent = "";
-
-      // Step 1: 尝试服务端 API 翻译
-      try {
-        const res = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: postTitle,
-            text: rawContent,
-            targetLang,
-            sourceLang,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.translated && (data.translated !== rawContent || data.translatedTitle !== postTitle)) {
-            tTitle = (data.translatedTitle || "").trim();
-            tContent = (data.translated || "").trim();
-          }
-        }
-      } catch (err) {
-        console.warn("[Server translate fallback to client]:", err);
-      }
-
-      // Step 2: 若服务端未成功（或返回相同文本），由客户端直接调用 Google GTX (浏览器住宅IP无机房风控)
-      if (!tContent || (tTitle === postTitle && tContent === rawContent)) {
-        try {
-          const { callSingleTranslate, translateArticleText } = await import("@/lib/translator");
-          if (postTitle) {
-            tTitle = await callSingleTranslate(postTitle, targetLang, sourceLang);
-          }
-          if (rawContent) {
-            tContent = await translateArticleText(rawContent, targetLang, sourceLang);
-          }
-        } catch (clientErr) {
-          console.error("[Client translate fallback error]:", clientErr);
-        }
-      }
-
-      if (!active) return;
-
-      // 严格检验：翻译结果不为空且确已发生语言变化
-      if (tContent && (tTitle !== postTitle || tContent !== rawContent)) {
-        setTranslatedTitle(tTitle || postTitle);
-        setTranslatedContent(tContent);
-        setIsTranslated(true);
-
-        try {
-          sessionStorage.setItem(
-            `blog_trans_${post.id}_${articleLocale}`,
-            JSON.stringify({ title: tTitle || postTitle, content: tContent })
-          );
-        } catch {}
-      }
-      setTranslating(false);
-    };
-
-    doTranslate();
-
-    return () => {
-      active = false;
-    };
-  }, [post?.id, postTitle, rawContent, articleLocale, isSourceZh]);
-
-  // 计算展示标题（正體中文自动 OpenCC 纯离线秒转，外语在开启翻译时展示译文）
+  // 计算展示标题（正體中文自动 OpenCC 纯离线秒转）
   const displayTitle = useMemo(() => {
     if (!post) return "";
-    if (isTranslated && translatedTitle) {
-      return articleLocale === "zh-TW" ? convertText(translatedTitle) : translatedTitle;
-    }
-    if (isSourceZh && articleLocale === "zh-TW") return convertText(post.title);
+    if (globalLocale === "zh-TW") return convertText(post.title);
     return post.title;
-  }, [post, isSourceZh, articleLocale, isTranslated, translatedTitle, convertText]);
+  }, [post, globalLocale, convertText]);
 
-  // 计算展示正文
+  // 计算展示正文（正體中文自动 OpenCC 纯离线秒转）
   const displayContent = useMemo(() => {
     if (!post) return "";
     let content = rawContent;
-    if (isTranslated && translatedContent) {
-      content = articleLocale === "zh-TW" ? convertText(translatedContent) : translatedContent;
-    } else if (isSourceZh && articleLocale === "zh-TW") {
+    if (globalLocale === "zh-TW") {
       content = convertText(rawContent);
     }
     
     // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
     return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "");
-  }, [post, isSourceZh, articleLocale, isTranslated, translatedContent, rawContent, convertText]);
+  }, [post, globalLocale, rawContent, convertText]);
 
   // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
   const isHtmlContent = React.useMemo(() => {
@@ -400,10 +269,10 @@ export function DynamicPostReader({
                 onPointerLeave={handlePointerLeave}
               >
                 <TableOfContents
-                  key={`${post.id}_${articleLocale}_${isTranslated ? "trans" : "orig"}`}
+                  key={`${post.id}_${globalLocale}`}
                   isArticleHovered={isArticleHovered}
-                  contentKey={`${displayTitle}_${(displayContent || "").slice(0, 80)}_${articleLocale}`}
-                  locale={articleLocale}
+                  contentKey={`${displayTitle}_${(displayContent || "").slice(0, 80)}_${globalLocale}`}
+                  locale={globalLocale}
                 />
               </aside>
             </div>
@@ -425,48 +294,25 @@ export function DynamicPostReader({
                     {(post.published_at || post.created_at) && (
                       <span>
                         {new Date(post.published_at || post.created_at || "").toLocaleDateString(
-                          articleLocale === "zh-TW" ? "zh-TW" : articleLocale === "en" ? "en-US" : articleLocale === "ja" ? "ja-JP" : articleLocale === "ko" ? "ko-KR" : "zh-CN",
+                          globalLocale === "zh-TW" ? "zh-TW" : globalLocale === "en" ? "en-US" : globalLocale === "ja" ? "ja-JP" : globalLocale === "ko" ? "ko-KR" : "zh-CN",
                           { month: "long", day: "numeric", year: "numeric" }
                         )}
                       </span>
                     )}
                   </div>
-
-                  {/* 图一同款语言切换组件（独立控制本篇文章的阅读翻译，绝不污染全局全站语言） */}
-                  <div className="flex items-center gap-2">
-                    {translating && (
-                      <span className="flex items-center gap-1.5 text-xs text-neutral-400">
-                        <Loader2 className="h-3 w-3 animate-spin text-neutral-400" />
-                        <span className="hidden sm:inline font-mono text-[11px]">{t("article.translating")}</span>
-                      </span>
-                    )}
-                    <LanguageSwitcher
-                      value={articleLocale}
-                      onChange={setArticleLocale}
-                      placement="bottom"
-                      align="right"
-                    />
-                  </div>
                 </div>
               </header>
 
-              {/* 正文渲染区 */}
-              {translating && (
-                <div className="mb-6 flex items-center gap-2.5 py-2.5 px-3.5 rounded-lg bg-neutral-100/80 dark:bg-neutral-800/60 border border-black/5 dark:border-white/5 text-xs text-neutral-600 dark:text-neutral-400 animate-pulse">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-neutral-500 shrink-0" />
-                  <span>{t("article.translating") || "正在翻译正文..."}</span>
-                </div>
-              )}
+              {/* 正文渲染区 (标准语义 lang 属性，助力 Chrome/Safari/Edge 浏览器原生秒翻) */}
               <article
-                className={`post-article min-w-0 font-sans transition-opacity duration-300 ${
-                  translating ? "opacity-35 pointer-events-none select-none" : "opacity-100"
-                }`}
+                lang={isSourceZh ? "zh-CN" : "en"}
+                className="post-article min-w-0 font-sans"
                 style={{ fontSize: "1.0625rem", lineHeight: "1.85", letterSpacing: "normal" }}
               >
                 <PostContentWrapper
                   content={displayContent}
                   isHtml={isHtmlContent}
-                  locale={articleLocale}
+                  locale={globalLocale}
                 />
               </article>
 
@@ -514,7 +360,7 @@ export function DynamicPostReader({
               {/* 评论区：仅在博主个人原创文章中展现，RSS 聚合文章彻底不出现 */}
               {!isRssArticle && (
                 <div className="mt-20">
-                  <CommentSection postId={String(post.id)} locale={articleLocale} />
+                  <CommentSection postId={String(post.id)} locale={globalLocale} />
                 </div>
               )}
             </main>
