@@ -9,9 +9,9 @@ import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
-import { formatDate } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 // ─── 动态按需加载模块（内联声明，无需额外包装文件） ──────────────
 const PostContentWrapper = dynamic(
@@ -124,7 +124,7 @@ export function DynamicPostReader({
     return false;
   }, [post]);
 
-  // 当文章或全站语言切换时重置或读取缓存
+  // 当文章或全站语言切换时：自动在后台翻译并无缝呈现，无需用户额外点击繁琐横条
   useEffect(() => {
     if (!post) return;
     if (locale === "zh-CN" || locale === "zh-TW") {
@@ -132,7 +132,7 @@ export function DynamicPostReader({
       return;
     }
 
-    // 检查本地缓存
+    // 1. 优先读取本地会话缓存（秒开）
     try {
       const cacheKey = `blog_trans_${post.id}_${locale}`;
       const cached = sessionStorage.getItem(cacheKey);
@@ -145,35 +145,21 @@ export function DynamicPostReader({
       }
     } catch {}
 
-    setIsTranslated(false);
-  }, [post?.id, locale]);
-
-  // 触发翻译
-  const handleToggleTranslate = async () => {
-    if (!post) return;
-    if (isTranslated) {
-      setIsTranslated(false);
-      return;
-    }
-
-    if (translatedTitle && translatedContent) {
-      setIsTranslated(true);
-      return;
-    }
-
+    // 2. 若未缓存，后台自动静默拉取
+    let active = true;
     setTranslating(true);
-    try {
-      const res = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: post.title,
-          text: post.content || post.summary || "",
-          targetLang: locale,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
+    fetch("/api/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: post.title,
+        text: post.content || post.summary || "",
+        targetLang: locale,
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data) return;
         const tTitle = data.translatedTitle || post.title;
         const tContent = data.translated || post.content || "";
         setTranslatedTitle(tTitle);
@@ -186,13 +172,18 @@ export function DynamicPostReader({
             JSON.stringify({ title: tTitle, content: tContent })
           );
         } catch {}
-      }
-    } catch (e) {
-      console.error("[Translation error]:", e);
-    } finally {
-      setTranslating(false);
-    }
-  };
+      })
+      .catch((e) => {
+        console.error("[Translation error]:", e);
+      })
+      .finally(() => {
+        if (active) setTranslating(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [post?.id, post?.title, post?.content, post?.summary, locale]);
 
   // 计算展示标题（正體中文自动 OpenCC 纯离线秒转，外语在开启翻译时展示译文）
   const displayTitle = useMemo(() => {
@@ -345,51 +336,35 @@ export function DynamicPostReader({
               onPointerLeave={handlePointerLeave}
             >
               
-              <header className="mb-7 relative">
+              <header className="mb-8 relative">
                 <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-bold tracking-tight text-neutral-900 dark:text-neutral-50 leading-[1.35] font-sans relative inline-block">
                   {displayTitle}
                 </h1>
                 
-                <div className="mt-2 text-[13px] text-neutral-500 dark:text-neutral-400 font-sans">
-                  {(post.published_at || post.created_at) && (
-                    <span>
-                      {new Date(post.published_at || post.created_at || "").toLocaleDateString("zh-CN", { month: "long", day: "numeric" })}
-                    </span>
-                  )}
+                <div className="mt-3 flex items-center justify-between text-[13px] text-neutral-500 dark:text-neutral-400 font-sans">
+                  <div className="flex items-center gap-3">
+                    {(post.published_at || post.created_at) && (
+                      <span>
+                        {new Date(post.published_at || post.created_at || "").toLocaleDateString(
+                          locale === "zh-TW" ? "zh-TW" : locale === "en" ? "en-US" : locale === "ja" ? "ja-JP" : locale === "ko" ? "ko-KR" : "zh-CN",
+                          { month: "long", day: "numeric", year: "numeric" }
+                        )}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 图一同款语言切换组件（原页脚组件，无缝嵌入文章元信息栏） */}
+                  <div className="flex items-center gap-2">
+                    {translating && (
+                      <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+                        <Loader2 className="h-3 w-3 animate-spin text-neutral-400" />
+                        <span className="hidden sm:inline font-mono text-[11px]">{t("article.translating")}</span>
+                      </span>
+                    )}
+                    <LanguageSwitcher placement="bottom" align="right" />
+                  </div>
                 </div>
               </header>
-
-              {/* Innei 同款 AI 翻译提示栏 (当访问者语言为外语 en / ja / ko 时优雅呈现) */}
-              {locale !== "zh-CN" && locale !== "zh-TW" && (
-                <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-black/[0.06] bg-neutral-50/80 px-4 py-2.5 text-xs text-neutral-600 dark:border-white/[0.08] dark:bg-neutral-900/60 dark:text-neutral-400">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-3.5 w-3.5 text-neutral-500" />
-                    <span>
-                      {t("article.ai_translation")} · {t("article.original_lang")} ➔{" "}
-                      <span className="font-medium text-neutral-800 dark:text-neutral-200">
-                        {SUPPORTED_LOCALES.find((l) => l.id === locale)?.label}
-                      </span>
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleToggleTranslate}
-                    disabled={translating}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-neutral-200/80 px-3 py-1 text-xs font-medium text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 transition-colors disabled:opacity-50 cursor-pointer"
-                  >
-                    {translating ? (
-                      <>
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        <span>{t("article.translating")}</span>
-                      </>
-                    ) : isTranslated ? (
-                      <span>{t("article.view_original")}</span>
-                    ) : (
-                      <span>{t("article.view_translation")}</span>
-                    )}
-                  </button>
-                </div>
-              )}
 
               {/* 正文渲染区 */}
               <article className="post-article min-w-0 font-sans" style={{ fontSize: "1.0625rem", lineHeight: "1.85", letterSpacing: "normal" }}>
