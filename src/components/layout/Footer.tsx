@@ -38,10 +38,15 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
               {siteConfig.name}
             </h2>
-            {/* 水墨引用块（mx-0 贴左，取消手机端居中） */}
-            <blockquote className="my-1 mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-sans rounded-r-sm select-text">
-              破碎重组，再破碎的循环，让自己成为自己。
-            </blockquote>
+            {/* 浪客行竖排版引言 */}
+            <div className="my-2 h-[120px] flex w-full">
+              <blockquote 
+                className="border-t-2 sm:border-t-0 sm:border-r-2 border-neutral-800 dark:border-neutral-300 pt-3 sm:pt-0 sm:pr-3 text-[13px] font-serif tracking-widest text-neutral-800 dark:text-neutral-200 leading-loose select-text opacity-90" 
+                style={{ writingMode: 'vertical-rl' }}
+              >
+                破碎重组，再破碎的循环，<br/>让自己成为自己。
+              </blockquote>
+            </div>
             <div className="pt-0.5 text-xs leading-relaxed text-neutral-600 dark:text-[#b8b2a8] font-sans">
               <p>© 2026 - Present Powered by Next.js & React</p>
             </div>

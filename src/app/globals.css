@@ -456,39 +456,52 @@ html.dark .ink-divider::after {
   opacity: 0.4;
 }
 
-/* --- 2. 漫画分格卡片 (Manga Panel Card) 增强版 --- */
+/* --- 2. 漫画分格卡片 (Manga Panel Card) 水墨张力版 --- */
 .manga-panel {
   position: relative;
-  background: #ffffff;
-  border: 3.5px solid #050505;
-  border-radius: 0;
-  box-shadow: 6px 6px 0 #050505;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-width 0.2s ease;
+  background: transparent;
+  /* 去除刻意的粗实线和硬阴影，改为手绘墨线感 */
+  border: 1.5px solid currentColor;
+  border-radius: 1px;
   z-index: 1;
+  transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
 }
 
-html.dark .manga-panel {
-  background: #050505;
-  border: 3.5px solid #ffffff;
-  box-shadow: 6px 6px 0 #ffffff;
-}
-
-.manga-panel:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 8px 8px 0 currentColor;
-}
-
-/* 粗犷的分格右下角破损/墨滴装饰 */
+/* 伪造手绘边缘的不规则感（极细微的破损切角） */
 .manga-panel::after {
   content: '';
   position: absolute;
-  right: -5px;
-  bottom: -5px;
-  width: 14px;
-  height: 14px;
-  background: currentColor;
-  border-radius: 50% 0 50% 50%;
+  inset: -1.5px;
+  border: 1px solid currentColor;
   pointer-events: none;
+  opacity: 0.5;
+  clip-path: polygon(0 4px, 4px 0, calc(100% - 2px) 0, 100% 3px, 100% calc(100% - 5px), calc(100% - 1px) 100%, 3px 100%, 0 calc(100% - 2px));
+}
+
+.manga-panel:hover {
+  transform: translateY(-2px);
+}
+
+/* 狂气泼墨 Hover 效果 (Ink Splatter Hover) */
+.manga-panel:hover::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background-image: 
+    radial-gradient(circle at 10% 90%, currentColor 1.5px, transparent 2px),
+    radial-gradient(circle at 90% 10%, currentColor 2.5px, transparent 3px),
+    radial-gradient(circle at 95% 85%, currentColor 1px, transparent 1.5px),
+    radial-gradient(circle at 5% 15%, currentColor 2px, transparent 3px),
+    radial-gradient(circle at 85% 95%, currentColor 1.5px, transparent 2px);
+  opacity: 0.8;
+  z-index: -1;
+  pointer-events: none;
+  animation: ink-splatter 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes ink-splatter {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 0.8; }
 }
 
 /* --- 5. 页脚插画黑白化 (Grayscale Footer Art) --- */
@@ -504,23 +517,25 @@ html.dark .manga-panel {
 
 /*
  * ============================================================
- * 高性能级联入场动画 (GPU 合成器极速执行，无滤镜开销，锁定高刷)
+ * 拔刀斩 / 泼墨入场动画 (Slash Reveal Animation)
  * ============================================================
  */
 
 @keyframes slide-enter {
   0% {
-    translate: 0 10px;
+    clip-path: polygon(0 0, 0 0, -10% 100%, -10% 100%);
+    transform: translateX(-15px);
     opacity: 0;
   }
-  to {
-    translate: 0 0;
+  100% {
+    clip-path: polygon(0 -50%, 150% -50%, 150% 150%, -50% 150%);
+    transform: translateX(0);
     opacity: 1;
   }
 }
 
 .slide-enter {
-  animation: slide-enter 1s both 1;
+  animation: slide-enter 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) both 1;
   animation-delay: var(--slide-enter-delay, 0ms);
 }
 
@@ -530,7 +545,7 @@ html.dark .manga-panel {
     --enter-stage: 0;
     --enter-step: 90ms;
     --enter-initial: 0ms;
-    animation: slide-enter 1s both 1;
+    animation: slide-enter 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) both 1;
     animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
   }
 
@@ -561,69 +576,7 @@ html.dark .manga-panel {
   }
 }
 
-/*
- * ============================================================
- * 6. 网点半调底色 (Halftone Dots) & 7. 速度线 Hover (Speedline)
- * ============================================================
- */
 
-/* 网点半调背景（模拟漫画贴网点） */
-.manga-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(currentColor 1.5px, transparent 1.5px);
-  background-size: 8px 8px;
-  background-position: 0 0;
-  opacity: 0.12;
-  z-index: -1;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-html.dark .manga-panel::before {
-  opacity: 0.25;
-}
-
-.manga-panel:hover::before {
-  opacity: 0.18;
-}
-
-html.dark .manga-panel:hover::before {
-  opacity: 0.35;
-}
-
-/* 速度线Hover动画（集中线） */
-.manga-speedline {
-  position: relative;
-  overflow: hidden;
-}
-
-.manga-speedline::before {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 10deg, currentColor 10.5deg 11deg, transparent 11.5deg 30deg,
-    currentColor 30.5deg 31deg, transparent 31.5deg 60deg, currentColor 60.5deg 61deg,
-    transparent 61.5deg 120deg, currentColor 120.5deg 121deg, transparent 121.5deg 200deg,
-    currentColor 200.5deg 201deg, transparent 201.5deg 280deg, currentColor 280.5deg 281deg,
-    transparent 281.5deg 360deg
-  );
-  opacity: 0;
-  z-index: -2;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.manga-speedline:hover::before {
-  opacity: 0.05;
-}
-
-html.dark .manga-speedline:hover::before {
-  opacity: 0.1;
-}
 
 
 
