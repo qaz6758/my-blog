@@ -9,14 +9,16 @@
 
 @theme {
   --font-sans:
-    var(--font-inter),
+    ui-sans-serif,
+    system-ui,
     -apple-system,
     BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     "PingFang SC",
     "Hiragino Sans GB",
     "Microsoft YaHei",
     "WenQuanYi Micro Hei",
-    system-ui,
     sans-serif;
 
   --font-mono:
@@ -507,26 +509,28 @@ html.dark .manga-panel {
 
 /*
  * ============================================================
- * 拔刀斩 / 泼墨入场动画 (Slash Reveal Animation)
+ * Anthony Fu 像素级错落入场动画 (丝滑无顿感、无闪烁、锁定高刷)
  * ============================================================
  */
 
 @keyframes slide-enter {
   0% {
-    clip-path: polygon(0 0, 0 0, -10% 100%, -10% 100%);
-    transform: translateX(-15px);
     opacity: 0;
+    translate: 0 10px;
   }
-  100% {
-    clip-path: polygon(0 -50%, 150% -50%, 150% 150%, -50% 150%);
-    transform: translateX(0);
+  to {
     opacity: 1;
+    translate: 0;
   }
 }
 
 .slide-enter {
-  animation: slide-enter 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) both 1;
+  animation: slide-enter 1s both 1;
   animation-delay: var(--slide-enter-delay, 0ms);
+  will-change: opacity, translate;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Anthony Fu 原版 slide-enter-content 阶梯式错落入场 (1:1 精确复刻) */
@@ -535,8 +539,12 @@ html.dark .manga-panel {
     --enter-stage: 0;
     --enter-step: 90ms;
     --enter-initial: 0ms;
-    animation: slide-enter 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) both 1;
+    animation: slide-enter 1s both 1;
     animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
+    will-change: opacity, translate;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
