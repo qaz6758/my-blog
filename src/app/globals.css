@@ -80,9 +80,8 @@
  */
 
 :root {
-  --page-bg: #050505;
-  --page-text: #e5e5e5;
-  color-scheme: dark;
+  --page-bg: #ffffff;
+  --page-text: #222222;
 }
 
 html.dark {

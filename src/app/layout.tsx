@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { cookies } from "next/headers";
 import "@/app/globals.css";
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -23,25 +22,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  // 默认使用 dark，确保首次访问或未携带 cookie 时 100% 保持深色水墨基调，杜绝白屏闪烁
-  const isDark = themeCookie ? themeCookie === "dark" : true;
-  const themeClass = isDark ? "dark" : "light";
-  const bgColor = isDark ? "#050505" : "#ffffff";
-  const textColor = isDark ? "#e5e5e5" : "#222222";
-
   return (
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={themeClass}
-      style={{ colorScheme: isDark ? "dark" : "light", backgroundColor: bgColor }}
     >
       <head>
         {/* 1. 首屏零毫秒同步锁定主题脚本（置于最顶端，解析最先执行） */}
@@ -107,9 +96,18 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               :root {
-                --page-bg: #050505;
-                --page-text: #e5e5e5;
-                color-scheme: dark;
+                --page-bg: #ffffff;
+                --page-text: #222222;
+              }
+              @media (prefers-color-scheme: dark) {
+                :root {
+                  color-scheme: dark;
+                }
+                html:not(.light),
+                html:not(.light) body {
+                  background-color: #050505 !important;
+                  color: #e5e5e5 !important;
+                }
               }
               html.light,
               html.light body {
@@ -165,7 +163,7 @@ export default async function RootLayout({
         {/* 字体已全面切换为系统本地黑体栈（Inter + 苹方 / 微软雅黑），无需外部 CDN 网络字体 */}
       </head>
 
-      <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased bg-[#050505] text-[#e5e5e5]">
+      <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">
         <script
           dangerouslySetInnerHTML={{
             __html: `
