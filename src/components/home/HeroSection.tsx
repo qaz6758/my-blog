@@ -60,18 +60,11 @@ export function HeroSection() {
               <path
                 d="M60 8 C28 6, 6 28, 8 60 C6 92, 28 114, 60 112 C92 114, 114 92, 112 60 C114 28, 92 6, 60 8 Z"
                 stroke="currentColor"
-                strokeWidth="3.5"
+                strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 fill="none"
-                style={{ filter: 'url(#enso-roughen)' }}
               />
-              <defs>
-                <filter id="enso-roughen" x="-5%" y="-5%" width="110%" height="110%">
-                  <feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="4" result="noise" seed="3" />
-                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
-                </filter>
-              </defs>
             </svg>
             {/* 头像图片：圆形裁切，内嵌于墨圆之中 */}
             <div className="absolute inset-[6px] sm:inset-[7px] overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-900">

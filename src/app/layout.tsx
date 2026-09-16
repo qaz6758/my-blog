@@ -1,35 +1,11 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Inter, Cinzel, Cormorant_Garamond } from "next/font/google";
 import "@/app/globals.css";
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { MusicProvider } from "@/components/playlist/MusicContext";
 import { FrontendShell } from "@/components/layout/FrontendShell";
 import { siteConfig } from "@/config/site";
-
-// 使用 display: "optional" 消除字体加载完成时文字重排引发的二次“闪烁 (FOUT)”
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "optional",
-  variable: "--font-inter",
-  preload: true,
-});
-
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cinzel",
-  display: "optional",
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cormorant",
-  display: "optional",
-});
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
@@ -56,7 +32,6 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       suppressHydrationWarning
-      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`.trim()}
     >
       <head>
         {/* 1. 首屏零毫秒同步锁定主题脚本（置于最顶端，解析最先执行） */}

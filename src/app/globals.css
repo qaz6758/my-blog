@@ -301,8 +301,6 @@ html {
   scrollbar-color: #c4c4c4 transparent;
   scrollbar-width: thin;
 
-  /* 核心：提升中英文混排的清晰度与文本渲染引擎质量 */
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
@@ -310,7 +308,6 @@ html {
 
   /* 彻底禁用浏览器算法伪造的假粗体与假斜体，消除字体重影与模糊发虚 */
   font-synthesis: none;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "calt";
 }
 
 html.dark {
@@ -527,10 +524,6 @@ html.dark .manga-panel {
 .slide-enter {
   animation: slide-enter 1s both 1;
   animation-delay: var(--slide-enter-delay, 0ms);
-  will-change: opacity, translate;
-  backface-visibility: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Anthony Fu 原版 slide-enter-content 阶梯式错落入场 (1:1 精确复刻) */
@@ -541,10 +534,6 @@ html.dark .manga-panel {
     --enter-initial: 0ms;
     animation: slide-enter 1s both 1;
     animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
-    will-change: opacity, translate;
-    backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
   .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
