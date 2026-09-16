@@ -55,7 +55,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
     <>
       {/* 独立内容块 */}
       {/* 独立内容块 */}
-      <article className="relative rounded-none p-4 sm:p-5 shadow-sm torn-paper transition-all">
+      <article className="relative rounded-none p-4 sm:p-5 shadow-sm manga-panel manga-speedline transition-all">
         <div className="mb-3 flex items-center gap-2 text-xs">
           <span className="font-semibold text-neutral-900 dark:text-[#eae5dc]">
             {item.author}

@@ -46,14 +46,41 @@ export function HeroSection() {
   return (
     <div className="relative w-full overflow-hidden pt-28 sm:pt-36 pb-20 sm:pb-28 px-6 sm:px-8">
       <main className="relative z-10 mx-auto w-full max-w-[660px] flex flex-col items-start text-left slide-enter-content">
-        {/* ===================== 1. 左对齐圆形头像 ===================== */}
+        {/* ===================== 1. 墨圆（Enso）头像 — 一笔禅圆，浪客行水墨灵魂 ===================== */}
         <div className="mb-5 sm:mb-6 select-none cursor-pointer transition-transform duration-300 ease-out hover:scale-105 active:scale-95">
-          <div className="relative h-20 w-20 sm:h-22 sm:w-22 overflow-hidden rounded-full border border-black/10 dark:border-white/15 bg-neutral-100 dark:bg-[#1c1917] shadow-sm hover:shadow-md transition-shadow duration-300">
-            <img
-              src="/avatar.jpg"
-              alt={name}
-              className="h-full w-full object-cover"
-            />
+          <div className="relative h-24 w-24 sm:h-28 sm:w-28">
+            {/* Enso 墨圆：手绘不完美圆形，毛笔一笔画成 */}
+            <svg
+              viewBox="0 0 120 120"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="absolute inset-0 w-full h-full text-neutral-800 dark:text-neutral-200 transition-colors duration-300"
+              aria-hidden="true"
+            >
+              <path
+                d="M60 8 C28 6, 6 28, 8 60 C6 92, 28 114, 60 112 C92 114, 114 92, 112 60 C114 28, 92 6, 60 8 Z"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+                style={{ filter: 'url(#enso-roughen)' }}
+              />
+              <defs>
+                <filter id="enso-roughen" x="-5%" y="-5%" width="110%" height="110%">
+                  <feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="4" result="noise" seed="3" />
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+                </filter>
+              </defs>
+            </svg>
+            {/* 头像图片：圆形裁切，内嵌于墨圆之中 */}
+            <div className="absolute inset-[6px] sm:inset-[7px] overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-900">
+              <img
+                src="/avatar.jpg"
+                alt={name}
+                className="h-full w-full object-cover"
+              />
+            </div>
           </div>
         </div>
 

@@ -168,13 +168,17 @@ export function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-[15px] sm:text-[16px] tracking-normal transition-opacity duration-200 select-none cursor-pointer py-1 ${
+                  className={`relative text-[15px] sm:text-[16px] tracking-normal transition-opacity duration-200 select-none cursor-pointer py-1 ${
                     isActive
                       ? "opacity-100 font-medium text-neutral-950 dark:text-[#eae5dc]"
                       : "opacity-60 hover:opacity-100 text-neutral-800 dark:text-neutral-200"
                   }`}
                 >
                   <span>{link.name}</span>
+                  {/* 朱印点睛：激活项红点 */}
+                  {isActive && (
+                    <span className="absolute -top-0.5 -right-2.5 h-1.5 w-1.5 rounded-full bg-[#c0392b] shadow-sm" />
+                  )}
                 </Link>
               );
             })}

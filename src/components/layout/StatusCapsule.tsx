@@ -145,7 +145,7 @@ export function StatusCapsule({
 
   // 纯卡片内容渲染函数 (侧边栏模式)
   const renderCardContent = () => (
-    <div className="w-full select-none p-3.5 torn-paper">
+    <div className="w-full select-none p-3.5 manga-panel">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
           LIVE DESK
@@ -359,7 +359,7 @@ export function StatusCapsule({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] torn-paper p-3.5 shadow-sm"
+              className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] manga-panel p-3.5 shadow-sm"
             >
               <div className="flex items-center justify-between mb-3 border-b border-black/[0.04] dark:border-white/[0.04] pb-2">
                 <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
