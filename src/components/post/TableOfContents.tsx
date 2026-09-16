@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export interface TocItem {
   id: string;
@@ -16,6 +17,8 @@ interface TableOfContentsProps {
   activeId?: string;
   className?: string;
   isArticleHovered?: boolean;
+  contentKey?: string;
+  locale?: string;
 }
 
 // Anthony Fu 原版目录图标（Remix Icon: i-ri-menu-2-fill，中线偏短）
@@ -38,7 +41,11 @@ export function TableOfContents({
   activeId: externalActiveId,
   className = "",
   isArticleHovered = false,
+  contentKey = "",
+  locale: propLocale,
 }: TableOfContentsProps) {
+  const { locale: contextLocale, convertText } = useI18n();
+  const currentLocale = propLocale || contextLocale;
   const propList = tocList || items;
   const [domList, setDomList] = useState<TocItem[]>([]);
   const [internalActiveId, setInternalActiveId] = useState<string>("");
@@ -97,17 +104,20 @@ export function TableOfContents({
       return false;
     };
 
-    if (!extractHeadings()) {
-      const t1 = setTimeout(extractHeadings, 80);
-      const t2 = setTimeout(extractHeadings, 250);
-      const t3 = setTimeout(extractHeadings, 600);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    }
-  }, [propList]);
+    // 初始扫描与渐进式多阶段重试，确保无缝捕获异步翻译与 DOM 重排后的最新标题
+    extractHeadings();
+    const t1 = setTimeout(extractHeadings, 80);
+    const t2 = setTimeout(extractHeadings, 250);
+    const t3 = setTimeout(extractHeadings, 600);
+    const t4 = setTimeout(extractHeadings, 1200);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, [propList, contentKey, currentLocale]);
 
   // 2. 统一监听滚动：计算阅读进度百分比 + 智能高亮当前阅读位置（Scroll Spy）
   useEffect(() => {
@@ -256,6 +266,8 @@ export function TableOfContents({
             // 大章节之间赋予自然呼吸间距
             const hasSectionMargin = isH2 && idx > 0;
 
+            const titleText = currentLocale === "zh-TW" ? convertText(item.text) : item.text;
+
             return (
               <li
                 key={item.id}
@@ -267,9 +279,9 @@ export function TableOfContents({
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item.id)}
                   className="inline-block leading-[1.5em] text-neutral-600 dark:text-[#888888] hover:text-black dark:hover:text-white opacity-75 hover:opacity-100 transition-all duration-150 underline underline-offset-[5px] decoration-black/20 dark:decoration-white/20 hover:decoration-black/70 dark:hover:decoration-white/70 font-normal"
-                  title={item.text}
+                  title={titleText}
                 >
-                  {item.text}
+                  {titleText}
                 </a>
               </li>
             );

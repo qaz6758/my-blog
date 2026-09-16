@@ -19,6 +19,7 @@ import remarkGfm from "remark-gfm";
 import Prism from "prismjs";
 import { slugifyHeading } from "@/lib/utils";
 import { getProxyImageUrl } from "@/lib/image-proxy";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 // Prism 常用语言语法解析支持
 import "prismjs/components/prism-javascript";
@@ -189,6 +190,7 @@ interface PostContentWrapperProps {
 const ALERT_MAP: Record<
   string,
   {
+    key: string;
     title: string;
     borderColor: string;
     titleColor: string;
@@ -196,34 +198,77 @@ const ALERT_MAP: Record<
   }
 > = {
   note: {
+    key: "note",
     title: "笔记",
     borderColor: "border-l-[#0969da] dark:border-l-[#2f81f7]",
     titleColor: "text-[#0969da] dark:text-[#2f81f7]",
     icon: Info,
   },
   tip: {
+    key: "tip",
     title: "提示",
     borderColor: "border-l-[#1a7f37] dark:border-l-[#3fb950]",
     titleColor: "text-[#1a7f37] dark:text-[#3fb950]",
     icon: Lightbulb,
   },
   important: {
+    key: "important",
     title: "重要",
     borderColor: "border-l-[#8250df] dark:border-l-[#a371f7]",
     titleColor: "text-[#8250df] dark:text-[#a371f7]",
     icon: Flame,
   },
   warning: {
+    key: "warning",
     title: "警告",
     borderColor: "border-l-[#9a6700] dark:border-l-[#d29922]",
     titleColor: "text-[#9a6700] dark:text-[#d29922]",
     icon: AlertTriangle,
   },
   caution: {
+    key: "caution",
     title: "注意",
     borderColor: "border-l-[#cf222e] dark:border-l-[#f85149]",
     titleColor: "text-[#cf222e] dark:text-[#f85149]",
     icon: AlertOctagon,
+  },
+};
+
+const ALERT_TITLES: Record<string, Record<string, string>> = {
+  note: {
+    "zh-CN": "笔记",
+    "zh-TW": "筆記",
+    en: "Note",
+    ja: "ノート",
+    ko: "메모",
+  },
+  tip: {
+    "zh-CN": "提示",
+    "zh-TW": "提示",
+    en: "Tip",
+    ja: "ヒント",
+    ko: "팁",
+  },
+  important: {
+    "zh-CN": "重要",
+    "zh-TW": "重要",
+    en: "Important",
+    ja: "重要",
+    ko: "중요",
+  },
+  warning: {
+    "zh-CN": "警告",
+    "zh-TW": "警告",
+    en: "Warning",
+    ja: "警告",
+    ko: "경고",
+  },
+  caution: {
+    "zh-CN": "注意",
+    "zh-TW": "注意",
+    en: "Caution",
+    ja: "注意",
+    ko: "주의",
   },
 };
 
@@ -397,6 +442,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
 }
 
 export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps) {
+  const { locale } = useI18n();
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -571,6 +617,10 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
                 const alertConfig = getAlertConfig(text) || ALERT_MAP.note;
                 const AlertIcon = alertConfig.icon;
                 const cleanChildren = stripAlertPrefix(children);
+                const alertTitle =
+                  ALERT_TITLES[alertConfig.key]?.[locale] ||
+                  ALERT_TITLES[alertConfig.key]?.["zh-CN"] ||
+                  alertConfig.title;
 
                 return (
                   <div
@@ -578,7 +628,7 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
                   >
                     <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-2 select-none`}>
                       <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
-                      <span>{alertConfig.title}</span>
+                      <span>{alertTitle}</span>
                     </div>
                     <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-700 dark:text-[#c9d1d9] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                       {cleanChildren}

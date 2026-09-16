@@ -129,49 +129,66 @@ export function DynamicPostReader({
     if (!post) return;
     if (locale === "zh-CN" || locale === "zh-TW") {
       setIsTranslated(false);
+      setTranslatedTitle("");
+      setTranslatedContent("");
       return;
     }
 
-    // 1. 优先读取本地会话缓存（秒开）
+    const postContent = post.content || post.summary || "";
+    const postTitle = post.title || "";
+
+    // 1. 优先读取本地会话缓存（秒开），并做严格防脏防空校验
     try {
       const cacheKey = `blog_trans_${post.id}_${locale}`;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        setTranslatedTitle(parsed.title || "");
-        setTranslatedContent(parsed.content || "");
-        setIsTranslated(true);
-        return;
+        if (
+          parsed.title &&
+          parsed.content &&
+          (parsed.title !== postTitle || parsed.content !== postContent)
+        ) {
+          setTranslatedTitle(parsed.title);
+          setTranslatedContent(parsed.content);
+          setIsTranslated(true);
+          return;
+        } else {
+          sessionStorage.removeItem(cacheKey);
+        }
       }
     } catch {}
 
-    // 2. 若未缓存，后台自动静默拉取
+    // 2. 若未缓存或脏缓存，后台自动静默拉取
     let active = true;
     setTranslating(true);
     fetch("/api/translate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: post.title,
-        text: post.content || post.summary || "",
+        title: postTitle,
+        text: postContent,
         targetLang: locale,
       }),
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!active || !data) return;
-        const tTitle = data.translatedTitle || post.title;
-        const tContent = data.translated || post.content || "";
-        setTranslatedTitle(tTitle);
-        setTranslatedContent(tContent);
-        setIsTranslated(true);
+        const tTitle = (data.translatedTitle || "").trim();
+        const tContent = (data.translated || "").trim();
 
-        try {
-          sessionStorage.setItem(
-            `blog_trans_${post.id}_${locale}`,
-            JSON.stringify({ title: tTitle, content: tContent })
-          );
-        } catch {}
+        // 严格检验：翻译结果不为空且确已发生语言变化
+        if (tContent && (tTitle !== postTitle || tContent !== postContent)) {
+          setTranslatedTitle(tTitle || postTitle);
+          setTranslatedContent(tContent);
+          setIsTranslated(true);
+
+          try {
+            sessionStorage.setItem(
+              `blog_trans_${post.id}_${locale}`,
+              JSON.stringify({ title: tTitle || postTitle, content: tContent })
+            );
+          } catch {}
+        }
       })
       .catch((e) => {
         console.error("[Translation error]:", e);
@@ -201,8 +218,8 @@ export function DynamicPostReader({
     if (locale === "zh-TW") content = convertText(rawContent);
     else if (isTranslated && translatedContent) content = translatedContent;
     
-    // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题，杜绝首屏双标题堆叠
-    return content.replace(/^\s*#\s+[^\n]+(?:\r?\n)+/, "");
+    // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
+    return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "");
   }, [post, locale, isTranslated, translatedContent, rawContent, convertText]);
 
   // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
@@ -325,7 +342,12 @@ export function DynamicPostReader({
                 onPointerEnter={handlePointerEnter}
                 onPointerLeave={handlePointerLeave}
               >
-                <TableOfContents isArticleHovered={isArticleHovered} />
+                <TableOfContents
+                  key={`${post.id}_${locale}_${isTranslated ? "trans" : "orig"}`}
+                  isArticleHovered={isArticleHovered}
+                  contentKey={`${displayTitle}_${(displayContent || "").slice(0, 80)}_${locale}`}
+                  locale={locale}
+                />
               </aside>
             </div>
 
