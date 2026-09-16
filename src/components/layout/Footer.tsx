@@ -39,7 +39,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
               {siteConfig.name}
             </h2>
             {/* 水墨引用块（mx-0 贴左，取消手机端居中） */}
-            <blockquote className="my-1 mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-sans rounded-r-sm select-text">
+            <blockquote className="my-1 mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-serif tracking-wide rounded-r-sm select-text">
               破碎重组，再破碎的循环，让自己成为自己。
             </blockquote>
             <div className="pt-0.5 text-xs leading-relaxed text-neutral-600 dark:text-[#b8b2a8] font-sans">

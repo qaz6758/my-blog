@@ -128,7 +128,7 @@ export function ThoughtsClientList({
         return (
           <article
             key={item.id}
-            className="relative rounded-none p-4 sm:p-5 shadow-sm manga-panel transition-all"
+            className="relative rounded-none p-4 sm:p-5 shadow-sm manga-panel font-serif transition-all"
           >
             {/* 头部信息 */}
             <div className="mb-3 flex items-center gap-2 text-xs">

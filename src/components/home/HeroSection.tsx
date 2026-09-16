@@ -86,7 +86,7 @@ export function HeroSection() {
 
         {/* ===================== 2. 核心身份标题 ===================== */}
         <div className="text-left mb-6 sm:mb-8">
-          <h1 className="text-[34px] sm:text-[44px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 select-none font-sans">
+          <h1 className="text-[34px] sm:text-[44px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 select-none font-serif">
             {name}
           </h1>
         </div>
