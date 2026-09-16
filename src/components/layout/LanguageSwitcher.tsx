@@ -7,17 +7,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { SUPPORTED_LOCALES, Locale } from "@/lib/i18n/locales";
 
+export interface LanguageSwitcherProps {
+  placement?: "top" | "bottom";
+  align?: "left" | "right";
+  className?: string;
+  value?: Locale;
+  onChange?: (locale: Locale) => void;
+}
+
 export function LanguageSwitcher({
   placement = "top",
   align = "left",
   className = "",
-}: {
-  placement?: "top" | "bottom";
-  align?: "left" | "right";
-  className?: string;
-} = {}) {
+  value,
+  onChange,
+}: LanguageSwitcherProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
-  const { locale, setLocale, t } = useI18n();
+  const { locale: globalLocale, setLocale: setGlobalLocale, t } = useI18n();
+  const currentLocale = value || globalLocale;
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   // 点击外部自动收起下拉面板
@@ -36,11 +43,16 @@ export function LanguageSwitcher({
   }, [isOpen]);
 
   const handleSelectLanguage = (newLocale: Locale) => {
-    setLocale(newLocale);
+    if (onChange) {
+      onChange(newLocale);
+    } else {
+      setGlobalLocale(newLocale);
+    }
     setIsOpen(false);
   };
 
-  const activeOption = SUPPORTED_LOCALES.find((item) => item.id === locale) || SUPPORTED_LOCALES[0];
+  const activeOption =
+    SUPPORTED_LOCALES.find((item) => item.id === currentLocale) || SUPPORTED_LOCALES[0];
 
   const positionClasses =
     placement === "top"
@@ -85,7 +97,7 @@ export function LanguageSwitcher({
           >
             <div className="flex flex-col gap-0.5">
               {SUPPORTED_LOCALES.map((lang) => {
-                const isSelected = lang.id === locale;
+                const isSelected = lang.id === currentLocale;
                 return (
                   <button
                     key={lang.id}

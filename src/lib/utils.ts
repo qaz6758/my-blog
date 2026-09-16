@@ -23,18 +23,69 @@ export function formatDate(
 }
 
 /**
- * 友好相对时间转换（带异常安全处理）
+ * 友好相对时间转换（带多语言与异常安全处理）
  *
  * @param dateString - ISO 日期字符串
- * @returns 例：`刚刚`、`5 分钟前`、`2 小时前`、`3 天前`
+ * @param locale     - 语言标识（zh-CN | zh-TW | en | ja | ko）
+ * @returns 例：`刚刚`、`5 分钟前`、`5m ago` 等
  */
-export function formatRelativeTime(dateString?: string | null): string {
+export function formatRelativeTime(dateString?: string | null, locale = "zh-CN"): string {
   if (!dateString) return "";
   try {
     const timestamp = new Date(dateString).getTime();
     if (Number.isNaN(timestamp)) return "";
 
     const diff = (Date.now() - timestamp) / 1000;
+
+    if (locale === "en") {
+      if (diff < 60) return "just now";
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    if (locale === "zh-TW") {
+      if (diff < 60) return "剛剛";
+      if (diff < 3600) return `${Math.floor(diff / 60)} 分鐘前`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)} 小時前`;
+      if (diff < 2592000) return `${Math.floor(diff / 86400)} 天前`;
+      return new Date(dateString).toLocaleDateString("zh-TW", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    if (locale === "ja") {
+      if (diff < 60) return "たった今";
+      if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
+      if (diff < 2592000) return `${Math.floor(diff / 86400)}日前`;
+      return new Date(dateString).toLocaleDateString("ja-JP", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    if (locale === "ko") {
+      if (diff < 60) return "방금 전";
+      if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+      if (diff < 2592000) return `${Math.floor(diff / 86400)}일 전`;
+      return new Date(dateString).toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    // Default zh-CN
     if (diff < 60) return "刚刚";
     if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
     if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;

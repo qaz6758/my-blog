@@ -185,6 +185,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
 interface PostContentWrapperProps {
   content: string;
   isHtml: boolean;
+  locale?: string;
 }
 
 const ALERT_MAP: Record<
@@ -441,8 +442,9 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   );
 }
 
-export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps) {
-  const { locale } = useI18n();
+export function PostContentWrapper({ content, isHtml, locale: propLocale }: PostContentWrapperProps) {
+  const { locale: contextLocale } = useI18n();
+  const locale = propLocale || contextLocale;
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
   const [mounted, setMounted] = useState(false);

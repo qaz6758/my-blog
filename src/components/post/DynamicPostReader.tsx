@@ -10,7 +10,7 @@ import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
 import { useI18n } from "@/lib/i18n/I18nContext";
-import { SUPPORTED_LOCALES } from "@/lib/i18n/locales";
+import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/locales";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 // ─── 动态按需加载模块（内联声明，无需额外包装文件） ──────────────
@@ -100,11 +100,20 @@ export function DynamicPostReader({
   }, []);
 
   // 多语言与翻译支持
-  const { locale, t, convertText } = useI18n();
+  const { locale: globalLocale, t, convertText } = useI18n();
+  // 文章独立阅读语言状态：仅翻译本文章内容与目录，绝不污染全局网站语言偏好
+  const [articleLocale, setArticleLocale] = useState<Locale>(globalLocale || "zh-CN");
   const [isTranslated, setIsTranslated] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [translatedTitle, setTranslatedTitle] = useState("");
   const [translatedContent, setTranslatedContent] = useState("");
+
+  // 当全局语言初次加载或从外部切换时同步一次初始状态
+  useEffect(() => {
+    if (globalLocale) {
+      setArticleLocale(globalLocale);
+    }
+  }, [globalLocale]);
 
   // 判断当前文章是否为 RSS 外部聚合文章（评论区仅在博主个人原创文章展示，RSS 聚合文章彻底不出现）
   const isRssArticle = useMemo(() => {
@@ -124,10 +133,10 @@ export function DynamicPostReader({
     return false;
   }, [post]);
 
-  // 当文章或全站语言切换时：自动在后台翻译并无缝呈现，无需用户额外点击繁琐横条
+  // 当文章独立语言切换时：自动在后台翻译并无缝呈现，无需用户额外点击繁琐横条
   useEffect(() => {
     if (!post) return;
-    if (locale === "zh-CN" || locale === "zh-TW") {
+    if (articleLocale === "zh-CN" || articleLocale === "zh-TW") {
       setIsTranslated(false);
       setTranslatedTitle("");
       setTranslatedContent("");
@@ -139,7 +148,7 @@ export function DynamicPostReader({
 
     // 1. 优先读取本地会话缓存（秒开），并做严格防脏防空校验
     try {
-      const cacheKey = `blog_trans_${post.id}_${locale}`;
+      const cacheKey = `blog_trans_${post.id}_${articleLocale}`;
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
@@ -167,7 +176,7 @@ export function DynamicPostReader({
       body: JSON.stringify({
         title: postTitle,
         text: postContent,
-        targetLang: locale,
+        targetLang: articleLocale,
       }),
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -184,7 +193,7 @@ export function DynamicPostReader({
 
           try {
             sessionStorage.setItem(
-              `blog_trans_${post.id}_${locale}`,
+              `blog_trans_${post.id}_${articleLocale}`,
               JSON.stringify({ title: tTitle || postTitle, content: tContent })
             );
           } catch {}
@@ -200,27 +209,27 @@ export function DynamicPostReader({
     return () => {
       active = false;
     };
-  }, [post?.id, post?.title, post?.content, post?.summary, locale]);
+  }, [post?.id, post?.title, post?.content, post?.summary, articleLocale]);
 
   // 计算展示标题（正體中文自动 OpenCC 纯离线秒转，外语在开启翻译时展示译文）
   const displayTitle = useMemo(() => {
     if (!post) return "";
-    if (locale === "zh-TW") return convertText(post.title);
+    if (articleLocale === "zh-TW") return convertText(post.title);
     if (isTranslated && translatedTitle) return translatedTitle;
     return post.title;
-  }, [post, locale, isTranslated, translatedTitle, convertText]);
+  }, [post, articleLocale, isTranslated, translatedTitle, convertText]);
 
   // 计算展示正文
   const rawContent = post?.content || post?.summary || "";
   const displayContent = useMemo(() => {
     if (!post) return "";
     let content = rawContent;
-    if (locale === "zh-TW") content = convertText(rawContent);
+    if (articleLocale === "zh-TW") content = convertText(rawContent);
     else if (isTranslated && translatedContent) content = translatedContent;
     
     // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
     return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "");
-  }, [post, locale, isTranslated, translatedContent, rawContent, convertText]);
+  }, [post, articleLocale, isTranslated, translatedContent, rawContent, convertText]);
 
   // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
   const isHtmlContent = React.useMemo(() => {
@@ -343,10 +352,10 @@ export function DynamicPostReader({
                 onPointerLeave={handlePointerLeave}
               >
                 <TableOfContents
-                  key={`${post.id}_${locale}_${isTranslated ? "trans" : "orig"}`}
+                  key={`${post.id}_${articleLocale}_${isTranslated ? "trans" : "orig"}`}
                   isArticleHovered={isArticleHovered}
-                  contentKey={`${displayTitle}_${(displayContent || "").slice(0, 80)}_${locale}`}
-                  locale={locale}
+                  contentKey={`${displayTitle}_${(displayContent || "").slice(0, 80)}_${articleLocale}`}
+                  locale={articleLocale}
                 />
               </aside>
             </div>
@@ -368,14 +377,14 @@ export function DynamicPostReader({
                     {(post.published_at || post.created_at) && (
                       <span>
                         {new Date(post.published_at || post.created_at || "").toLocaleDateString(
-                          locale === "zh-TW" ? "zh-TW" : locale === "en" ? "en-US" : locale === "ja" ? "ja-JP" : locale === "ko" ? "ko-KR" : "zh-CN",
+                          articleLocale === "zh-TW" ? "zh-TW" : articleLocale === "en" ? "en-US" : articleLocale === "ja" ? "ja-JP" : articleLocale === "ko" ? "ko-KR" : "zh-CN",
                           { month: "long", day: "numeric", year: "numeric" }
                         )}
                       </span>
                     )}
                   </div>
 
-                  {/* 图一同款语言切换组件（原页脚组件，无缝嵌入文章元信息栏） */}
+                  {/* 图一同款语言切换组件（独立控制本篇文章的阅读翻译，绝不污染全局全站语言） */}
                   <div className="flex items-center gap-2">
                     {translating && (
                       <span className="flex items-center gap-1.5 text-xs text-neutral-400">
@@ -383,7 +392,12 @@ export function DynamicPostReader({
                         <span className="hidden sm:inline font-mono text-[11px]">{t("article.translating")}</span>
                       </span>
                     )}
-                    <LanguageSwitcher placement="bottom" align="right" />
+                    <LanguageSwitcher
+                      value={articleLocale}
+                      onChange={setArticleLocale}
+                      placement="bottom"
+                      align="right"
+                    />
                   </div>
                 </div>
               </header>
@@ -393,6 +407,7 @@ export function DynamicPostReader({
                 <PostContentWrapper
                   content={displayContent}
                   isHtml={isHtmlContent}
+                  locale={articleLocale}
                 />
               </article>
 
@@ -407,10 +422,10 @@ export function DynamicPostReader({
                        >
                          <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
                            <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
-                           {locale === "zh-TW" ? "上一篇" : locale === "en" ? "Previous" : locale === "ja" ? "前の記事" : locale === "ko" ? "이전 글" : "上一篇"}
+                           {globalLocale === "zh-TW" ? "上一篇" : globalLocale === "en" ? "Previous" : globalLocale === "ja" ? "前の記事" : globalLocale === "ko" ? "이전 글" : "上一篇"}
                          </span>
                          <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
-                           {locale === "zh-TW" ? convertText(prevPost.title) : prevPost.title}
+                           {globalLocale === "zh-TW" ? convertText(prevPost.title) : prevPost.title}
                          </span>
                        </Link>
                     ) : (
@@ -423,11 +438,11 @@ export function DynamicPostReader({
                          className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
                        >
                          <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">
-                           {locale === "zh-TW" ? "下一篇" : locale === "en" ? "Next" : locale === "ja" ? "次の記事" : locale === "ko" ? "다음 글" : "下一篇"}
+                           {globalLocale === "zh-TW" ? "下一篇" : globalLocale === "en" ? "Next" : globalLocale === "ja" ? "次の記事" : globalLocale === "ko" ? "다음 글" : "下一篇"}
                            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                          </span>
                          <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
-                           {locale === "zh-TW" ? convertText(nextPost.title) : nextPost.title}
+                           {globalLocale === "zh-TW" ? convertText(nextPost.title) : nextPost.title}
                          </span>
                        </Link>
                     ) : (
@@ -440,7 +455,7 @@ export function DynamicPostReader({
               {/* 评论区：仅在博主个人原创文章中展现，RSS 聚合文章彻底不出现 */}
               {!isRssArticle && (
                 <div className="mt-20">
-                  <CommentSection postId={String(post.id)} />
+                  <CommentSection postId={String(post.id)} locale={articleLocale} />
                 </div>
               )}
             </main>

@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { formatRelativeTime, sanitizeWebsiteUrl } from "@/lib/utils";
 import { Loader2, CornerDownRight, LogOut, CheckCircle2 } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
+import { useI18n } from "@/lib/i18n/I18nContext";
+import { DICTIONARIES, type Locale, type TranslationKey } from "@/lib/i18n/locales";
 
 // ─────────────────────────────────────────────
 // Types
@@ -28,6 +30,7 @@ interface CommentSectionProps {
   postId?: string | number;
   thoughtId?: string | number;
   onCommentAdded?: () => void;
+  locale?: Locale;
 }
 
 // ─────────────────────────────────────────────
@@ -162,7 +165,29 @@ function saveGuest(g: GuestDraft) {
 // CommentSection Component
 // ─────────────────────────────────────────────
 
-export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSectionProps) {
+export function CommentSection({
+  postId,
+  thoughtId,
+  onCommentAdded,
+  locale: propLocale,
+}: CommentSectionProps) {
+  const { locale: contextLocale, convertText } = useI18n();
+  const currentLocale = propLocale || contextLocale;
+
+  const ct = useCallback(
+    (key: TranslationKey, params?: Record<string, string | number>) => {
+      const dict = (DICTIONARIES as any)[currentLocale] || DICTIONARIES["zh-CN"];
+      let val: string = dict[key] || (DICTIONARIES["zh-CN"] as any)[key] || key;
+      if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          val = val.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+        });
+      }
+      return val;
+    },
+    [currentLocale]
+  );
+
   const targetTable = thoughtId ? "thought_comments" : "comments";
   const targetIdField = thoughtId ? "thought_id" : "post_id";
   const targetId = String(thoughtId ?? postId ?? "");
@@ -258,7 +283,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
   const handleSubmit = async () => {
     setError("");
     const text = content.trim();
-    if (!text) { setError("请写点什么再发送吧 :)"); return; }
+    if (!text) { setError(ct("comments.empty_error")); return; }
 
     // Determine author info
     let author = "";
@@ -269,16 +294,16 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
     if (session?.user) {
       const user: User = session.user;
       const meta = user.user_metadata;
-      author = meta?.full_name || meta?.user_name || meta?.name || user.email?.split("@")[0] || "匿名";
+      author = meta?.full_name || meta?.user_name || meta?.name || user.email?.split("@")[0] || ct("comments.anonymous");
       email = user.email ?? null;
       website = meta?.html_url || null;
       userAvatarUrl = meta?.avatar_url || null;
     } else if (guestMode) {
-      author = guest.name.trim() || "游客";
+      author = guest.name.trim() || ct("comments.guest");
       email = guest.email.trim() || null;
       saveGuest({ name: guest.name.trim(), email: guest.email.trim() });
     } else {
-      setError("请先选择登录方式或以游客身份留言");
+      setError(ct("comments.auth_required"));
       return;
     }
 
@@ -329,7 +354,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
         onCommentAdded?.();
       }
     } catch (e: any) {
-      setError(e?.message || "发送失败，请稍后重试");
+      setError(e?.message || ct("comments.send_failed"));
     } finally {
       setSubmitting(false);
     }
@@ -339,14 +364,14 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
   const user = session?.user ?? null;
   const userAvatar = user?.user_metadata?.avatar_url ?? null;
   const userName = user
-    ? (user.user_metadata?.full_name || user.user_metadata?.user_name || user.user_metadata?.name || user.email?.split("@")[0] || "用户")
+    ? (user.user_metadata?.full_name || user.user_metadata?.user_name || user.user_metadata?.name || user.email?.split("@")[0] || ct("comments.anonymous"))
     : null;
 
   return (
     <div className="w-full space-y-8 mt-4">
       {/* ── Section title ── */}
       <div className="flex items-center gap-2.5 pb-2">
-        <span className="text-sm font-medium tracking-tight text-neutral-900 dark:text-neutral-100">讨论</span>
+        <span className="text-sm font-medium tracking-tight text-neutral-900 dark:text-neutral-100">{ct("comments.title")}</span>
         <span className="text-xs font-mono text-neutral-400 dark:text-neutral-500">({comments.length})</span>
       </div>
 
@@ -354,32 +379,32 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
       {!user && !guestMode ? (
         <div className="space-y-3 p-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">参与讨论：</span>
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">{ct("comments.join")}</span>
             <button
               type="button"
               onClick={() => setGuestMode(true)}
               className="text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              游客留言
+              {ct("comments.guest_tab")}
             </button>
           </div>
 
           {!showEmailForm ? (
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <OAuthBtn
-                label="GitHub 登录"
+                label={ct("comments.github")}
                 icon={<IconGitHub />}
                 onClick={() => signInWith("github")}
                 loading={authLoading === "github"}
               />
               <OAuthBtn
-                label="Google 登录"
+                label={ct("comments.google")}
                 icon={<IconGoogle />}
                 onClick={() => signInWith("google")}
                 loading={authLoading === "google"}
               />
               <OAuthBtn
-                label="邮箱免密登录"
+                label={ct("comments.email_login")}
                 icon={<IconEmail />}
                 onClick={() => setShowEmailForm(true)}
               />
@@ -387,13 +412,13 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
           ) : magicSent ? (
             <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400 py-1">
               <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-              <span>已发送登录链接至 <strong className="text-neutral-900 dark:text-white">{magicEmail}</strong>，查收邮件点击即可登录。</span>
+              <span>{ct("comments.magic_sent", { email: magicEmail })}</span>
               <button
                 type="button"
                 onClick={() => { setMagicSent(false); setShowEmailForm(false); }}
                 className="ml-2 text-neutral-500 hover:underline cursor-pointer"
               >
-                返回
+                {ct("comments.back")}
               </button>
             </div>
           ) : (
@@ -407,7 +432,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
                 onKeyDown={e => e.key === "Enter" && sendMagicLink()}
               />
               <OAuthBtn
-                label="发送链接"
+                label={ct("comments.send_link")}
                 icon={<IconEmail />}
                 onClick={sendMagicLink}
                 loading={authLoading === "email"}
@@ -417,7 +442,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
                 onClick={() => setShowEmailForm(false)}
                 className="text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer ml-2"
               >
-                取消
+                {ct("comments.cancel")}
               </button>
             </div>
           )}
@@ -428,22 +453,22 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
       {guestMode && !user && (
         <div className="flex flex-wrap items-center gap-4 p-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">称呼:</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">{ct("comments.name")}</span>
             <input
               value={guest.name}
               onChange={e => setGuest(g => ({ ...g, name: e.target.value }))}
-              placeholder="你的昵称 (必填)"
+              placeholder={ct("comments.name_placeholder")}
               maxLength={40}
               className="w-28 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">邮箱:</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">{ct("comments.email")}</span>
             <input
               type="email"
               value={guest.email}
               onChange={e => setGuest(g => ({ ...g, email: e.target.value }))}
-              placeholder="可选"
+              placeholder={ct("comments.email_optional")}
               maxLength={100}
               className="w-32 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
             />
@@ -453,7 +478,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
             onClick={() => setGuestMode(false)}
             className="ml-auto text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            账号登录
+            {ct("comments.account_tab")}
           </button>
         </div>
       )}
@@ -461,17 +486,17 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
       {/* ── Logged-in identity bar ── */}
       {user && (
         <div className="flex items-center gap-2.5 px-2 py-1">
-          <Avatar name={userName ?? "用户"} src={userAvatar} size={22} />
+          <Avatar name={userName ?? ct("comments.anonymous")} src={userAvatar} size={22} />
           <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">{userName}</span>
-          <span className="text-[11px] text-neutral-400 dark:text-neutral-500">已登录</span>
+          <span className="text-[11px] text-neutral-400 dark:text-neutral-500">{ct("comments.logged_in")}</span>
           <button
             type="button"
             onClick={signOut}
             className="ml-auto flex items-center gap-1 text-[11px] text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer"
-            title="退出登录"
+            title={ct("comments.sign_out")}
           >
             <LogOut className="h-3 w-3" />
-            <span>退出</span>
+            <span>{ct("comments.sign_out")}</span>
           </button>
         </div>
       )}
@@ -488,7 +513,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
                 setContent(e.target.value);
                 if (error) setError("");
               }}
-              placeholder="发表你的见解与想法..."
+              placeholder={ct("comments.placeholder")}
               maxLength={1000}
               className="w-full resize-none border-none outline-none focus:outline-none focus:ring-0 shadow-none bg-transparent text-[13.5px] leading-relaxed text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700"
               onKeyDown={e => {
@@ -503,7 +528,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
           {error && <p className="text-xs text-rose-500 font-medium px-2">{error}</p>}
 
           <div className="flex items-center justify-between pt-1 px-2">
-            <span className="text-[11px] text-neutral-400 dark:text-neutral-600">⌘ + Enter 发送</span>
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-600">{ct("comments.shortcut_hint")}</span>
             <button
               type="button"
               onClick={handleSubmit}
@@ -515,7 +540,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
               ) : (
                 <CornerDownRight className="h-3 w-3" />
               )}
-              <span>{submitting ? "发送" : "发送"}</span>
+              <span>{submitting ? ct("comments.sending") : ct("comments.send")}</span>
             </button>
           </div>
         </div>
@@ -537,11 +562,11 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
           </div>
         ) : comments.length === 0 ? (
           <p className="text-xs text-neutral-400 dark:text-neutral-600 py-6 text-center">
-            暂无讨论，快来留下第一条想法吧
+            {ct("comments.empty")}
           </p>
         ) : (
           comments.map(comment => {
-            const authorName = comment.author || comment.user_name || "匿名";
+            const authorName = comment.author || comment.user_name || ct("comments.anonymous");
             const avatarSrc = comment.user_avatar || comment.avatar_url || null;
 
             return (
@@ -564,11 +589,11 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
                       </span>
                     )}
                     <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
-                      {formatRelativeTime(comment.created_at)}
+                      {formatRelativeTime(comment.created_at, currentLocale)}
                     </span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap break-words">
-                    {comment.content}
+                    {currentLocale === "zh-TW" ? convertText(comment.content) : comment.content}
                   </p>
                 </div>
               </div>
