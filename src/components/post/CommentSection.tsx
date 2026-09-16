@@ -95,7 +95,7 @@ function OAuthBtn({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white rounded-sm border border-black/[0.08] dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/20 transition-all duration-200 disabled:opacity-40 cursor-pointer select-none"
+      className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors duration-200 disabled:opacity-40 cursor-pointer select-none"
     >
       {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : icon}
       <span>{label}</span>
@@ -343,24 +343,24 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
     : null;
 
   return (
-    <div className="w-full space-y-7">
+    <div className="w-full space-y-8 mt-4">
       {/* ── Section title ── */}
-      <div className="flex items-center gap-2.5 border-b border-black/[0.06] dark:border-white/[0.06] pb-3">
-        <span className="text-sm font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">讨论</span>
+      <div className="flex items-center gap-2.5 pb-2">
+        <span className="text-sm font-medium tracking-tight text-neutral-900 dark:text-neutral-100">讨论</span>
         <span className="text-xs font-mono text-neutral-400 dark:text-neutral-500">({comments.length})</span>
       </div>
 
       {/* ── Auth bar ── */}
       {!user && !guestMode ? (
-        <div className="space-y-3 rounded-none border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.01] p-4">
+        <div className="space-y-3 p-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-600 dark:text-neutral-400">选择参与讨论方式：</span>
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">参与讨论：</span>
             <button
               type="button"
               onClick={() => setGuestMode(true)}
-              className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer underline underline-offset-4"
+              className="text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              直接以游客身份留言
+              游客留言
             </button>
           </div>
 
@@ -397,13 +397,13 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <input
                 type="email"
                 value={magicEmail}
                 onChange={e => setMagicEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="flex-1 border-b border-black/20 dark:border-white/20 bg-transparent pb-1 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 focus:border-neutral-900 dark:focus:border-neutral-100 focus:outline-none transition-colors"
+                className="w-48 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
                 onKeyDown={e => e.key === "Enter" && sendMagicLink()}
               />
               <OAuthBtn
@@ -415,7 +415,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
               <button
                 type="button"
                 onClick={() => setShowEmailForm(false)}
-                className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
+                className="text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer ml-2"
               >
                 取消
               </button>
@@ -426,48 +426,48 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
 
       {/* ── Guest identity fields ── */}
       {guestMode && !user && (
-        <div className="flex flex-wrap items-center gap-3 rounded-none border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.01] p-3">
+        <div className="flex flex-wrap items-center gap-4 p-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">称呼:</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">称呼:</span>
             <input
               value={guest.name}
               onChange={e => setGuest(g => ({ ...g, name: e.target.value }))}
               placeholder="你的昵称 (必填)"
               maxLength={40}
-              className="w-32 border-b border-black/20 dark:border-white/20 bg-transparent pb-1 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 focus:border-neutral-900 dark:focus:border-white focus:outline-none transition-colors"
+              className="w-28 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">邮箱:</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">邮箱:</span>
             <input
               type="email"
               value={guest.email}
               onChange={e => setGuest(g => ({ ...g, email: e.target.value }))}
-              placeholder="可选 (接收回复)"
+              placeholder="可选"
               maxLength={100}
-              className="w-44 border-b border-black/20 dark:border-white/20 bg-transparent pb-1 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 focus:border-neutral-900 dark:focus:border-white focus:outline-none transition-colors"
+              className="w-32 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
             />
           </div>
           <button
             type="button"
             onClick={() => setGuestMode(false)}
-            className="ml-auto text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
+            className="ml-auto text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
           >
-            切换为账号登录
+            账号登录
           </button>
         </div>
       )}
 
       {/* ── Logged-in identity bar ── */}
       {user && (
-        <div className="flex items-center gap-2.5 rounded-none border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.01] px-3.5 py-2">
+        <div className="flex items-center gap-2.5 px-2 py-1">
           <Avatar name={userName ?? "用户"} src={userAvatar} size={22} />
           <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">{userName}</span>
           <span className="text-[11px] text-neutral-400 dark:text-neutral-500">已登录</span>
           <button
             type="button"
             onClick={signOut}
-            className="ml-auto flex items-center gap-1 text-[11px] text-neutral-500 hover:text-rose-500 transition-colors cursor-pointer"
+            className="ml-auto flex items-center gap-1 text-[11px] text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer"
             title="退出登录"
           >
             <LogOut className="h-3 w-3" />
@@ -479,7 +479,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
       {/* ── Comment input ── */}
       {(user || guestMode) && (
         <div className="space-y-2.5">
-          <div className="border border-black/[0.08] dark:border-white/[0.08] bg-transparent focus-within:border-black/30 dark:focus-within:border-white/30 p-3 transition-colors">
+          <div className="border-x-0 border-t-0 border-b border-black/[0.08] dark:border-white/[0.08] bg-transparent focus-within:border-black/30 dark:focus-within:border-white/30 p-2 transition-colors">
             <textarea
               ref={textareaRef}
               rows={3}
@@ -490,7 +490,7 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
               }}
               placeholder="发表你的见解与想法..."
               maxLength={1000}
-              className="w-full resize-none border-none bg-transparent text-[13.5px] leading-relaxed text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 focus:outline-none"
+              className="w-full resize-none border-none outline-none focus:outline-none focus:ring-0 shadow-none bg-transparent text-[13.5px] leading-relaxed text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700"
               onKeyDown={e => {
                 if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                   e.preventDefault();
@@ -500,22 +500,22 @@ export function CommentSection({ postId, thoughtId, onCommentAdded }: CommentSec
             />
           </div>
 
-          {error && <p className="text-xs text-rose-500 font-medium">{error}</p>}
+          {error && <p className="text-xs text-rose-500 font-medium px-2">{error}</p>}
 
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-[11px] text-neutral-400 dark:text-neutral-600">⌘ + Enter 快速发送</span>
+          <div className="flex items-center justify-between pt-1 px-2">
+            <span className="text-[11px] text-neutral-400 dark:text-neutral-600">⌘ + Enter 发送</span>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={submitting || !content.trim()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 disabled:opacity-30 transition-all cursor-pointer select-none"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white disabled:opacity-30 transition-colors cursor-pointer select-none"
             >
               {submitting ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
                 <CornerDownRight className="h-3 w-3" />
               )}
-              <span>{submitting ? "发送中..." : "发表评论"}</span>
+              <span>{submitting ? "发送" : "发送"}</span>
             </button>
           </div>
         </div>

@@ -3,8 +3,13 @@
 
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { Song } from "@/components/playlist/SongList";
-// ⚡ 懒加载桥接 — 播放器 JS 在用户点击播放前完全不下载
-import { LazyMusicPlayer } from "@/components/playlist/LazyMusicPlayer";
+import dynamic from "next/dynamic";
+
+// ⚡ 懒加载声明 — 播放器 JS 在用户点击播放前完全不下载
+const MusicPlayer = dynamic(
+  () => import("@/components/playlist/MusicPlayer").then((m) => m.MusicPlayer),
+  { ssr: false }
+);
 
 export type RepeatMode = "off" | "all" | "one";
 
@@ -220,6 +225,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleAdjustVolume = (delta: number) => {
+    if (!audioRef.current) return;
+    const base = isMuted ? 0 : volume;
+    const nextVal = Math.max(0, Math.min(1, Math.round((base + delta) * 100) / 100));
+    setVolume(nextVal);
+    audioRef.current.volume = nextVal;
+    setIsMuted(nextVal === 0);
+  };
+
   const closePlayer = () => {
     setIsPlaying(false);
     if (audioRef.current) {
@@ -289,7 +303,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
       {/* 全局底部持久化浮动播放器（用户未播放时零 JS 负担） */}
       {currentSong && (
-        <LazyMusicPlayer
+        <MusicPlayer
           currentSong={currentSong}
           playlistSongs={playlistSongs}
           isPlaying={isPlaying}
@@ -306,6 +320,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
           onNext={handleNext}
           onSeek={handleSeek}
           onVolumeChange={handleVolumeChange}
+          onAdjustVolume={handleAdjustVolume}
           onToggleMute={handleToggleMute}
           onSelectSong={(song) => playSong(song)}
           onClose={closePlayer}

@@ -2,7 +2,7 @@
 import React from "react";
 import { Suspense } from "react";
 import { getGalleryImages } from "@/lib/gallery";
-import GalleryLoader from "./GalleryLoader";
+import GalleryClient from "./GalleryClient";
 
 export const dynamic = "force-static";
 export const revalidate = 60;
@@ -16,7 +16,7 @@ export default async function GalleryPage() {
   const photos = await getGalleryImages();
   return (
     <Suspense fallback={null}>
-      <GalleryLoader photos={photos} />
+      <GalleryClient photos={photos} />
     </Suspense>
   );
 }

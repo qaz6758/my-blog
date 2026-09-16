@@ -1,8 +1,7 @@
 // src/app/posts/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 import { fetchPosts, fetchPostDetail } from '@/lib/data';
-import PostDetailClient from './PostDetailClient';
-import { PostDetail } from '@/components/post/DynamicPostReader';
+import { DynamicPostReader, PostDetail } from '@/components/post/DynamicPostReader';
 
 export const dynamicParams = false;
 export const revalidate = 60;
@@ -58,7 +57,7 @@ export default async function Page({
   }
 
   return (
-    <PostDetailClient
+    <DynamicPostReader
       post={post}
       prevPost={prevPost}
       nextPost={nextPost}

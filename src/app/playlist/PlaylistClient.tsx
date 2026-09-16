@@ -18,14 +18,7 @@ export default function PlaylistClient({
   initialPlaylistId = null,
 }: PlaylistClientProps) {
   const [playlists, setPlaylists] = useState<PlaylistCategory[]>(initialPlaylists);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(() => {
-    if (initialPlaylistId) return initialPlaylistId;
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("id") || params.get("playlist") || null;
-    }
-    return null;
-  });
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(initialPlaylistId);
   const [isLoading, setIsLoading] = useState(initialPlaylists.length === 0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -50,7 +43,20 @@ export default function PlaylistClient({
     }
   };
 
-  useEffect(() => {
+  // 采用 useLayoutEffect 在客户端首帧绘制（Paint）之前同步状态，彻底消灭渲染间隙
+  const useIsomorphicLayoutEffect =
+    typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    const initialParams = new URLSearchParams(window.location.search);
+    const initialId = initialParams.get("id") || initialParams.get("playlist") || null;
+    if (initialId) {
+      document.documentElement.classList.add("hide-playlist-grid");
+      setSelectedPlaylistId(initialId);
+    } else {
+      document.documentElement.classList.remove("hide-playlist-grid");
+    }
+
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id") || params.get("playlist") || null;
@@ -62,7 +68,10 @@ export default function PlaylistClient({
       }
     };
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      document.documentElement.classList.remove("hide-playlist-grid");
+    };
   }, []);
 
   const loadNotionPlaylists = async () => {

@@ -86,16 +86,16 @@ export function Playlist({
             className="w-full"
           >
 
-            {/* Apple Music 标准 220px-240px 质感歌单网格 (单屏可轻松容纳 2 整行) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-5 sm:gap-6 lg:gap-7 justify-start">
+            {/* 增加呼吸感：比照片墙稍微多一点留白，适当增加列数以控制单张封面的极限大小，拉开间距 */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
               {playlists.map((playlist) => (
                 <div
                   key={playlist.id}
                   onClick={() => handleSelectPlaylist(playlist.id)}
-                  className="group flex cursor-pointer flex-col w-full max-w-[240px]"
+                  className="group flex cursor-pointer flex-col w-full"
                 >
                   {/* 歌单封面卡片 (纸墨世界风格：无圆角，无阴影，静谧刻痕) */}
-                  <div className="relative aspect-square w-full max-w-[240px] overflow-hidden rounded-none bg-[#ded5c4]/60 dark:bg-[#1a1816] ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                  <div className="relative aspect-square w-full overflow-hidden rounded-none bg-[#ded5c4]/60 dark:bg-[#1a1816] ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                     {(() => {
                       const rawCover =
                         playlist.cover ||
@@ -143,7 +143,7 @@ export function Playlist({
                   </div>
 
                   {/* 标题与描述信息 */}
-                  <div className="mt-3 max-w-[240px]">
+                  <div className="mt-3 w-full">
                     <h2 className="truncate text-[13.5px] sm:text-[14px] font-medium tracking-tight text-neutral-900 dark:text-[#eae5dc] transition-opacity group-hover:opacity-75" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                       {playlist.title}
                     </h2>

@@ -328,6 +328,13 @@ export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem 
     return notionPost || null;
   }
 
+  const isRss =
+    Boolean(data.slug?.startsWith('rss-')) ||
+    (Array.isArray(data.tags)
+      ? data.tags.some((t: string) => typeof t === 'string' && t.toLowerCase() === 'rss')
+      : typeof data.tags === 'string' && data.tags.toLowerCase().includes('rss')) ||
+    data.category === 'RSS';
+
   return {
     id: data.id,
     slug: data.slug || data.id,
@@ -338,9 +345,9 @@ export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem 
     category: data.category || '技术',
     tags: data.tags || [],
     cover_image: data.cover_image || undefined,
-    source: '原创',
+    source: isRss ? 'RSS 聚合' : '原创',
     source_url: `/posts/${data.slug}`,
-    post_type: 'original',
+    post_type: isRss ? 'rss' : 'original',
     status: data.status || '已发布',
     is_pinned: Boolean((data as any).is_pinned),
     content: data.content || '',

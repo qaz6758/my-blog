@@ -3,6 +3,7 @@ import "@/app/globals.css";
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { MusicProvider } from "@/components/playlist/MusicContext";
+import { I18nProvider } from "@/lib/i18n/I18nContext";
 import { FrontendShell } from "@/components/layout/FrontendShell";
 import { siteConfig } from "@/config/site";
 
@@ -57,6 +58,11 @@ export default function RootLayout({
                   }
                   docEl.style.colorScheme = colorScheme;
                   docEl.style.backgroundColor = themeColor;
+
+                  // 歌单详情直达 0ms 阻断：若带 ?id= 或 ?playlist=，预先隐藏歌单网格避免闪烁
+                  if (window.location.pathname.indexOf('/playlist') !== -1 && (window.location.search.indexOf('id=') !== -1 || window.location.search.indexOf('playlist=') !== -1)) {
+                    docEl.classList.add('hide-playlist-grid');
+                  }
 
                   // 净化与同步所有 theme-color meta，杜绝深色 media query 劫持 Chrome 原生清屏画布
                   var themeMetas = document.querySelectorAll('meta[name="theme-color"]');
@@ -132,6 +138,13 @@ export default function RootLayout({
                 -ms-transition: none !important;
                 transition: none !important;
               }
+              /* 歌单直达预阻断：0ms 杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现 */
+              html.hide-playlist-grid [data-playlist-grid] {
+                display: none !important;
+                visibility: hidden !important;
+                animation: none !important;
+                opacity: 0 !important;
+              }
               /* 同步直出关键动画规则，杜绝 Frame 0 元素先满不透明度绘制后隐藏的跳闪 */
               @keyframes slide-enter {
                 0% { opacity: 0; transform: translateY(4px); }
@@ -185,18 +198,25 @@ export default function RootLayout({
                     docEl.style.backgroundColor = '#ffffff';
                     docEl.style.colorScheme = 'light';
                   }
+
+                  if (window.location.search && (window.location.search.indexOf('id=') !== -1 || window.location.search.indexOf('playlist=') !== -1)) {
+                    docEl.classList.add('hide-playlist-grid');
+                  }
                 } catch (e) {}
               })();
             `,
           }}
         />
         <ThemeProvider>
-          {/* 包裹全局播放器 Provider */}
-          <MusicProvider>
-            <FrontendShell>
-              {children}
-            </FrontendShell>
-          </MusicProvider>
+          {/* 全局国际化 Provider */}
+          <I18nProvider>
+            {/* 包裹全局播放器 Provider */}
+            <MusicProvider>
+              <FrontendShell>
+                {children}
+              </FrontendShell>
+            </MusicProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

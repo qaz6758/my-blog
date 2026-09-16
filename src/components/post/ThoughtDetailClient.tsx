@@ -1,19 +1,41 @@
 // components/thoughts/ThoughtDetailClient.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Heart, HeartCrack, MessageSquare, Star } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate } from "@/lib/data";
-import { LazyCommentSection } from "@/components/post/LazyCommentSection";
 import { supabase } from "@/lib/supabase";
+import { useI18n } from "@/lib/i18n/I18nContext";
+
+const CommentSection = dynamic(
+  () =>
+    import("@/components/post/CommentSection").then((m) => m.CommentSection),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
 export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
+  const { locale, convertText } = useI18n();
+
   // 1. 独立管理互动状态
   const [likes, setLikes] = useState(item.likes || 0);
   const [upvotes, setUpvotes] = useState(item.upvotes || 0);
   const [commentCount, setCommentCount] = useState(0);
   const [reaction, setReaction] = useState<{ liked?: boolean; upvoted?: boolean }>({});
   const [displayTime, setDisplayTime] = useState(item.time);
+
+  const displayTitle = useMemo(() => {
+    if (!item.title) return "";
+    return locale === "zh-TW" ? convertText(item.title) : item.title;
+  }, [item.title, locale, convertText]);
+
+  const displayDesc = useMemo(() => {
+    if (!item.description) return "";
+    return locale === "zh-TW" ? convertText(item.description) : item.description;
+  }, [item.description, locale, convertText]);
 
   // 客户端挂载时动态计算相对时间，与列表页算法严格统一
   useEffect(() => {
@@ -77,13 +99,13 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
         {isNote ? (
           <>
             <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d6d0c7] whitespace-pre-line text-justify">
-              {item.description}
+              {displayDesc}
             </div>
             {item.posterUrl && (
               <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
                 <img
                   src={item.posterUrl}
-                  alt={item.title || "随笔配图"}
+                  alt={displayTitle || "随笔配图"}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -96,7 +118,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
                 <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
                   <img
                     src={item.posterUrl}
-                    alt={item.title}
+                    alt={displayTitle}
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -108,10 +130,10 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
                 {item.type} {item.year ? `· ${item.year}` : ""}
               </div>
               <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#eae5dc] tracking-tight">
-                {item.title}
+                {displayTitle}
               </h2>
               <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-[#9d9589] whitespace-pre-line text-justify">
-                {item.description}
+                {displayDesc}
               </p>
               
               {(item.rating || item.tags || item.sourceUrl) && (
@@ -174,7 +196,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
       <div className="my-10 h-[1px] w-full border-t border-dashed border-black/[0.08] dark:border-white/[0.08]" />
 
       {/* 评论区：发布新评论时同步递增计数 */}
-      <LazyCommentSection
+      <CommentSection
         thoughtId={item.id}
         onCommentAdded={() => setCommentCount((prev) => prev + 1)}
       />

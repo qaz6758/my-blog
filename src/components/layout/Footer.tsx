@@ -6,10 +6,13 @@ import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { useSeasonalEffect } from "@/hooks/useSeasonalEffect";
+import { useI18n } from "@/lib/i18n/I18nContext";
 import { InkMountainBackground } from "./InkMountainBackground";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Footer() {
   const { mounted, enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
+  const { t } = useI18n();
 
   // 当前季节标签（随自然节气自动流转，无需手动下拉）
 const SEASON_MAP = {
@@ -38,10 +41,10 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
               {siteConfig.name}
             </h2>
-            {/* 水墨引用块（mx-0 贴左，取消手机端居中） */}
-            <blockquote className="my-1 mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-serif tracking-wide rounded-r-sm select-text">
-              破碎重组，再破碎的循环，让自己成为自己。
-            </blockquote>
+            {/* 纯净引用文本 */}
+            <div className="my-1 text-[13px] sm:text-[13.5px] font-medium text-neutral-700 dark:text-neutral-300 leading-relaxed font-serif tracking-wide select-text">
+              {t("footer.motto")}
+            </div>
             <div className="pt-0.5 text-xs leading-relaxed text-neutral-600 dark:text-[#b8b2a8] font-sans">
               <p>© 2026 - Present Powered by Next.js & React</p>
             </div>
@@ -51,7 +54,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
             {/* 第 1 列：关于 */}
             <div className="space-y-3">
               <h3 className="text-[13.5px] sm:text-sm font-semibold text-neutral-900 dark:text-white tracking-wide dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">
-                关于
+                {t("footer.about")}
               </h3>
               <ul className="space-y-2 text-[13px] sm:text-sm font-medium">
                 <li>
@@ -59,7 +62,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     href="/"
                     className="text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600 transition-all duration-200"
                   >
-                    关于本站
+                    {t("footer.about_site")}
                   </Link>
                 </li>
                 <li>
@@ -69,7 +72,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     rel="noopener noreferrer"
                     className="text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600 transition-all duration-200"
                   >
-                    关于我
+                    {t("footer.about_me")}
                   </a>
                 </li>
                 <li>
@@ -79,7 +82,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     rel="noopener noreferrer"
                     className="group inline-flex items-center gap-0.5 text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] transition-all duration-200"
                   >
-                    <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">关于此项目</span>
+                    <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">{t("footer.about_project")}</span>
                     <ArrowUpRight className="h-3.5 w-3.5 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-neutral-500 dark:text-neutral-300 group-hover:text-neutral-950 dark:group-hover:text-white transition-all shrink-0" />
                   </a>
                 </li>
@@ -89,7 +92,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
             {/* 第 2 列：更多 */}
             <div className="space-y-3">
               <h3 className="text-[13.5px] sm:text-sm font-semibold text-neutral-900 dark:text-white tracking-wide dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">
-                更多
+                {t("footer.more")}
               </h3>
               <ul className="space-y-2 text-[13px] sm:text-sm font-medium">
                 <li>
@@ -97,7 +100,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     href="/gallery"
                     className="text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600 transition-all duration-200"
                   >
-                    摄影画廊
+                    {t("footer.gallery")}
                   </Link>
                 </li>
                 <li>
@@ -105,7 +108,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     href="/playlist"
                     className="text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600 transition-all duration-200"
                   >
-                    精选歌单
+                    {t("footer.playlist")}
                   </Link>
                 </li>
                 <li>
@@ -113,7 +116,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     href="/thoughts"
                     className="text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600 transition-all duration-200"
                   >
-                    随想录
+                    {t("footer.thoughts")}
                   </Link>
                 </li>
               </ul>
@@ -122,7 +125,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
             {/* 第 3 列：联系 */}
             <div className="space-y-3">
               <h3 className="text-[13.5px] sm:text-sm font-semibold text-neutral-900 dark:text-white tracking-wide dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">
-                联系
+                {t("footer.contact")}
               </h3>
               <ul className="space-y-2 text-[13px] sm:text-sm font-medium">
                 <li>
@@ -130,7 +133,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     href="/posts"
                     className="text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600 transition-all duration-200"
                   >
-                    写留言
+                    {t("footer.message")}
                   </Link>
                 </li>
                 <li>
@@ -138,7 +141,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     href="mailto:theyole114@outlook.com"
                     className="group inline-flex items-center gap-0.5 text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] transition-all duration-200"
                   >
-                    <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">发邮件</span>
+                    <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">{t("footer.email")}</span>
                     <ArrowUpRight className="h-3.5 w-3.5 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-neutral-500 dark:text-neutral-300 group-hover:text-neutral-950 dark:group-hover:text-white transition-all shrink-0" />
                   </a>
                 </li>
@@ -149,7 +152,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                     rel="noopener noreferrer"
                     className="group inline-flex items-center gap-0.5 text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] transition-all duration-200"
                   >
-                    <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">GitHub</span>
+                    <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">{t("footer.github")}</span>
                     <ArrowUpRight className="h-3.5 w-3.5 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-neutral-500 dark:text-neutral-300 group-hover:text-neutral-950 dark:group-hover:text-white transition-all shrink-0" />
                   </a>
                 </li>
@@ -169,7 +172,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                 rel="noopener noreferrer"
                 className="text-neutral-700 hover:text-neutral-950 dark:text-[#e7e5e4] dark:hover:text-white transition-colors duration-200 dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
               >
-                RSS 订阅
+                {t("footer.rss")}
               </a>
               <span className="mx-1.5 text-neutral-400 dark:text-neutral-500 select-none">·</span>
               <a
@@ -178,7 +181,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                 rel="noopener noreferrer"
                 className="text-neutral-700 hover:text-neutral-950 dark:text-[#e7e5e4] dark:hover:text-white transition-colors duration-200 dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
               >
-                站点地图
+                {t("footer.sitemap")}
               </a>
             </div>
 
@@ -187,14 +190,8 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
               |
             </span>
 
-            {/* 语言指示器 */}
-            <div className="inline-flex items-center gap-1.5 cursor-default text-neutral-700 dark:text-[#e7e5e4] hover:text-neutral-950 dark:hover:text-white transition-colors duration-200 dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]">
-              <span className="text-[10px] font-serif border border-neutral-400 dark:border-neutral-500 px-1 py-0.2 rounded-xs leading-none bg-black/[0.03] dark:bg-white/[0.08] text-neutral-800 dark:text-neutral-200">
-                文
-              </span>
-              <span>简体中文</span>
-              <ChevronDown className="h-3 w-3 opacity-75" />
-            </div>
+            {/* 多语言切换菜单 */}
+            <LanguageSwitcher />
 
             {/* 竖向细分隔线 */}
             <span className="text-neutral-400 dark:text-neutral-500 select-none font-normal">
@@ -209,7 +206,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                 className="cursor-pointer select-none text-neutral-700 hover:text-neutral-950 dark:text-[#e7e5e4] dark:hover:text-white transition-colors duration-200 focus:outline-none dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
                 title={`背景特效当前状态：${enabled ? "开启" : "关闭"}（${seasonTitle}）`}
               >
-                <span>背景效果</span>
+                <span>{t("footer.bg_effect")}</span>
               </button>
 
               {/* 图二同款极简纯粹开关：清晰线框 + 内部高亮小方块 */}

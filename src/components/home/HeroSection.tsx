@@ -1,8 +1,9 @@
-// src/components/home/HeroSection.tsx
-// Scheme A: Natural Fluid Narrative (Anthony Fu Pure CSS Slide-Enter · Zero-Flash Staggered Cadence)
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 interface TextLinkProps {
   href: string;
@@ -42,6 +43,7 @@ export function TextLink({ href, children, external, className = "" }: TextLinkP
 
 export function HeroSection() {
   const { name } = siteConfig;
+  const { t } = useI18n();
 
   return (
     <div className="relative w-full overflow-hidden pt-28 sm:pt-36 pb-20 sm:pb-28 px-6 sm:px-8">
@@ -87,37 +89,41 @@ export function HeroSection() {
         {/* ===================== 3. 现代纯粹正文 (清爽黑体 · 极简呼吸感 · 逐段物理顿感) ===================== */}
         {/* 第一段：身份白描 */}
         <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
-          嘿！我是 {name}，一名热爱音乐以及网站开发的全栈初学者。
+          {t("hero.p1", { name })}
         </p>
 
         {/* 第二段：内省与对抗 */}
         <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
-          在这个被快餐娱乐与既定准则裹挟的时代，对我而言失去分享欲是正常的，却也是危险的。人们总在谈论对抗荒诞、失衡与提线木偶般的外部世界，但真正漫长而频繁的，其实是与自我的交战——当思想变革过于剧烈，而实际能力尚未企及，所以难免产生无力与厌恶感。
+          {t("hero.p2")}
         </p>
 
         {/* 第三段：信念宣言 */}
         <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
-          但不必长久陷入痛苦。我选择在此留下自己能留下的一切，无论是逻辑的代码，还是感性的艺术。秉持着{" "}
+          {t("hero.p3_pre")}
           <span className="font-medium text-neutral-950 dark:text-white">
-            “破碎重组，再破碎的循环，让自己成为自己”
-          </span>{" "}
-          的信念，持续打磨自己的开源项目与个人数字花园。
+            {t("hero.p3_quote")}
+          </span>
+          {t("hero.p3_post")}
         </p>
 
         {/* 第四段：多维通路引言 */}
         <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
-          除了代码构建，我也在旅途与日常中凝固光影，欢迎漫步我的{" "}
-          <TextLink href="/gallery">摄影画廊</TextLink>、聆听我的{" "}
-          <TextLink href="/playlist">精选歌单</TextLink>，或在{" "}
-          <TextLink href="/posts">博客文章</TextLink> 与{" "}
-          <TextLink href="/thoughts">随想录</TextLink> 里，读一读我近期的技术沉淀与内心注脚。
+          {t("hero.p4_intro")}
+          <TextLink href="/gallery">{t("hero.p4_gallery")}</TextLink>
+          {t("hero.p4_listen")}
+          <TextLink href="/playlist">{t("hero.p4_playlist")}</TextLink>
+          {t("hero.p4_read")}
+          <TextLink href="/posts">{t("hero.p4_posts")}</TextLink>
+          {t("hero.p4_and")}
+          <TextLink href="/thoughts">{t("hero.p4_thoughts")}</TextLink>
+          {t("hero.p4_outro")}
         </p>
 
         {/* ===================== 4. 底部联络与社交 (Anthony Fu 风格复刻：品牌图标 + 下划线 + 纯净极客排版) ===================== */}
         <div className="mt-8 sm:mt-10 flex w-full flex-col items-start space-y-3.5 pt-2 text-left select-none">
           {/* 结构小标题 */}
           <p className="text-[14px] text-neutral-500 dark:text-[#a09a8e] font-sans">
-            Find me on
+            {t("hero.find_me")}
           </p>
 
           {/* 品牌图标与带下划线外链列表 */}
@@ -177,7 +183,7 @@ export function HeroSection() {
 
           {/* 纯等宽极客邮箱排版 */}
           <p className="pt-2 font-mono text-[13px] sm:text-[14px] text-neutral-500 dark:text-[#a09a8e] text-left select-text">
-            Or mail me at{" "}
+            {t("hero.or_mail")}{" "}
             <a
               href="mailto:theyole114@outlook.com"
               className="hover:text-neutral-900 dark:hover:text-white hover:underline transition-colors"

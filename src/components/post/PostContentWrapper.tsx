@@ -121,32 +121,32 @@ function processAndOptimizeHtml(rawHtml: string): string {
 
     const configMap: Record<string, { title: string; border: string; color: string; svg: string }> = {
       note: {
-        title: "Note",
-        border: "border-[#0969da] dark:border-[#2f81f7]",
+        title: "笔记",
+        border: "border-l-[#0969da] dark:border-l-[#2f81f7]",
         color: "text-[#0969da] dark:text-[#2f81f7]",
         svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
       },
       tip: {
-        title: "Tip",
-        border: "border-[#1a7f37] dark:border-[#3fb950]",
+        title: "提示",
+        border: "border-l-[#1a7f37] dark:border-l-[#3fb950]",
         color: "text-[#1a7f37] dark:text-[#3fb950]",
         svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
       },
       important: {
-        title: "Important",
-        border: "border-[#8250df] dark:border-[#a371f7]",
+        title: "重要",
+        border: "border-l-[#8250df] dark:border-l-[#a371f7]",
         color: "text-[#8250df] dark:text-[#a371f7]",
         svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
       },
       warning: {
-        title: "Warning",
-        border: "border-[#9a6700] dark:border-[#d29922]",
+        title: "警告",
+        border: "border-l-[#9a6700] dark:border-l-[#d29922]",
         color: "text-[#9a6700] dark:text-[#d29922]",
         svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
       },
       caution: {
-        title: "Caution",
-        border: "border-[#cf222e] dark:border-[#f85149]",
+        title: "注意",
+        border: "border-l-[#cf222e] dark:border-l-[#f85149]",
         color: "text-[#cf222e] dark:text-[#f85149]",
         svg: `<svg class="h-4 w-4 stroke-[2.2] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>`,
       },
@@ -167,12 +167,12 @@ function processAndOptimizeHtml(rawHtml: string): string {
 
     const c = configMap[typeKey] || configMap.note;
 
-    return `<div class="my-6 border-l-[3.5px] ${c.border} pl-4.5 sm:pl-5 py-1.5 not-italic select-text">
-  <div class="flex items-center gap-2 text-[14px] sm:text-[14.5px] font-semibold ${c.color} mb-2 select-none tracking-tight">
+    return `<div class="my-6 border-l-[3.5px] ${c.border} pl-4 py-1 bg-transparent not-italic select-text">
+  <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-2 select-none">
     ${c.svg}
     <span>${c.title}</span>
   </div>
-  <div class="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-800 dark:text-[#eae5dc] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+  <div class="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-700 dark:text-[#c9d1d9] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
     ${cleanedInner}
   </div>
 </div>`;
@@ -196,32 +196,32 @@ const ALERT_MAP: Record<
   }
 > = {
   note: {
-    title: "Note",
-    borderColor: "border-[#0969da] dark:border-[#2f81f7]",
+    title: "笔记",
+    borderColor: "border-l-[#0969da] dark:border-l-[#2f81f7]",
     titleColor: "text-[#0969da] dark:text-[#2f81f7]",
     icon: Info,
   },
   tip: {
-    title: "Tip",
-    borderColor: "border-[#1a7f37] dark:border-[#3fb950]",
+    title: "提示",
+    borderColor: "border-l-[#1a7f37] dark:border-l-[#3fb950]",
     titleColor: "text-[#1a7f37] dark:text-[#3fb950]",
     icon: Lightbulb,
   },
   important: {
-    title: "Important",
-    borderColor: "border-[#8250df] dark:border-[#a371f7]",
+    title: "重要",
+    borderColor: "border-l-[#8250df] dark:border-l-[#a371f7]",
     titleColor: "text-[#8250df] dark:text-[#a371f7]",
     icon: Flame,
   },
   warning: {
-    title: "Warning",
-    borderColor: "border-[#9a6700] dark:border-[#d29922]",
+    title: "警告",
+    borderColor: "border-l-[#9a6700] dark:border-l-[#d29922]",
     titleColor: "text-[#9a6700] dark:text-[#d29922]",
     icon: AlertTriangle,
   },
   caution: {
-    title: "Caution",
-    borderColor: "border-[#cf222e] dark:border-[#f85149]",
+    title: "注意",
+    borderColor: "border-l-[#cf222e] dark:border-l-[#f85149]",
     titleColor: "text-[#cf222e] dark:text-[#f85149]",
     icon: AlertOctagon,
   },
@@ -504,19 +504,18 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[15.5px] sm:text-[16.5px] leading-[1.8] text-neutral-800 dark:text-neutral-200 font-sans tracking-normal
-    [&_p]:mb-[1.3rem]
-    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-12 [&_h1]:mb-6 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100 [&_h1]:tracking-tight
-    [&_h2]:scroll-mt-24 [&_h2]:text-[20px] sm:[&_h2]:text-[22px] [&_h2]:font-semibold [&_h2]:mt-14 [&_h2]:mb-6 [&_h2]:pb-3 [&_h2]:border-b [&_h2]:border-black/[0.08] dark:[&_h2]:border-white/[0.08] [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h2]:tracking-tight
-    [&_h3]:scroll-mt-24 [&_h3]:text-lg sm:[&_h3]:text-[19px] [&_h3]:font-semibold [&_h3]:mt-10 [&_h3]:mb-4 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
-    [&_h4]:scroll-mt-24 [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-8 [&_h4]:mb-3 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
-    [&_strong]:font-bold [&_strong]:text-neutral-950 dark:[&_strong]:text-white
+    text-[15.5px] sm:text-[16px] leading-[1.8] text-neutral-800 dark:text-[#d4d4d4] font-sans tracking-normal
+    [&_p]:mb-[1.35rem]
+    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[28px] [&_h1]:font-bold [&_h1]:font-sans [&_h1]:mt-12 [&_h1]:mb-6 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100 [&_h1]:tracking-tight
+    [&_h2]:scroll-mt-24 [&_h2]:text-[20px] sm:[&_h2]:text-[24px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-14 [&_h2]:mb-5 [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h2]:tracking-tight
+    [&_h3]:scroll-mt-24 [&_h3]:text-[18px] sm:[&_h3]:text-[20px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-10 [&_h3]:mb-4 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
+    [&_h4]:scroll-mt-24 [&_h4]:text-[16px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-8 [&_h4]:mb-3 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
+    [&_strong]:font-semibold [&_strong]:text-black dark:[&_strong]:text-white
     [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-[1.3rem] [&_ul]:space-y-2
     [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-[1.3rem] [&_ol]:space-y-2
     [&_li]:leading-[1.8]
     [&_img]:rounded-md [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
     [&_a]:prose-link
-    [&_blockquote]:border-l-[3.5px] [&_blockquote]:border-neutral-300 dark:[&_blockquote]:border-neutral-700 [&_blockquote]:pl-4.5 sm:[&_blockquote]:pl-5 [&_blockquote]:py-1.5 [&_blockquote]:my-6 [&_blockquote]:text-neutral-600 dark:[&_blockquote]:text-neutral-400 [&_blockquote]:not-italic
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-8
     [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
     [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
@@ -566,36 +565,33 @@ export function PostContentWrapper({ content, isHtml }: PostContentWrapperProps)
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // 高质感 GitHub Alert / Note 引用卡片（方案 B：全面变成 Note 卡片）
+              // 用户指定极简 Note 框（极简亮蓝左竖线 + ⓘ 笔记 + 纯净透明无底色）
               blockquote: ({ children, node, ...props }) => {
                 const text = getNodeText(children).trim();
                 const alertConfig = getAlertConfig(text) || ALERT_MAP.note;
-                const Icon = alertConfig.icon;
+                const AlertIcon = alertConfig.icon;
                 const cleanChildren = stripAlertPrefix(children);
 
                 return (
-                  <blockquote
-                    className={`my-6 border-l-[3.5px] ${alertConfig.borderColor} pl-4.5 sm:pl-5 py-1.5 not-italic select-text`}
-                    {...props}
+                  <div
+                    className={`my-6 border-l-[3.5px] ${alertConfig.borderColor} pl-4 py-1 bg-transparent not-italic select-text transition-colors`}
                   >
-                    <div
-                      className={`flex items-center gap-2 text-[14px] sm:text-[14.5px] font-semibold ${alertConfig.titleColor} mb-2 select-none tracking-tight`}
-                    >
-                      <Icon className="h-4 w-4 stroke-[2.2] shrink-0" />
+                    <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-2 select-none`}>
+                      <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
                       <span>{alertConfig.title}</span>
                     </div>
-                    <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-800 dark:text-[#eae5dc] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                    <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-700 dark:text-[#c9d1d9] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                       {cleanChildren}
                     </div>
-                  </blockquote>
+                  </div>
                 );
               },
               h1: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h1 id={id} {...props}>
+                  <h2 id={id} className="text-[20px] sm:text-[24px] font-bold mt-12 mb-5 text-neutral-900 dark:text-neutral-50 font-sans tracking-tight" {...props}>
                     {children}
-                  </h1>
+                  </h2>
                 );
               },
               h2: ({ children, node, ...props }) => {

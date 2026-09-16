@@ -82,6 +82,7 @@ interface MusicPlayerProps {
   onNext: () => void;
   onSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAdjustVolume?: (delta: number) => void;
   onToggleMute: () => void;
   onSelectSong?: (song: Song) => void;
   onClose?: () => void;
@@ -105,13 +106,14 @@ export function MusicPlayer({
   onNext,
   onSeek,
   onVolumeChange,
+  onAdjustVolume,
   onToggleMute,
   onSelectSong,
   formatTime,
 }: MusicPlayerProps) {
   const [mounted, setMounted] = useState(false);
   const [showPlaylist, setShowPlaylist] = useState(false);
-  const [showVolumeCapsule, setShowVolumeCapsule] = useState(false);
+  const [volumeToast, setVolumeToast] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [collapsedDeltaX, setCollapsedDeltaX] = useState(0);
@@ -164,11 +166,14 @@ export function MusicPlayer({
   const pressStartTimeRef = useRef<number | null>(null);
   const pressAnimFrameRef = useRef<number | null>(null);
   const wasLongPressRef = useRef(false);
-  const volumeHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const volumeToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 音量鼠标离开时立即优雅收起
-  const handleVolumeMouseLeave = () => {
-    setShowVolumeCapsule(false);
+  const triggerVolumeToast = (text: string) => {
+    setVolumeToast(text);
+    if (volumeToastTimerRef.current) clearTimeout(volumeToastTimerRef.current);
+    volumeToastTimerRef.current = setTimeout(() => {
+      setVolumeToast(null);
+    }, 1000);
   };
 
   // 播放新歌时自动唤醒展示
@@ -184,7 +189,6 @@ export function MusicPlayer({
     const handleClickOutside = (e: MouseEvent) => {
       if (listRef.current && !listRef.current.contains(e.target as Node)) {
         setShowPlaylist(false);
-        setShowVolumeCapsule(false);
       }
     };
 
@@ -241,7 +245,6 @@ export function MusicPlayer({
       const elapsed = Date.now() - pressStartTimeRef.current;
       if (!wasLongPressRef.current && elapsed < 400) {
         setShowPlaylist(false);
-        setShowVolumeCapsule(false);
         setTimeout(() => {
           setIsCollapsed(true);
         }, 16);
@@ -353,14 +356,14 @@ export function MusicPlayer({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 12, scale: 0.98 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute bottom-16 left-0 right-0 sm:left-auto sm:right-2 sm:w-84 rounded-2xl border border-black/10 dark:border-white/[0.12] bg-white/95 dark:bg-[#1c1c1e]/95 p-4 shadow-[0_25px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_50px_rgba(0,0,0,0.7)] backdrop-blur-3xl text-neutral-900 dark:text-white pointer-events-auto"
+                className="absolute bottom-16 left-0 right-0 sm:left-auto sm:right-2 sm:w-84 rounded-2xl border border-black/5 dark:border-white/[0.08] bg-white/80 dark:bg-[#1c1c1e]/80 p-4 shadow-2xl shadow-black/10 dark:shadow-black/50 backdrop-blur-3xl text-neutral-900 dark:text-white pointer-events-auto"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-black/[0.08] dark:border-white/[0.08]">
                   <div className="flex items-center gap-2">
                     <svg
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className="h-4 w-4 text-[#FA2D48]"
+                      className="h-4 w-4 text-[#b91c1c]"
                     >
                       <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2zm14-1v6l5-3-5-3z" />
                     </svg>
@@ -375,7 +378,7 @@ export function MusicPlayer({
                   <button
                     type="button"
                     onClick={() => setShowPlaylist(false)}
-                    className="rounded-lg p-1 text-neutral-400 hover:text-neutral-900 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    className="rounded-full p-1 text-neutral-400 hover:text-neutral-900 hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/10 transition-colors cursor-pointer"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -391,7 +394,7 @@ export function MusicPlayer({
                         onClick={() => onSelectSong?.(song)}
                         className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left transition-colors cursor-pointer ${
                           isCurrent
-                            ? "bg-[#FA2D48] text-white font-medium shadow-sm shadow-[#FA2D48]/30"
+                            ? "bg-[#b91c1c] text-white font-medium shadow-none shadow-none"
                             : "text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-neutral-950 dark:hover:text-white"
                         }`}
                       >
@@ -408,7 +411,7 @@ export function MusicPlayer({
                                 alt={song.title}
                                 referrerPolicy="no-referrer"
                                 onError={(e) => handleMusicCoverError(e, raw, 120)}
-                                className="h-7 w-7 rounded-[4px] object-cover shrink-0 shadow-sm"
+                                className="h-7 w-7 rounded-[4px] object-cover shrink-0 shadow-none"
                               />
                             );
                           })()}
@@ -451,7 +454,7 @@ export function MusicPlayer({
               ease: [0.16, 1, 0.3, 1],
             }}
             style={{ willChange: "transform" }}
-            className={`pointer-events-auto relative flex h-[54px] sm:h-[60px] items-center rounded-full border border-black/10 dark:border-white/[0.15] bg-white/90 dark:bg-[#18181a]/90 shadow-[0_12px_36px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.8)] dark:shadow-[0_16px_44px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-xl overflow-hidden ${
+            className={`pointer-events-auto relative flex h-[54px] sm:h-[60px] items-center rounded-full border border-black/5 dark:border-white/[0.08] bg-white/70 dark:bg-black/50 shadow-2xl shadow-black/5 dark:shadow-black/40 backdrop-blur-2xl overflow-hidden ${
               isCrtCollapsing ? "animate-crt-collapse" : ""
             } ${isCollapsed ? "cursor-pointer" : ""}`}
             onClick={(e) => {
@@ -483,7 +486,7 @@ export function MusicPlayer({
                 setIsCollapsed(false);
               }}
             >
-              <div className="relative h-[44px] w-[44px] sm:h-[48px] sm:w-[48px] rounded-full overflow-hidden bg-black p-[2px] ring-1 ring-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.5)] flex items-center justify-center">
+              <div className="relative h-[44px] w-[44px] sm:h-[48px] sm:w-[48px] rounded-full overflow-hidden bg-black p-[2px] ring-1 ring-white/20 shadow-none flex items-center justify-center">
                 {(() => {
                   const raw =
                     currentSong.cover_url ||
@@ -530,7 +533,7 @@ export function MusicPlayer({
               <div className="flex sm:hidden flex-1 items-center gap-2 min-w-0 pr-1 overflow-hidden">
                 <div
                   onClick={() => setIsExpanded(true)}
-                  className="group/cover relative h-8 w-8 rounded-[4.5px] overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-sm cursor-pointer active:scale-95 transition-transform"
+                  className={`group/cover relative h-8 w-8 sm:h-[36px] sm:w-[36px] rounded-full overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-none cursor-pointer active:scale-95 transition-transform ${isPlaying ? "animate-spin [animation-duration:6s]" : ""}`}
                   title="点击展开全屏大屏沉浸界面"
                 >
                   {(() => {
@@ -558,7 +561,7 @@ export function MusicPlayer({
                       strokeWidth="2.2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="h-3 w-3 text-white drop-shadow-sm"
+                      className="h-3 w-3 text-white drop-shadow-none"
                     >
                       <polyline points="9 3 3 3 3 9" />
                       <polyline points="15 21 21 21 21 15" />
@@ -572,7 +575,7 @@ export function MusicPlayer({
                   <div className="flex items-center gap-1 min-w-0">
                     <span className={`truncate font-semibold text-[12px] sm:text-[13px] tracking-tight leading-none transition-colors duration-300 ${
                       isPlaying
-                        ? "champloo-text-gold"
+                        ? "text-[#b91c1c] dark:text-[#b91c1c]"
                         : "text-neutral-900 dark:text-white"
                     }`}>
                       {currentSong.title}
@@ -594,9 +597,9 @@ export function MusicPlayer({
                 <button
                   type="button"
                   onClick={onToggleShuffle}
-                  className={`p-1.5 transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/10 ${
+                  className={`p-1.5 transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5 ${
                     isShuffle
-                      ? "text-[#FA2D48]"
+                      ? "text-[#b91c1c]"
                       : "text-neutral-400 hover:text-neutral-900 dark:text-white/40 dark:hover:text-white"
                   }`}
                   title={isShuffle ? "随机播放：开" : "随机播放：关"}
@@ -607,7 +610,7 @@ export function MusicPlayer({
                 <button
                   type="button"
                   onClick={onPrev}
-                  className="p-1.5 text-neutral-700 hover:text-neutral-950 active:scale-90 dark:text-white/80 dark:hover:text-white transition-transform cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/10"
+                  className="p-1.5 text-neutral-700 hover:text-neutral-950 active:scale-90 dark:text-white/80 dark:hover:text-white transition-transform cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5"
                   title="上一首"
                 >
                   <SkipBack className="h-4 w-4 fill-current stroke-none" />
@@ -616,7 +619,7 @@ export function MusicPlayer({
                 <button
                   type="button"
                   onClick={onTogglePlay}
-                  className="p-2 text-neutral-900 hover:text-black dark:text-white hover:scale-105 active:scale-95 transition-transform cursor-pointer rounded-full bg-black/5 dark:bg-white/10"
+                  className="p-2 text-neutral-900 hover:text-black dark:text-white hover:scale-105 active:scale-95 transition-transform cursor-pointer rounded-full bg-transparent"
                   title={isPlaying ? "暂停" : "播放"}
                 >
                   {isPlaying ? (
@@ -629,7 +632,7 @@ export function MusicPlayer({
                 <button
                   type="button"
                   onClick={onNext}
-                  className="p-1.5 text-neutral-700 hover:text-neutral-950 active:scale-90 dark:text-white/80 dark:hover:text-white transition-transform cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/10"
+                  className="p-1.5 text-neutral-700 hover:text-neutral-950 active:scale-90 dark:text-white/80 dark:hover:text-white transition-transform cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5"
                   title="下一首"
                 >
                   <SkipForward className="h-4 w-4 fill-current stroke-none" />
@@ -638,9 +641,9 @@ export function MusicPlayer({
                 <button
                   type="button"
                   onClick={onToggleRepeat}
-                  className={`p-1.5 transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/10 ${
+                  className={`p-1.5 transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5 ${
                     repeatMode !== "off"
-                      ? "text-[#FA2D48]"
+                      ? "text-[#b91c1c]"
                       : "text-neutral-400 hover:text-neutral-900 dark:text-white/40 dark:hover:text-white"
                   }`}
                   title={
@@ -663,7 +666,7 @@ export function MusicPlayer({
               <div className="hidden sm:flex relative z-10 flex-1 h-full items-center gap-3 min-w-0 px-2 group/progress">
                 <div
                   onClick={() => setIsExpanded(true)}
-                  className="group/cover relative h-8 w-8 rounded-[4.5px] overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-sm cursor-pointer transition-transform duration-200 hover:scale-110"
+                  className="group/cover relative h-8 w-8 sm:h-[36px] sm:w-[36px] rounded-full overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/15 shadow-none cursor-pointer transition-transform duration-200 hover:scale-110"
                   title="展开全屏大屏沉浸界面"
                 >
                   {(() => {
@@ -691,7 +694,7 @@ export function MusicPlayer({
                       strokeWidth="2.2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="h-3 w-3 text-white drop-shadow-sm"
+                      className="h-3 w-3 text-white drop-shadow-none"
                     >
                       <polyline points="9 3 3 3 3 9" />
                       <polyline points="15 21 21 21 21 15" />
@@ -705,7 +708,7 @@ export function MusicPlayer({
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={`truncate font-semibold text-[13px] tracking-tight leading-tight transition-colors duration-300 ${
                       isPlaying
-                        ? "champloo-text-gold"
+                        ? "text-[#b91c1c] dark:text-[#b91c1c]"
                         : "text-neutral-900 dark:text-white"
                     }`}>
                       {currentSong.title}
@@ -717,7 +720,13 @@ export function MusicPlayer({
                     )}
                   </div>
                   <p className="truncate text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
-                    {currentSong.artist} — {currentSong.album || currentSong.title}
+                    {volumeToast ? (
+                      <span className="text-[#b91c1c] dark:text-[#b91c1c] font-medium font-mono">
+                        音量: {volumeToast}
+                      </span>
+                    ) : (
+                      `${currentSong.artist} — ${currentSong.album || currentSong.title}`
+                    )}
                   </p>
                 </div>
 
@@ -756,7 +765,7 @@ export function MusicPlayer({
                 <button
                   type="button"
                   onClick={onTogglePlay}
-                  className="p-1 text-neutral-900 dark:text-white active:scale-95 transition-transform cursor-pointer rounded-full bg-black/5 dark:bg-white/10"
+                  className="p-1 text-neutral-900 dark:text-white active:scale-95 transition-transform cursor-pointer rounded-full bg-transparent"
                   title={isPlaying ? "暂停" : "播放"}
                 >
                   {isPlaying ? (
@@ -780,7 +789,7 @@ export function MusicPlayer({
                   onClick={() => setShowPlaylist((prev) => !prev)}
                   className={`p-1 transition-colors cursor-pointer ${
                     showPlaylist
-                      ? "text-[#FA2D48]"
+                      ? "text-[#b91c1c]"
                       : "text-neutral-500 dark:text-white/60"
                   }`}
                   title="待播清单"
@@ -856,7 +865,7 @@ export function MusicPlayer({
                   onClick={() => setShowPlaylist((prev) => !prev)}
                   className={`p-1.5 rounded-full transition-colors cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 ${
                     showPlaylist
-                      ? "text-[#FA2D48]"
+                      ? "text-[#b91c1c]"
                       : "text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white"
                   }`}
                   title="待播清单"
@@ -870,28 +879,41 @@ export function MusicPlayer({
                   </svg>
                 </button>
 
-                {/* 音量触发按键 (支持点击与鼠标悬停实时唤出) */}
-                <button
-                  type="button"
-                  onClick={() => setShowVolumeCapsule((prev) => !prev)}
-                  onMouseEnter={() => setShowVolumeCapsule(true)}
-                  className="p-1.5 rounded-full text-neutral-600 hover:text-neutral-900 dark:text-white/70 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                  title="调节音量"
-                >
-                  {isMuted || volume === 0 ? (
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4.5 w-4.5">
-                      <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                      <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4.5 w-4.5">
-                      <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                    </svg>
-                  )}
-                </button>
+                {/* 音量控制 (极简无遮挡方案：点击静音/恢复，滚轮直接微调音量，绝无粗暴覆盖弹层) */}
+                <div className="relative flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleMute();
+                      triggerVolumeToast(isMuted ? `${Math.round((volume || 0.85) * 100)}%` : "静音");
+                    }}
+                    onWheel={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const delta = e.deltaY < 0 ? 0.05 : -0.05;
+                      onAdjustVolume?.(delta);
+                      const base = isMuted ? 0 : volume;
+                      const next = Math.max(0, Math.min(100, Math.round((base + delta) * 100)));
+                      triggerVolumeToast(`${next}%`);
+                    }}
+                    className="p-1.5 rounded-full text-neutral-600 hover:text-neutral-900 dark:text-white/70 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    title={`当前音量: ${Math.round((isMuted ? 0 : volume) * 100)}% (点击静音 / 滚轮微调)`}
+                  >
+                    {isMuted || volume === 0 ? (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4.5 w-4.5">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                        <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4.5 w-4.5">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
 
                 {/* PC 端收起/关闭按钮 */}
                 <div className="relative flex items-center justify-center shrink-0 w-8 h-8 ml-0.5">
@@ -956,60 +978,6 @@ export function MusicPlayer({
                 />
               </div>
             </motion.div>
-
-            {/* 音量控制胶囊弹层 (支持实时鼠标状态监听自动收起) */}
-            <AnimatePresence>
-              {showVolumeCapsule && !isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, width: 36, scale: 0.96 }}
-                  animate={{ opacity: 1, width: 165, scale: 1 }}
-                  exit={{ opacity: 0, width: 36, scale: 0.96 }}
-                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  onMouseLeave={handleVolumeMouseLeave}
-                  className="absolute right-2 top-2 bottom-2 z-30 flex items-center justify-between gap-2.5 rounded-full border border-black/10 dark:border-white/[0.12] bg-white/95 dark:bg-[#222224]/95 px-3.5 shadow-[0_12px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-3xl overflow-hidden origin-right"
-                >
-                  <div className="relative flex-1 flex items-center">
-                    <div className="w-full h-[4.5px] rounded-full bg-black/10 dark:bg-white/20 overflow-hidden">
-                      <div
-                        className="h-full bg-neutral-900 dark:bg-white rounded-full"
-                        style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
-                      />
-                    </div>
-
-                    <input
-                      type="range"
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      value={isMuted ? 0 : volume}
-                      onChange={onVolumeChange}
-                      className="absolute inset-0 w-full opacity-0 cursor-pointer h-6"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={onToggleMute}
-                    className="text-neutral-700 hover:text-neutral-950 dark:text-white dark:hover:text-white/80 transition-colors p-0.5 cursor-pointer shrink-0"
-                    title={isMuted || volume === 0 ? "取消静音" : "静音"}
-                  >
-                    {isMuted || volume === 0 ? (
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                        <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
-                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-                      </svg>
-                    )}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         </div>
       </aside>

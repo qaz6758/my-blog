@@ -18,21 +18,16 @@ interface TableOfContentsProps {
   isArticleHovered?: boolean;
 }
 
-// 图二标准三条杠目录图标（上长、中短、下长）
-export function TocIcon({ className = "h-4 w-4" }: { className?: string }) {
+// Anthony Fu 原版目录图标（Remix Icon: i-ri-menu-2-fill，中线偏短）
+export function TocIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      fill="currentColor"
       className={className}
+      aria-hidden="true"
     >
-      <line x1="3.5" y1="5.5" x2="20.5" y2="5.5" />
-      <line x1="3.5" y1="12" x2="13.5" y2="12" />
-      <line x1="3.5" y1="18.5" x2="20.5" y2="18.5" />
+      <path d="M3 4h18v2H3V4zm0 7h12v2H3v-2zm0 7h18v2H3v-2z" />
     </svg>
   );
 }
@@ -42,11 +37,13 @@ export function TableOfContents({
   items,
   activeId: externalActiveId,
   className = "",
+  isArticleHovered = false,
 }: TableOfContentsProps) {
   const propList = tocList || items;
   const [domList, setDomList] = useState<TocItem[]>([]);
   const [internalActiveId, setInternalActiveId] = useState<string>("");
   const [readingProgress, setReadingProgress] = useState(0);
+  const [isSelfHovered, setIsSelfHovered] = useState(false);
 
   // 点击平滑跳转锁定，严禁中间过渡项抢占高亮
   const isClickScrollingRef = useRef(false);
@@ -65,7 +62,7 @@ export function TableOfContents({
         document.querySelector("article");
       if (!articleEl) return false;
 
-      const elements = articleEl.querySelectorAll("h1, h2, h3, h4");
+      const elements = articleEl.querySelectorAll("h2, h3, h4");
       if (elements.length === 0) return false;
 
       const extracted: TocItem[] = [];
@@ -222,36 +219,54 @@ export function TableOfContents({
     scrollEndTimerRef.current = setTimeout(onScrollEnd, 800);
   };
 
+  const isVisible = isArticleHovered || isSelfHovered;
+
   return (
-    <nav aria-label="文章目录大纲" className={`select-none w-full ${className}`}>
-      <div className="mb-8">
-        <h3 className="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-2">目录</h3>
-        <div className="h-px w-6 bg-neutral-300 dark:bg-neutral-700 mb-6" />
+    <nav
+      aria-label="文章目录大纲"
+      onMouseEnter={() => setIsSelfHovered(true)}
+      onMouseLeave={() => setIsSelfHovered(false)}
+      className={`select-none w-full ${className}`}
+    >
+      <div className="mb-6 flex flex-col items-start">
+        {/* 顶部 ≡ 图标（彻底去除任何方框底色与圆角按钮，极简纯净） */}
+        <div
+          className={`mb-3.5 flex items-center justify-start transition-colors duration-300 ${
+            isVisible
+              ? "text-neutral-900 dark:text-neutral-100"
+              : "text-neutral-400/70 dark:text-neutral-500/70"
+          }`}
+        >
+          <TocIcon className="w-[18px] h-[18px]" />
+        </div>
         
-        <ul className="space-y-3.5 text-[13px]">
-          {list.map((item) => {
+        {/* 目录列表：仅在鼠标进入正文范围或进入左侧时 700ms 平滑浮现，移出时 700ms 淡出 */}
+        <ul
+          className={`w-full space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            isVisible
+              ? "opacity-75 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {list.map((item, idx) => {
             const isActive = currentActiveId === item.id;
-            const isSub = item.level > 2;
+            const isH2 = item.level <= 2;
+            const isH3 = item.level === 3;
+            const isH4 = item.level >= 4;
+            // 大章节之间赋予自然呼吸间距
+            const hasSectionMargin = isH2 && idx > 0;
 
             return (
               <li
                 key={item.id}
-                className={`relative flex items-start transition-all ${
-                  isSub ? "pl-3 text-[12.5px]" : ""
-                }`}
+                className={`relative flex items-start ${
+                  isH4 ? "pl-5 text-[12px]" : isH3 ? "pl-2.5 text-[12.5px]" : "pl-0 text-[13px]"
+                } ${hasSectionMargin ? "mt-2.5" : "mt-1"}`}
               >
-                {/* 极简高雅的高亮指示条 */}
-                {isActive && (
-                  <div className="absolute -left-3 top-1.5 h-3.5 w-[2px] bg-[#292623] dark:bg-white rounded-full" />
-                )}
                 <a
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item.id)}
-                  className={`block leading-relaxed transition-colors duration-200 line-clamp-2 flex-1 ${
-                    isActive
-                      ? "text-[#292623] dark:text-white font-medium"
-                      : "text-neutral-400 hover:text-[#292623] dark:text-[#777168] dark:hover:text-[#eae5dc]"
-                  }`}
+                  className="inline-block leading-[1.5em] text-neutral-600 dark:text-[#888888] hover:text-black dark:hover:text-white opacity-75 hover:opacity-100 transition-all duration-150 underline underline-offset-[5px] decoration-black/20 dark:decoration-white/20 hover:decoration-black/70 dark:hover:decoration-white/70 font-normal"
                   title={item.text}
                 >
                   {item.text}
@@ -260,19 +275,6 @@ export function TableOfContents({
             );
           })}
         </ul>
-      </div>
-
-      <div className="mt-16">
-        <div className="flex justify-between items-center text-[11px] text-neutral-400 dark:text-neutral-500 mb-3 font-mono">
-          <span>阅读进度</span>
-          <span>{readingProgress}%</span>
-        </div>
-        <div className="h-0.5 w-full bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-neutral-800 dark:bg-neutral-400 transition-all duration-300 ease-out"
-            style={{ width: `${readingProgress}%` }}
-          />
-        </div>
       </div>
     </nav>
   );

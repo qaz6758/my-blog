@@ -723,3 +723,8 @@ html.view-transition-active *::after {
     );
   box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.65);
 }
+
+/* 歌单直达预阻断：杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现 */
+html.hide-playlist-grid [data-playlist-grid] {
+  display: none !important;
+}
