@@ -456,30 +456,28 @@ html.dark .ink-divider::after {
   opacity: 0.4;
 }
 
-/* --- 2. 漫画分格卡片 (Manga Panel Card) 水墨张力版 --- */
+/* --- 2. 漫画分格卡片 (Manga Panel Card) 手绘漫画版 --- */
 .manga-panel {
   position: relative;
-  background: transparent;
-  /* 去除刻意的粗实线和硬阴影，改为手绘墨线感 */
-  border: 1.5px solid currentColor;
-  border-radius: 1px;
+  background: #ffffff;
+  /* 稍粗的实线，配合微妙的不规则圆角模拟手绘墨线 */
+  border: 2.5px solid #050505;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  /* 漫画中经典的硬切角排版阴影 */
+  box-shadow: 5px 5px 0 #050505;
   z-index: 1;
-  transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+  transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1), box-shadow 0.2s ease;
 }
 
-/* 伪造手绘边缘的不规则感（极细微的破损切角） */
-.manga-panel::after {
-  content: '';
-  position: absolute;
-  inset: -1.5px;
-  border: 1px solid currentColor;
-  pointer-events: none;
-  opacity: 0.5;
-  clip-path: polygon(0 4px, 4px 0, calc(100% - 2px) 0, 100% 3px, 100% calc(100% - 5px), calc(100% - 1px) 100%, 3px 100%, 0 calc(100% - 2px));
+html.dark .manga-panel {
+  background: #080808;
+  border-color: #ffffff;
+  box-shadow: 5px 5px 0 #ffffff;
 }
 
 .manga-panel:hover {
-  transform: translateY(-2px);
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 currentColor;
 }
 
 /* 狂气泼墨 Hover 效果 (Ink Splatter Hover) */
