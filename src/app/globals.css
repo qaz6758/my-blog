@@ -423,22 +423,7 @@ html.dark :focus-visible {
  * ============================================================
  */
 
-/* --- 1. 全局纸张纤维纹理底 (Paper Grain Texture) --- */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-html.dark body::before {
-  opacity: 0.04;
-}
-
-/* --- 2. 墨迹笔触分割线 (Ink Brush Stroke Divider) --- */
+/* --- 1. 墨迹笔触分割线 (Ink Brush Stroke Divider) --- */
 hr,
 .ink-divider {
   border: none;
@@ -471,55 +456,38 @@ html.dark .ink-divider::after {
   opacity: 0.4;
 }
 
-/* --- 3. 朱印落款印章 (Vermillion Seal Stamp) --- */
-.seal-stamp {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1.5px solid #c0392b;
-  border-radius: 2px;
-  color: #c0392b;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0;
-  user-select: none;
-  transform: rotate(-3deg);
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
-  font-family: "Songti SC", "SimSun", "Source Han Serif", serif;
-}
-
-.seal-stamp:hover {
-  opacity: 1;
-}
-
-/* --- 4. 漫画分格卡片 (Manga Panel Card) --- */
+/* --- 2. 漫画分格卡片 (Manga Panel Card) 增强版 --- */
 .manga-panel {
   position: relative;
-  background: transparent;
-  border: 2.5px solid currentColor;
+  background: #ffffff;
+  border: 3.5px solid #050505;
   border-radius: 0;
-  transition: border-width 0.15s ease;
+  box-shadow: 6px 6px 0 #050505;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-width 0.2s ease;
+  z-index: 1;
+}
+
+html.dark .manga-panel {
+  background: #050505;
+  border: 3.5px solid #ffffff;
+  box-shadow: 6px 6px 0 #ffffff;
 }
 
 .manga-panel:hover {
-  border-width: 3.5px;
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 currentColor;
 }
 
-/* 分格线右下角墨迹飞溅装饰 */
+/* 粗犷的分格右下角破损/墨滴装饰 */
 .manga-panel::after {
   content: '';
   position: absolute;
-  right: -3px;
-  bottom: -3px;
-  width: 12px;
-  height: 12px;
+  right: -5px;
+  bottom: -5px;
+  width: 14px;
+  height: 14px;
   background: currentColor;
   border-radius: 50% 0 50% 50%;
-  opacity: 0.15;
   pointer-events: none;
 }
 
@@ -604,25 +572,25 @@ html.dark .ink-divider::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(currentColor 1.2px, transparent 1.2px);
-  background-size: 6px 6px;
+  background-image: radial-gradient(currentColor 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
   background-position: 0 0;
-  opacity: 0.05;
+  opacity: 0.12;
   z-index: -1;
   pointer-events: none;
   transition: opacity 0.2s ease;
 }
 
 html.dark .manga-panel::before {
-  opacity: 0.12;
+  opacity: 0.25;
 }
 
 .manga-panel:hover::before {
-  opacity: 0.08;
+  opacity: 0.18;
 }
 
 html.dark .manga-panel:hover::before {
-  opacity: 0.18;
+  opacity: 0.35;
 }
 
 /* 速度线Hover动画（集中线） */

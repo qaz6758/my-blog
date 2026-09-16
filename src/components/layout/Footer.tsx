@@ -37,7 +37,6 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
           <div className="flex flex-col items-start text-left space-y-3 max-w-sm">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
               {siteConfig.name}
-              <span className="seal-stamp" title="朱印落款">印</span>
             </h2>
             {/* 水墨引用块（mx-0 贴左，取消手机端居中） */}
             <blockquote className="my-1 mx-0 w-fit border-l-2 border-neutral-500 dark:border-neutral-300 bg-black/[0.04] dark:bg-white/[0.07] pl-3 pr-3 py-1 text-[12.5px] sm:text-xs font-medium text-neutral-800 dark:text-white dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.15)] leading-relaxed font-sans rounded-r-sm select-text">
