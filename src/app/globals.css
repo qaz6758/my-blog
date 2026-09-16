@@ -80,8 +80,9 @@
  */
 
 :root {
-  --page-bg: #ffffff;
-  --page-text: #222222;
+  --page-bg: #050505;
+  --page-text: #e5e5e5;
+  color-scheme: dark;
 }
 
 html.dark {
@@ -319,8 +320,8 @@ body {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--page-bg);
+  color: var(--page-text);
   font-family: var(--font-sans);
   line-height: 1.65;
   letter-spacing: -0.015em;
