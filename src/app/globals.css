@@ -514,16 +514,16 @@ html.dark .manga-panel {
 @keyframes slide-enter {
   0% {
     opacity: 0;
-    translate: 0 10px;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    translate: 0;
+    transform: translateY(0);
   }
 }
 
 .slide-enter {
-  animation: slide-enter 1s both 1;
+  animation: slide-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both 1;
   animation-delay: var(--slide-enter-delay, 0ms);
 }
 
@@ -531,9 +531,9 @@ html.dark .manga-panel {
 @media (prefers-reduced-motion: no-preference) {
   .slide-enter-content > * {
     --enter-stage: 0;
-    --enter-step: 90ms;
+    --enter-step: 70ms;
     --enter-initial: 0ms;
-    animation: slide-enter 1s both 1;
+    animation: slide-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both 1;
     animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
   }
 

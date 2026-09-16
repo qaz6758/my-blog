@@ -136,16 +136,16 @@ export default async function RootLayout({
               }
               /* 同步直出关键动画规则，杜绝 Frame 0 元素先满不透明度绘制后隐藏的跳闪 */
               @keyframes slide-enter {
-                0% { opacity: 0; translate: 0 10px; }
-                to { opacity: 1; translate: 0; }
+                0% { opacity: 0; transform: translateY(4px); }
+                to { opacity: 1; transform: translateY(0); }
               }
               @media (prefers-reduced-motion: no-preference) {
                 .slide-enter,
                 .slide-enter-content > * {
                   --enter-stage: 0;
-                  --enter-step: 90ms;
+                  --enter-step: 70ms;
                   --enter-initial: 0ms;
-                  animation: slide-enter 1s both 1;
+                  animation: slide-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both 1;
                   animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
                 }
                 .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
