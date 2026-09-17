@@ -12,20 +12,37 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://vinceou.site"),
+  title: {
+    default: `${siteConfig.name}'s Blog`,
+    template: `%s | ${siteConfig.name}'s Blog`,
+  },
+  description: siteConfig.description,
   openGraph: {
-    title: siteConfig.name,
+    title: `${siteConfig.name}'s Blog`,
     description: siteConfig.description,
-    url: 'https://vinceou.site',
+    url: "https://vinceou.site",
     siteName: siteConfig.name,
     images: [
       {
-        url: '/avatar.jpg', // 或者是你专门放的一张大横幅封面图
+        url: "/og-cover.png",
         width: 1200,
         height: 630,
+        alt: `${siteConfig.name}'s Blog Cover`,
       },
     ],
-    locale: 'zh_CN',
-    type: 'website',
+    locale: "zh_CN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteConfig.name}'s Blog`,
+    description: siteConfig.description,
+    images: ["/og-cover.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
