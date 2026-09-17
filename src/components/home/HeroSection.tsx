@@ -81,33 +81,33 @@ export function HeroSection() {
 
         {/* ===================== 2. 核心身份标题 ===================== */}
         <div className="text-left mb-6 sm:mb-8">
-          <h1 className="text-[34px] sm:text-[44px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 select-none font-serif">
+          <h1 className="text-[34px] sm:text-[44px] font-extrabold tracking-tight text-black dark:text-white select-none font-sans">
             {name}
           </h1>
         </div>
 
         {/* ===================== 3. 现代纯粹正文 (清爽黑体 · 极简呼吸感 · 逐段物理顿感) ===================== */}
         {/* 第一段：身份白描 */}
-        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
+        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.75] text-left text-[#555] dark:text-[#bbb] mb-5">
           {t("hero.p1", { name })}
         </p>
 
         {/* 第二段：内省与对抗 */}
-        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
+        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.75] text-left text-[#555] dark:text-[#bbb] mb-5">
           {t("hero.p2")}
         </p>
 
         {/* 第三段：信念宣言 */}
-        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
+        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.75] text-left text-[#555] dark:text-[#bbb] mb-5">
           {t("hero.p3_pre")}
-          <span className="font-medium text-neutral-950 dark:text-white">
+          <span className="font-semibold text-[#222] dark:text-white">
             {t("hero.p3_quote")}
           </span>
           {t("hero.p3_post")}
         </p>
 
         {/* 第四段：多维通路引言 */}
-        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.8] text-left text-neutral-700 dark:text-neutral-200 mb-5">
+        <p className="w-full font-sans text-[15px] sm:text-[16px] leading-[1.75] text-left text-[#555] dark:text-[#bbb] mb-5">
           {t("hero.p4_intro")}
           <TextLink href="/gallery">{t("hero.p4_gallery")}</TextLink>
           {t("hero.p4_listen")}

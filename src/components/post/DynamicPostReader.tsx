@@ -10,6 +10,7 @@ import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
 import { useI18n } from "@/lib/i18n/I18nContext";
+import { calculateReadTime } from "@/lib/utils";
 
 // ─── 动态按需加载模块（内联声明，无需额外包装文件） ──────────────
 const PostContentWrapper = dynamic(
@@ -148,6 +149,12 @@ export function DynamicPostReader({
     return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "");
   }, [post, globalLocale, rawContent, convertText]);
 
+  // 估算文章阅读耗时
+  const readTime = useMemo(() => {
+    if (!displayContent) return null;
+    return calculateReadTime(displayContent);
+  }, [displayContent]);
+
   // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
   const isHtmlContent = React.useMemo(() => {
     if (!post) return false;
@@ -285,18 +292,23 @@ export function DynamicPostReader({
             >
               
               <header className="mb-8 relative">
-                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-bold tracking-tight text-neutral-900 dark:text-neutral-50 leading-[1.35] font-sans relative inline-block">
+                <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold tracking-tight text-black dark:text-white leading-[1.15] font-sans relative inline-block">
                   {displayTitle}
                 </h1>
                 
-                <div className="mt-3 flex items-center justify-between text-[13px] text-neutral-500 dark:text-neutral-400 font-sans">
-                  <div className="flex items-center gap-3">
+                <div className="mt-3 flex items-center justify-between text-[13px] text-neutral-500 dark:text-neutral-400 font-sans opacity-60">
+                  <div className="flex items-center gap-2">
                     {(post.published_at || post.created_at) && (
                       <span>
                         {new Date(post.published_at || post.created_at || "").toLocaleDateString(
                           globalLocale === "zh-TW" ? "zh-TW" : globalLocale === "en" ? "en-US" : globalLocale === "ja" ? "ja-JP" : globalLocale === "ko" ? "ko-KR" : "zh-CN",
                           { month: "long", day: "numeric", year: "numeric" }
                         )}
+                      </span>
+                    )}
+                    {readTime && (
+                      <span className="opacity-75">
+                        · {readTime} {globalLocale === "en" ? "min" : "分钟"}
                       </span>
                     )}
                   </div>
@@ -307,7 +319,7 @@ export function DynamicPostReader({
               <article
                 lang={isSourceZh ? "zh-CN" : "en"}
                 className="post-article min-w-0 font-sans"
-                style={{ fontSize: "1.0625rem", lineHeight: "1.85", letterSpacing: "normal" }}
+                style={{ fontSize: "1rem", lineHeight: "1.75", letterSpacing: "normal" }}
               >
                 <PostContentWrapper
                   content={displayContent}

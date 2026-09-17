@@ -80,7 +80,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
     <div className="w-full text-left">
       {/* 顶部洗练标题：黑白漫卷首 */}
       <div className="mb-12 sm:mb-16">
-        <h1 className="text-[36px] sm:text-[42px] font-serif font-bold tracking-tight text-black dark:text-white select-none">
+        <h1 className="text-[36px] sm:text-[42px] font-sans font-extrabold tracking-tight text-black dark:text-white select-none">
           文章
         </h1>
       </div>
@@ -94,7 +94,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
             <section key={year} className="relative">
               {/* 年份分镜切割：粗黑实线 */}
               <div className="mb-5 sm:mb-6 select-none border-b-2 border-black dark:border-white pb-2">
-                <span className="font-serif text-[24px] sm:text-[28px] font-bold tracking-wider text-black dark:text-white">
+                <span className="font-sans text-[24px] sm:text-[28px] font-bold tracking-wider text-black dark:text-white">
                   {year}
                 </span>
               </div>
@@ -114,12 +114,12 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       prefetch={true}
                       className="group relative flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 px-4 py-3 -mx-4 text-left transition-all duration-75 border border-transparent hover:border-black dark:hover:border-white hover:bg-white dark:hover:bg-black hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0_#000] dark:hover:shadow-[4px_4px_0_#fff]"
                     >
-                      <span className="text-[16px] sm:text-[17px] font-serif font-medium leading-relaxed text-neutral-900 dark:text-neutral-200 transition-colors duration-75">
+                      <span className="text-[16px] sm:text-[17px] font-sans font-normal leading-relaxed text-[#222] dark:text-[#ddd] opacity-60 group-hover:opacity-100 transition-opacity duration-200">
                         {post.title}
                       </span>
-                      <span className="shrink-0 font-mono text-[12px] sm:text-[12.5px] text-neutral-400 dark:text-neutral-500 whitespace-nowrap transition-colors duration-75">
+                      <span className="shrink-0 font-mono text-[12px] sm:text-[12.5px] text-[#888] opacity-50 whitespace-nowrap transition-opacity duration-200">
                         {formattedDate}
-                        {readTime ? " · " + readTime + "min" : ""}
+                        {readTime ? <span className="opacity-80"> · {readTime}min</span> : ""}
                       </span>
                     </Link>
                   );

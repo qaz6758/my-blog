@@ -552,21 +552,21 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[15.5px] sm:text-[16px] leading-[1.8] text-neutral-800 dark:text-[#d4d4d4] font-sans tracking-normal
+    text-[15.5px] sm:text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
     [&_p]:mb-[1.35rem]
-    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[28px] [&_h1]:font-bold [&_h1]:font-sans [&_h1]:mt-12 [&_h1]:mb-6 [&_h1]:text-neutral-900 dark:[&_h1]:text-neutral-100 [&_h1]:tracking-tight
-    [&_h2]:scroll-mt-24 [&_h2]:text-[20px] sm:[&_h2]:text-[24px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-14 [&_h2]:mb-5 [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h2]:tracking-tight
-    [&_h3]:scroll-mt-24 [&_h3]:text-[18px] sm:[&_h3]:text-[20px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-10 [&_h3]:mb-4 [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_h3]:tracking-tight
-    [&_h4]:scroll-mt-24 [&_h4]:text-[16px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-8 [&_h4]:mb-3 [&_h4]:text-neutral-900 dark:[&_h4]:text-neutral-100
-    [&_strong]:font-semibold [&_strong]:text-black dark:[&_strong]:text-white
+    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[32px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-14 [&_h1]:mb-6 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.15] [&_h1]:tracking-tight
+    [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[26px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-16 [&_h2]:mb-6 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
+    [&_h3]:scroll-mt-24 [&_h3]:text-[20px] sm:[&_h3]:text-[23px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-14 [&_h3]:mb-5 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
+    [&_h4]:scroll-mt-24 [&_h4]:text-[17px] sm:[&_h4]:text-[18px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-10 [&_h4]:mb-4 [&_h4]:text-[#222] dark:[&_h4]:text-[#ddd] [&_h4]:leading-[1.4]
+    [&_strong]:font-semibold [&_strong]:text-[#222] dark:[&_strong]:text-white
     [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-[1.3rem] [&_ul]:space-y-2
     [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-[1.3rem] [&_ol]:space-y-2
-    [&_li]:leading-[1.8]
+    [&_li]:leading-[1.75]
     [&_img]:rounded-md [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
     [&_a]:prose-link
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-8
-    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
-    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
+    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-[#222] dark:[&_th]:text-[#ddd] [&_th]:text-left
+    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-[#555] dark:[&_td]:text-[#bbb]
     [&_tr:nth-child(even)]:bg-transparent
     [&_hr]:my-12 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
@@ -632,7 +632,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
                       <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
                       <span>{alertTitle}</span>
                     </div>
-                    <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-700 dark:text-[#c9d1d9] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                    <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                       {cleanChildren}
                     </div>
                   </div>
@@ -641,7 +641,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
               h1: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h2 id={id} className="text-[20px] sm:text-[24px] font-bold mt-12 mb-5 text-neutral-900 dark:text-neutral-50 font-sans tracking-tight" {...props}>
+                  <h2 id={id} className="text-[22px] sm:text-[26px] font-bold mt-16 mb-6 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
                     {children}
                   </h2>
                 );
@@ -649,7 +649,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
               h2: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h2 id={id} {...props}>
+                  <h2 id={id} className="text-[22px] sm:text-[26px] font-bold mt-16 mb-6 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
                     {children}
                   </h2>
                 );
@@ -657,7 +657,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
               h3: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h3 id={id} {...props}>
+                  <h3 id={id} className="text-[20px] sm:text-[23px] font-bold mt-14 mb-5 text-black dark:text-white font-sans tracking-tight leading-[1.33]" {...props}>
                     {children}
                   </h3>
                 );
@@ -665,7 +665,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
               h4: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h4 id={id} {...props}>
+                  <h4 id={id} className="text-[17px] sm:text-[18px] font-bold mt-10 mb-4 text-[#222] dark:text-[#ddd] font-sans tracking-tight leading-[1.4]" {...props}>
                     {children}
                   </h4>
                 );
@@ -679,7 +679,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
                 if (isInline) {
                   return (
                     <code
-                      className="rounded bg-neutral-200/60 px-1.5 py-0.5 text-[13px] text-neutral-800 dark:bg-neutral-800/80 dark:text-neutral-200"
+                      className="rounded bg-[#aaaaaa18] dark:bg-[#ffffff15] px-1.5 py-0.5 text-[13px] sm:text-[13.5px] font-mono font-medium text-[#222] dark:text-[#ddd]"
                       {...props}
                     >
                       {children}

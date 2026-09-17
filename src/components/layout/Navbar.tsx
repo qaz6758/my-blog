@@ -158,10 +158,10 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`text-[15px] sm:text-[16px] font-serif tracking-widest transition-opacity duration-200 select-none cursor-pointer py-1 ${
+                    className={`text-[14.5px] sm:text-[15px] font-sans tracking-wide transition-opacity duration-200 select-none cursor-pointer py-1 ${
                       isActive
-                        ? "opacity-100 font-bold text-neutral-950 dark:text-[#eae5dc]"
-                        : "opacity-70 hover:opacity-100 text-neutral-800 dark:text-neutral-200"
+                        ? "opacity-100 font-bold text-black dark:text-white"
+                        : "opacity-60 hover:opacity-100 text-neutral-800 dark:text-neutral-200"
                     }`}
                   >
                     <span>{t(link.key)}</span>
