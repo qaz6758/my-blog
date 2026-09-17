@@ -2,28 +2,36 @@
 
 /*
  * ============================================================
- * Tailwind v4 全局字体映射 (@theme)
- * 规范 font-sans, font-mono, font-wenkai, font-serif, font-cinzel
+ * Tailwind v4 全局字体映射 (@theme) - Anthony Fu (antfu.me) 同款字体套装
+ * 包含:
+ * 1. font-sans: Inter (antfu.me 官方主力无衬线)
+ * 2. font-mono: DM Mono (antfu.me 官方代码与元信息等宽)
+ * 3. font-serif: DM Serif Display + ui-serif (antfu 衬线设计)
+ * 4. font-wisper: Bad Script (antfu.me 标志性手写便签/随笔体)
  * ============================================================
  */
 
 @theme {
   --font-sans:
+    var(--font-inter),
+    Inter,
     ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     Roboto,
+    "Helvetica Neue",
+    Arial,
     "PingFang SC",
     "Hiragino Sans GB",
     "Microsoft YaHei",
-    "WenQuanYi Micro Hei",
     sans-serif;
 
   --font-mono:
-    "JetBrains Mono",
-    "Fira Code",
+    var(--font-dm-mono),
+    "DM Mono",
+    "Input Mono",
     ui-monospace,
     SFMono-Regular,
     Menlo,
@@ -33,36 +41,21 @@
     "Courier New",
     monospace;
 
-  --font-wenkai:
-    "LXGW WenKai Screen",
-    "LXGW WenKai Screen R",
-    "LXGW WenKai",
-    "霞鹜文楷",
-    -apple-system,
-    BlinkMacSystemFont,
-    "PingFang SC",
-    "Hiragino Sans GB",
-    "Microsoft YaHei",
-    sans-serif;
-
   --font-serif:
-    Charter,
-    "Bitstream Charter",
-    "Sitka Text",
+    var(--font-dm-serif),
+    ui-serif,
     Georgia,
-    "Iowan Old Style",
-    "Palatino Linotype",
-    "Source Serif 4",
-    var(--font-wenkai),
-    "LXGW WenKai Screen",
+    Cambria,
+    "Times New Roman",
+    Times,
     "Songti SC",
+    "SimSun",
     serif;
 
-  --font-cinzel:
-    var(--font-cinzel),
-    var(--font-cormorant),
-    Georgia,
-    serif;
+  --font-wisper:
+    var(--font-bad-script),
+    "Bad Script",
+    cursive;
 }
 
 /*
@@ -477,28 +470,6 @@ html.dark .manga-panel {
 .manga-panel:hover {
   transform: translate(-2px, -2px);
   box-shadow: 7px 7px 0 currentColor;
-}
-
-/* 狂气泼墨 Hover 效果 (Ink Splatter Hover) */
-.manga-panel:hover::before {
-  content: '';
-  position: absolute;
-  inset: -20px;
-  background-image: 
-    radial-gradient(circle at 10% 90%, currentColor 1.5px, transparent 2px),
-    radial-gradient(circle at 90% 10%, currentColor 2.5px, transparent 3px),
-    radial-gradient(circle at 95% 85%, currentColor 1px, transparent 1.5px),
-    radial-gradient(circle at 5% 15%, currentColor 2px, transparent 3px),
-    radial-gradient(circle at 85% 95%, currentColor 1.5px, transparent 2px);
-  opacity: 0.8;
-  z-index: -1;
-  pointer-events: none;
-  animation: ink-splatter 0.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-}
-
-@keyframes ink-splatter {
-  0% { transform: scale(0.9); opacity: 0; }
-  100% { transform: scale(1); opacity: 0.8; }
 }
 
 

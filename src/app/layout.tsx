@@ -1,5 +1,34 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, DM_Mono, DM_Serif_Display, Bad_Script } from "next/font/google";
 import "@/app/globals.css";
+
+// Anthony Fu (antfu.me) 同款字体全家桶配置
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const dmMono = DM_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-dm-mono",
+  display: "swap",
+});
+
+const dmSerifDisplay = DM_Serif_Display({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-dm-serif",
+  display: "swap",
+});
+
+const badScript = Bad_Script({
+  weight: ["400"],
+  subsets: ["latin"],
+  variable: "--font-bad-script",
+  display: "swap",
+});
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { MusicProvider } from "@/components/playlist/MusicContext";
@@ -54,6 +83,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
+      className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -196,7 +226,7 @@ export default function RootLayout({
             `,
           }}
         />
-        {/* 字体已全面切换为系统本地黑体栈（Inter + 苹方 / 微软雅黑），无需外部 CDN 网络字体 */}
+        {/* Anthony Fu (antfu.me) 同款字体（由 Next.js 本地零延迟自托管，零运行时请求） */}
       </head>
 
       <body className="min-h-screen w-full font-sans selection:bg-[#ded5c4] dark:selection:bg-[#2b2723] overflow-x-hidden antialiased">

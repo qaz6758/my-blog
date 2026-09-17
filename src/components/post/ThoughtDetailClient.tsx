@@ -177,13 +177,19 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             onClick={() => toggleReaction("upvoted")}
             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
               reaction.upvoted
-                ? "text-neutral-900 dark:text-white"
+                ? "text-neutral-900 dark:text-[#eae5dc]"
                 : "hover:text-neutral-900 dark:hover:text-white"
             }`}
             style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
-            <HeartCrack className={`h-3.5 w-3.5 ${reaction.upvoted ? "fill-current" : ""}`} />
-            <span>{upvotes}</span>
+            <HeartCrack
+              className={`h-3.5 w-3.5 transition-all ${
+                reaction.upvoted
+                  ? "text-neutral-950 dark:text-white stroke-[2.6] scale-110"
+                  : "stroke-[1.8] text-neutral-400"
+              }`}
+            />
+            <span>{Math.max(upvotes || 0, reaction.upvoted ? 1 : 0)}</span>
           </button>
 
           <div className="flex items-center gap-1.5 opacity-80">

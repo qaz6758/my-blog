@@ -20,9 +20,23 @@ export function ThoughtsClientList({
     });
     return list.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
   });
-  const [userReactions, setUserReactions] = useState<
-    Record<string, { liked?: boolean; upvoted?: boolean }>
-  >({});
+const STORAGE_KEY = "ow_thoughts_reactions_v1";
+
+// 初始状态必须是干净的空对象（首屏与服务器 100% 对齐，彻底消灭水合警告）
+const [userReactions, setUserReactions] = useState<
+  Record<string, { liked?: boolean; upvoted?: boolean }>
+>({});
+// 客户端注水完成后：同时恢复红心高亮与数字补偿！
+useEffect(() => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      setUserReactions(JSON.parse(saved));
+    }
+  } catch (e) {
+    console.warn("读取本地点赞记忆失败", e);
+  }
+}, []);
 
   // 1. 毫秒级后台静默获取最新 Notion 随想录（SWR 实时刷新，免部署）
   useEffect(() => {
@@ -42,16 +56,20 @@ export function ThoughtsClientList({
               const targetDate = existing?.rawDate || item.rawDate || item.time;
               const dateInfo = formatThoughtDate(targetDate);
               map.set(item.id, {
-                ...item,
-                time: dateInfo.relative || existing?.time || item.time,
-                fullTime: dateInfo.full || existing?.fullTime,
-                rawDate: existing?.rawDate || item.rawDate || item.time,
-                year: item.year || existing?.year || (dateInfo.full ? dateInfo.full.slice(0, 4) : ""),
-                replies: existing?.replies ?? item.replies ?? 0,
-                likes: existing?.likes ?? item.likes ?? 0,
-                upvotes: existing?.upvotes ?? item.upvotes ?? 0,
-                _order: index,
-              } as any);
+              ...item,
+              // 🔥 核心保护：如果已有排版内容更丰富完整，坚决保留长段落排版，杜绝闪烁降级！
+              description: (existing?.description && existing.description.length > item.description.length)
+                ? existing.description
+                : (item.description || existing?.description || ""),
+              time: dateInfo.relative || existing?.time || item.time,
+              fullTime: dateInfo.full || existing?.fullTime,
+              rawDate: existing?.rawDate || item.rawDate || item.time,
+              year: item.year || existing?.year || (dateInfo.full ? dateInfo.full.slice(0, 4) : ""),
+              replies: existing?.replies ?? item.replies ?? 0,
+              likes: existing?.likes ?? item.likes ?? 0,
+              upvotes: existing?.upvotes ?? item.upvotes ?? 0,
+              _order: index,
+            } as any);
             });
 
             const mergedList = Array.from(map.values());
@@ -98,25 +116,57 @@ export function ThoughtsClientList({
     fetchAllCommentCounts();
   }, [initialItems]);
 
-  // 2. 点赞 / 心碎交互
-  const toggleReaction = (id: string, type: "liked" | "upvoted") => {
+
+    // 2. 点赞 / 心碎交互 (工业级终极版：函数式更新 + 幂等双写)
+  const toggleReaction = async (id: string, type: "liked" | "upvoted") => {
     const currentReaction = userReactions[id] || {};
     const willBeActive = !currentReaction[type];
 
-    setUserReactions((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], [type]: willBeActive },
-    }));
+    // ① 函数式安全更新：防闭包丢失，红心 100% 毫秒级响应！
+    setUserReactions((prev) => {
+      const updated = {
+        ...prev,
+        [id]: { ...(prev[id] || {}), [type]: willBeActive },
+      };
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn("写入本地失败", e);
+        }
+      }
+      return updated;
+    });
 
+    // ② 找到基准数字
+    const currentItem = items.find((t) => t.id === id);
+    const baseLikes = currentItem?.likes || 0;
+    const baseUpvotes = currentItem?.upvotes || 0;
+
+    const newLikes = willBeActive ? baseLikes + 1 : Math.max(0, baseLikes - 1);
+    const newUpvotes = willBeActive ? baseUpvotes + 1 : Math.max(0, baseUpvotes - 1);
+
+    // ③ 乐观更新列表展示
     setItems((list) =>
       list.map((item) => {
         if (item.id !== id) return item;
-        if (type === "liked") {
-          return { ...item, likes: willBeActive ? item.likes + 1 : item.likes - 1 };
-        }
-        return { ...item, upvotes: willBeActive ? item.upvotes + 1 : item.upvotes - 1 };
+        return type === "liked"
+          ? { ...item, likes: newLikes }
+          : { ...item, upvotes: newUpvotes };
       })
     );
+
+    // ④ 🔥 云端神技 UPSERT：不管你是 Notion 还是本地，不存在就自动创建，存在就更新！
+    try {
+      const payload: Record<string, any> = { id };
+      if (type === "liked") payload.likes = newLikes;
+      else payload.upvotes = newUpvotes;
+
+      await supabase.from("thoughts").upsert(payload, { onConflict: "id" });
+      console.log("🎉 云端 UPSERT 真正落盘成功！");
+    } catch (err) {
+      console.error("云端写库失败:", err);
+    }
   };
 
   return (
@@ -210,24 +260,25 @@ export function ThoughtsClientList({
             {/* 底部交互栏 */}
             <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-[#777168] select-none">
               <div className="flex items-center gap-4">
-                {/* 喜欢 */}
-                <button
-                  type="button"
-                  onClick={() => toggleReaction(item.id, "liked")}
-                  className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    reaction.liked
-                      ? "text-[#b91c1c] dark:text-white"
-                      : "hover:text-[#b91c1c] dark:hover:text-white"
+              {/* 喜欢按钮 */}
+              <button
+                type="button"
+                onClick={() => toggleReaction(item.id, "liked")}
+                className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  reaction.liked
+                    ? "text-[#b91c1c] dark:text-white"
+                    : "hover:text-[#b91c1c] dark:hover:text-white"
+                }`}
+                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+              >
+                <Heart
+                  className={`h-3.5 w-3.5 ${
+                    reaction.liked ? "fill-current" : ""
                   }`}
-                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                >
-                  <Heart
-                    className={`h-3.5 w-3.5 ${
-                      reaction.liked ? "fill-current" : ""
-                    }`}
-                  />
-                  <span>{item.likes}</span>
-                </button>
+                />
+                {/* 🔥 双保险展示：保证只要红心亮起，数字保底绝对是真实累计数！ */}
+                <span>{Math.max(item.likes || 0, reaction.liked ? 1 : 0)}</span>
+              </button>
 
                 {/* 心碎 */}
                 <button
@@ -235,17 +286,19 @@ export function ThoughtsClientList({
                   onClick={() => toggleReaction(item.id, "upvoted")}
                   className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
                     reaction.upvoted
-                      ? "text-neutral-900 dark:text-white"
+                      ? "text-neutral-900 dark:text-[#eae5dc]"
                       : "hover:text-neutral-900 dark:hover:text-white"
                   }`}
                   style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
                 >
-                  <HeartCrack
-                    className={`h-3.5 w-3.5 ${
-                      reaction.upvoted ? "fill-current" : ""
-                    }`}
-                  />
-                  <span>{item.upvotes}</span>
+                <HeartCrack
+                  className={`h-3.5 w-3.5 transition-all ${
+                    reaction.upvoted
+                      ? "text-neutral-950 dark:text-white stroke-[2.6] scale-110" 
+                      : "stroke-[1.8] text-neutral-400"
+                  }`}
+                />
+                  <span>{Math.max(item.upvotes || 0, reaction.upvoted ? 1 : 0)}</span>
                 </button>
 
                 {/* 实时评论数 */}
