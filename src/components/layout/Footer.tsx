@@ -138,7 +138,7 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                 </li>
                 <li>
                   <a
-                    href="mailto:theyole114@outlook.com"
+                    href="mailto:hi@owen.loc.cc"
                     className="group inline-flex items-center gap-0.5 text-neutral-700 hover:text-neutral-950 dark:text-[#f3f0ea] dark:hover:text-white dark:[text-shadow:_0_1px_4px_rgba(0,0,0,0.9)] transition-all duration-200"
                   >
                     <span className="hover:underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-600">{t("footer.email")}</span>

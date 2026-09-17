@@ -185,10 +185,10 @@ export function HeroSection() {
           <p className="pt-2 font-mono text-[13px] sm:text-[14px] text-neutral-500 dark:text-[#a09a8e] text-left select-text">
             {t("hero.or_mail")}{" "}
             <a
-              href="mailto:theyole114@outlook.com"
+              href="mailto:hi@owen.loc.cc"
               className="hover:text-neutral-900 dark:hover:text-white hover:underline transition-colors"
             >
-              theyole114@outlook.com
+              hi@owen.loc.cc
             </a>
           </p>
         </div>
