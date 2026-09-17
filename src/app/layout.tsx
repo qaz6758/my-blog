@@ -12,14 +12,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: {
-    default: `${siteConfig.name}'s Blog`,
-    template: `%s | ${siteConfig.name}'s Blog`,
-  },
-  description: siteConfig.description,
-  robots: {
-    index: true,
-    follow: true,
+  openGraph: {
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: 'https://vinceou.site',
+    siteName: siteConfig.name,
+    images: [
+      {
+        url: '/avatar.jpg', // 或者是你专门放的一张大横幅封面图
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'zh_CN',
+    type: 'website',
   },
 };
 
