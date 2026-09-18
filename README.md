@@ -17,34 +17,34 @@ Built with **Next.js · React · TypeScript · Tailwind CSS · Supabase · Notio
 
 ## About
 
-OW 是一个以 **阅读、表达与个人记录** 为核心的数字花园。
+OW 是一个以 **记录、表达与生活** 为核心的个人空间。
 
-我不希望它只是一个博客，也不希望它成为一个堆满组件与动画的作品集。
+这里有文章、随想、照片与音乐，也保留一些正在进行中的东西。
 
-所以这里尽量保持简单：
+它不追求把页面填满，也不追求用复杂的交互证明什么。
 
 **文字是主体，留白是空间，交互保持克制。**
 
-设计上受到 Anthony Fu 的极简排版与 Innei 的个人表达方式启发，但最终呈现出的视觉语言属于自己。
+设计上受到 Anthony Fu 的极简排版与 Innei 的个人表达方式启发，但最终形成属于自己的视觉语言。
 
 ---
 
-## What lives here
+## Spaces
 
-**文章**
-用于记录技术、开发、思考与一些长期积累的东西。
+**Posts**
+记录技术、开发、思考，以及一些值得长期留下来的内容。
 
 **Thoughts**
-比文章更轻的片段，记录那些不值得写成长文，却值得留下来的想法。
+比文章更轻的记录。捕捉那些短暂出现，却值得保存的想法。
 
 **Gallery**
-照片与生活碎片。一个安静的视觉角落。
+照片与生活碎片，一个安静的视觉角落。
 
 **Playlist**
-让音乐成为这个空间的一部分，而不是一个独立的播放器页面。
+让音乐自然地存在于网站之中，并贯穿整个浏览过程。
 
 **Live Status**
-展示此刻正在做什么，让这个网站拥有一点真实的“在场感”。
+记录此刻正在做什么，让一个静态网站多一点真实的在场感。
 
 ---
 
@@ -53,11 +53,11 @@ OW 是一个以 **阅读、表达与个人记录** 为核心的数字花园。
 我更在意这些：
 
 * **Typography** — 让文字承担主要的视觉表达
-* **Whitespace** — 用留白建立秩序，而不是用卡片填满页面
-* **Restraint** — 动画存在，但不会打扰阅读
-* **Atmosphere** — 昼夜、季节、音乐与照片共同构成空间感
+* **Whitespace** — 用留白建立秩序，而不是用组件填满页面
+* **Restraint** — 动画存在，但不打扰阅读
+* **Atmosphere** — 昼夜、季节、音乐与照片共同构成空间
 
-整个网站遵循一个很简单的原则：
+整个网站遵循一个简单的原则：
 
 > **能删掉的，就不留下。**
 
@@ -74,7 +74,7 @@ OW 是一个以 **阅读、表达与个人记录** 为核心的数字花园。
 | Database   | Supabase / PostgreSQL      |
 | Markdown   | ReactMarkdown · remark-gfm |
 | Animation  | Framer Motion              |
-| Deployment | Vercel                     |
+| Deployment | Cloudflare                 |
 
 Notion 负责内容，Supabase 负责动态数据，其余部分尽可能保持简单。
 
@@ -88,8 +88,7 @@ OW
 ├── Posts       长篇文章
 ├── Thoughts    碎片记录
 ├── Gallery     摄影
-├── Playlist    音乐
-└── About       关于
+└── Playlist    音乐
 ```
 
 ---
@@ -110,7 +109,7 @@ npm run dev
 NEXT_PUBLIC_SITE_URL=https://vinceou.site
 
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 NOTION_API_KEY=your-notion-api-key
 NOTION_POSTS_DB_ID=your-posts-database-id
