@@ -22,31 +22,53 @@ const STORAGE_KEY = "ow_thoughts_reactions_v1";
 export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   const { locale, convertText } = useI18n();
 
-  // 1. 独立管理互动状态
+  // 1. 独立管理互动状态与 SWR 最新数据
+  const [thoughtItem, setThoughtItem] = useState<ThoughtMediaItem>(item);
   const [likes, setLikes] = useState(item.likes || 0);
   const [commentCount, setCommentCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [displayTime, setDisplayTime] = useState(item.time);
 
+  // SWR：毫秒级后台静默获取 Notion 最新随想录改动，支持免重新部署即时生效
+  useEffect(() => {
+    const workerUrl =
+      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+      "https://notion-api.dedeboki123.workers.dev";
+    fetch(`${workerUrl}/api/thoughts/${item.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.success && data.data) {
+          setThoughtItem((prev) => ({
+            ...prev,
+            ...data.data,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, [item.id]);
+
   const displayTitle = useMemo(() => {
-    if (!item.title) return "";
-    return locale === "zh-TW" ? convertText(item.title) : item.title;
-  }, [item.title, locale, convertText]);
+    if (!thoughtItem.title) return "";
+    return locale === "zh-TW" ? convertText(thoughtItem.title) : thoughtItem.title;
+  }, [thoughtItem.title, locale, convertText]);
 
   const displayDesc = useMemo(() => {
-    if (!item.description) return "";
-    return locale === "zh-TW" ? convertText(item.description) : item.description;
-  }, [item.description, locale, convertText]);
+    if (!thoughtItem.description) return "";
+    return locale === "zh-TW" ? convertText(thoughtItem.description) : thoughtItem.description;
+  }, [thoughtItem.description, locale, convertText]);
 
   // 客户端挂载时动态计算相对时间，与列表页算法严格统一
   useEffect(() => {
-    if (item.rawDate || item.time) {
-      const info = formatThoughtDate(item.rawDate || item.time);
+    if (thoughtItem.rawDate || thoughtItem.time) {
+      const info = formatThoughtDate(thoughtItem.rawDate || thoughtItem.time);
       if (info.relative) {
         setDisplayTime(info.relative);
       }
     }
-  }, [item.rawDate, item.time]);
+  }, [thoughtItem.rawDate, thoughtItem.time]);
 
   // 恢复本地红心高亮状态
   useEffect(() => {
@@ -156,16 +178,16 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
       <article className="relative rounded-none p-4 sm:p-5 shadow-sm manga-panel font-serif transition-all">
         <div className="mb-3 flex items-center gap-2 text-xs">
           <span className="font-semibold text-neutral-900 dark:text-[#eae5dc]">
-            {item.author}
+            {thoughtItem.author}
           </span>
-          {item.action && (
+          {thoughtItem.action && (
             <span className="text-neutral-500 dark:text-[#9d9589]">
-              {item.action}
+              {thoughtItem.action}
             </span>
           )}
           <span
             className="text-neutral-400 dark:text-[#777168]"
-            title={item.fullTime || item.time}
+            title={thoughtItem.fullTime || thoughtItem.time}
           >
             {displayTime}
           </span>
@@ -177,10 +199,10 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d6d0c7] whitespace-pre-line text-justify">
               {displayDesc}
             </div>
-            {item.posterUrl && (
+            {thoughtItem.posterUrl && (
               <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
                 <img
-                  src={item.posterUrl}
+                  src={thoughtItem.posterUrl}
                   alt={displayTitle || "随笔配图"}
                   className="h-full w-full object-cover"
                 />
@@ -189,11 +211,11 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
           </>
         ) : (
           <div className="mb-4 rounded-lg border border-black/[0.05] bg-black/[0.02] p-3 sm:p-3.5 dark:border-white/[0.05] dark:bg-white/[0.02] flex flex-row-reverse gap-3.5 sm:gap-4">
-            {item.posterUrl && (
+            {thoughtItem.posterUrl && (
               <div className="w-16 sm:w-20 shrink-0 self-start">
                 <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
                   <img
-                    src={item.posterUrl}
+                    src={thoughtItem.posterUrl}
                     alt={displayTitle}
                     className="h-full w-full object-cover"
                   />
@@ -203,7 +225,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-[#9d9589] uppercase">
-                {item.type} {item.year ? `· ${item.year}` : ""}
+                {thoughtItem.type} {thoughtItem.year ? `· ${thoughtItem.year}` : ""}
               </div>
               <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#eae5dc] tracking-tight">
                 {displayTitle}
@@ -212,17 +234,17 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
                 {displayDesc}
               </p>
               
-              {(item.rating || item.tags || item.sourceUrl) && (
+              {(thoughtItem.rating || thoughtItem.tags || thoughtItem.sourceUrl) && (
                 <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#777168]">
-                  {item.rating && (
+                  {thoughtItem.rating && (
                     <span className="inline-flex items-center gap-1">
                       <Star className="h-3 w-3 fill-current" />
-                      {item.rating}
+                      {thoughtItem.rating}
                     </span>
                   )}
-                  {item.tags && <span>· {item.tags}</span>}
-                  {item.sourceUrl && (
-                    <span className="truncate">· {item.sourceUrl}</span>
+                  {thoughtItem.tags && <span>· {thoughtItem.tags}</span>}
+                  {thoughtItem.sourceUrl && (
+                    <span className="truncate">· {thoughtItem.sourceUrl}</span>
                   )}
                 </div>
               )}

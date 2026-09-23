@@ -43,6 +43,8 @@ export interface PostDetail {
   source_url?: string;
   slug?: string;
   post_type?: string;
+  cover_image?: string;
+  status?: string;
 }
 
 export interface DynamicPostReaderProps {
@@ -145,16 +147,73 @@ export function DynamicPostReader({
     return /<\/?(p|div|h[1-6]|article|section|blockquote|pre|code|table|ul|ol|li|html|body|a)\b/i.test(raw);
   }, [post, displayContent]);
 
-  // 当 initialPost 更新时同步（例如客户端路由跳转）
+  // 当 initialPost 或路由变化时同步数据，并开启 SWR 毫秒级后台静默比对
   useEffect(() => {
+    const workerUrl =
+      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+      "https://notion-api.dedeboki123.workers.dev";
+
+    // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
     if (initialPost) {
       setPost(initialPost);
       setMode("post");
       setLoading(false);
+
+      // 2. SWR (Stale-While-Revalidate)：后台静默对比 Notion 最新修改（免重新部署）
+      const targetId = initialPost.id;
+      if (targetId) {
+        fetch(`${workerUrl}/api/posts/${targetId}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Fetch failed");
+            return res.json();
+          })
+          .then((detailData) => {
+            if (detailData?.success && detailData.data) {
+              const latest = detailData.data;
+              const isPub =
+                latest.status?.includes("已发布") ||
+                latest.status?.includes("Published") ||
+                latest.status?.includes("🚀") ||
+                latest.status?.includes("✅");
+
+              // 如果在 Notion 中被取消发布（改为草稿或归档），前端自动降级为 404
+              if (!isPub) {
+                setPost(null);
+                setMode("404");
+                return;
+              }
+
+              // 对比是否有实质内容或标题变更，有变更才平滑触发更新
+              setPost((current) => {
+                if (!current) return latest;
+                const isChanged =
+                  latest.content !== current.content ||
+                  latest.title !== current.title ||
+                  latest.summary !== current.summary ||
+                  latest.category !== current.category ||
+                  latest.cover_image !== current.cover_image ||
+                  JSON.stringify(latest.tags) !== JSON.stringify(current.tags);
+
+                if (isChanged) {
+                  return {
+                    ...current,
+                    ...latest,
+                    slug: current.slug || latest.slug,
+                    source_url: current.source_url || latest.source_url,
+                  };
+                }
+                return current;
+              });
+            }
+          })
+          .catch(() => {
+            // 容灾机制：网络异常或超时静默忽略，维持 initialPost 正常展示
+          });
+      }
       return;
     }
 
-    // 兜底：检查是否为 /thoughts 路由（思碎用的客户端动态加载）
+    // 3. 兜底：没有 initialPost（例如客户端动态路由或 404 回退渲染）
     if (typeof window === "undefined") return;
     const pathname = window.location.pathname;
     const matchThought = pathname.match(/\/thoughts\/([^\/\?#]+)/);
@@ -164,9 +223,6 @@ export function DynamicPostReader({
       const id = matchThought[1];
       setMode("thought");
       setLoading(true);
-      const workerUrl =
-        process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-        "https://notion-api.dedeboki123.workers.dev";
       fetch(`${workerUrl}/api/thoughts/${id}`)
         .then((res) => {
           if (!res.ok) throw new Error("Not found");
@@ -185,9 +241,6 @@ export function DynamicPostReader({
       const slug = decodeURIComponent(matchPost[1]);
       setMode("post");
       setLoading(true);
-      const workerUrl =
-        process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-        "https://notion-api.dedeboki123.workers.dev";
 
       // 动态检索 Notion 唯一数据源
       fetch(`${workerUrl}/api/posts`)
@@ -199,9 +252,17 @@ export function DynamicPostReader({
                 p.slug === slug ||
                 p.id === slug ||
                 p.source_url === slug ||
-                p.id?.replace(/-/g, '') === slug.replace(/-/g, '')
+                p.source_url === `/posts/${slug}` ||
+                p.source_url?.replace(/^\/posts\//, "") === slug ||
+                p.id?.replace(/-/g, "") === slug.replace(/-/g, "")
             );
-            if (matched && (matched.status?.includes('已发布') || matched.status?.includes('Published') || matched.status?.includes('🚀'))) {
+            if (
+              matched &&
+              (matched.status?.includes("已发布") ||
+                matched.status?.includes("Published") ||
+                matched.status?.includes("🚀") ||
+                matched.status?.includes("✅"))
+            ) {
               const detailRes = await fetch(`${workerUrl}/api/posts/${matched.id}`);
               const detailData = await detailRes.json();
               if (detailData?.success && detailData.data) {
