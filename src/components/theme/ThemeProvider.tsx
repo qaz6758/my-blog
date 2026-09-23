@@ -15,8 +15,7 @@ import {
   ToggleThemeOptions,
   ThemeContextType,
 } from "./types";
-import { runDesktopThemeTransition } from "./drivers/desktopThemeDriver";
-import { runMobileThemeTransition } from "./drivers/mobileThemeDriver";
+import { runThemeTransition } from "./drivers/themeTransitionDriver";
 
 export type { Theme, ToggleThemeOptions, ThemeContextType };
 
@@ -44,7 +43,6 @@ export function isMobileDevice(): boolean {
   if (typeof window === "undefined") return false;
   return (
     window.matchMedia("(hover: none) and (pointer: coarse)").matches ||
-    window.innerWidth < 768 ||
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     )
@@ -184,11 +182,30 @@ export function ThemeProvider({
     applyThemeDirect(current);
   }, [initialTheme, applyThemeDirect]);
 
+  /*
+   * ============================================================
+   * 监听系统深色模式偏好变化：仅在用户未手动选择主题时跟随系统
+   * ============================================================
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleSystemChange = (e: MediaQueryListEvent) => {
+      // 用户已通过手动切换显式选择了主题 → 不跟随系统
+      const stored = getStoredTheme();
+      if (!stored) {
+        applyThemeDirect(e.matches ? "dark" : "light");
+      }
+    };
+    mq.addEventListener("change", handleSystemChange);
+    return () => mq.removeEventListener("change", handleSystemChange);
+  }, [applyThemeDirect]);
+
   const isTransitioningRef = React.useRef(false);
 
   /*
    * ============================================================
-   * 主题切换分流调度中心：PC 归 PC，手机端归手机端，各司其职
+   * 主题切换统一调度中心：通过 isMobileDevice() 自动分流平台差异
    * ============================================================
    */
   const toggleTheme = useCallback(
@@ -220,25 +237,16 @@ export function ThemeProvider({
       const isCurrentlyDark = root.classList.contains("dark");
       const nextTheme: Theme = isCurrentlyDark ? "light" : "dark";
 
-      if (isMobileDevice()) {
-        // [手机端通道]：满血日光波纹（与 PC 端完全一致的以触控点为中心的扩散）
-        runMobileThemeTransition({
+      runThemeTransition(
+        {
           nextTheme,
           applyThemeDirect,
           event,
           options,
           onComplete: handleComplete,
-        });
-      } else {
-        // [PC 桌面端通道]：调用专属精准指针日光波纹引擎
-        runDesktopThemeTransition({
-          nextTheme,
-          applyThemeDirect,
-          event,
-          options,
-          onComplete: handleComplete,
-        });
-      }
+        },
+        isMobileDevice()
+      );
     },
     [applyThemeDirect]
   );

@@ -48,6 +48,7 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
   return (
     <button
       type="button"
+      data-theme-toggle
       onClick={(e) => {
         let x = 0;
         let y = 0;

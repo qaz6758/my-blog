@@ -607,6 +607,11 @@ html.view-transition-active *::after {
   transition: none !important;
 }
 
+/* 豁免主题切换按钮图标：日/月 SVG 在 VT 波纹扩散期间保持旋转缩放过渡 */
+html.view-transition-active [data-theme-toggle] svg {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 /*
  * ============================================================
  * 顶部极简进度指示条流动动画 (Top Progress Bar)
