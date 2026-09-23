@@ -30,16 +30,16 @@ function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string
         aria-label="Vince Ou (VO)"
       >
         <title>Vince Ou</title>
-        {/* 85% 完整微断圆环：从左上 (34, 18) 顺时针经正底 (50, 86) 扬至右上 (66, 18) */}
+        {/* 时钟正圆微断环：标准正圆 R=36，以左上 11点 (32, 19) 为起点，顺时针经正底 (50, 86) 完整画至右上 1点 (68, 19) */}
         <path
-          d="M 34 18 A 36 36 0 0 1 50 86 A 36 36 0 0 1 66 18"
+          d="M 32 19 A 36 36 0 0 1 50 86 A 36 36 0 0 1 68 19"
           stroke="currentColor"
           strokeWidth="4.2"
           strokeLinecap="round"
           pathLength="100"
           className="brand-ring"
         />
-        {/* 正中心端端正正包裹在肚子里面的 V 字母 */}
+        {/* 正中心端端正正深深包裹在时钟圆内部的 V 字母 */}
         <path
           d="M 40 42 L 50 62 L 60 42"
           stroke="currentColor"

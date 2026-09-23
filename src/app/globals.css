@@ -554,22 +554,18 @@ html.hide-playlist-grid [data-playlist-grid] {
 .brand-ring {
   stroke-dasharray: 100;
   stroke-dashoffset: 0;
-  animation: antfu-draw-circle 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .brand-v {
   stroke-dasharray: 100;
   stroke-dashoffset: 0;
-  animation: antfu-draw-v 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
 }
 
-/* 遵循 Antfu 交互逻辑：鼠标 hover (或 group-hover) 时从左往右顺畅重新绘制一遍 */
-.group:hover .brand-ring,
-.group:active .brand-ring {
+/* 遵循 Antfu 交互逻辑：鼠标悬停 (hover) 时触发从左到右顺畅重新画出整圈时钟与 V */
+.group:hover .brand-ring {
   animation: antfu-draw-circle 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.group:hover .brand-v,
-.group:active .brand-v {
+.group:hover .brand-v {
   animation: antfu-draw-v 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
 }
