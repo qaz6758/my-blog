@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { GalleryImage } from "@/types/gallery";
 
 export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
@@ -16,52 +15,18 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
     setMounted(true);
   }, []);
 
-  const activeIndex = activePhoto
-    ? photos.findIndex((p) => p.id === activePhoto.id)
-    : -1;
-
-  const showPrev = useCallback(
-    (e?: React.MouseEvent) => {
-      e?.stopPropagation();
-      if (photos.length === 0) return;
-      if (activeIndex > 0) {
-        setActivePhoto(photos[activeIndex - 1]);
-      } else {
-        setActivePhoto(photos[photos.length - 1]);
-      }
-    },
-    [activeIndex, photos]
-  );
-
-  const showNext = useCallback(
-    (e?: React.MouseEvent) => {
-      e?.stopPropagation();
-      if (photos.length === 0) return;
-      if (activeIndex < photos.length - 1) {
-        setActivePhoto(photos[activeIndex + 1]);
-      } else {
-        setActivePhoto(photos[0]);
-      }
-    },
-    [activeIndex, photos]
-  );
-
-  // 键盘快捷键监听 (ESC 退出，左右箭头翻页)
+  // 键盘快捷键监听 (ESC 退出)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setActivePhoto(null);
-      } else if (e.key === "ArrowLeft") {
-        showPrev();
-      } else if (e.key === "ArrowRight") {
-        showNext();
       }
     };
     if (activePhoto) {
       window.addEventListener("keydown", handleKeyDown);
     }
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePhoto, showPrev, showNext]);
+  }, [activePhoto]);
 
   // 弹窗开启时锁定底层滚动
   useEffect(() => {
@@ -181,7 +146,7 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
       )}
 
       {/* ========================================================
-          全屏 Lightbox 弹窗 (Anthony Fu 同款：通透虚化背景 + 极简极净呈现)
+          全屏 Lightbox 弹窗：点击图片展开，点击图片以外区域关闭 (PC 与移动端统一)
           ======================================================== */}
       {mounted &&
         createPortal(
@@ -195,49 +160,15 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
                 className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center backdrop-blur-2xl bg-white/75 dark:bg-black/75 p-4 sm:p-10 select-none cursor-zoom-out"
                 onClick={() => setActivePhoto(null)}
               >
-                {/* 左上角极简返回箭头 (对齐 Anthony Fu 原图图二) */}
-                <button
-                  type="button"
-                  onClick={() => setActivePhoto(null)}
-                  className="absolute top-5 left-5 sm:top-6 sm:left-[72px] z-50 flex items-center justify-center p-2 text-neutral-600 dark:text-neutral-300 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                  aria-label="返回画廊"
-                  title="返回 (ESC)"
-                >
-                  <ChevronLeft className="h-6 w-6 stroke-[1.75]" />
-                </button>
-
-                {/* 左侧透明翻页触发区 */}
-                {photos.length > 1 && (
-                  <div
-                    className="absolute left-0 top-0 bottom-0 w-[25vw] z-30 cursor-w-resize group flex items-center pl-6"
-                    onClick={showPrev}
-                  >
-                    <div className="opacity-0 group-hover:opacity-40 transition-opacity p-2 text-neutral-800 dark:text-white">
-                      <ChevronLeft className="h-8 w-8 stroke-[1.5]" />
-                    </div>
-                  </div>
-                )}
-
-                {/* 右侧透明翻页触发区 */}
-                {photos.length > 1 && (
-                  <div
-                    className="absolute right-0 top-0 bottom-0 w-[25vw] z-30 cursor-e-resize group flex items-center justify-end pr-6"
-                    onClick={showNext}
-                  >
-                    <div className="opacity-0 group-hover:opacity-40 transition-opacity p-2 text-neutral-800 dark:text-white">
-                      <ChevronRight className="h-8 w-8 stroke-[1.5]" />
-                    </div>
-                  </div>
-                )}
-
-                {/* 核心大图展示区 (保持原始比例，自然居中高清展现) */}
+                {/* 核心大图展示区 (阻止冒泡，点击图片本身不关闭，点击图片外区域关闭) */}
                 <motion.div
                   key={activePhoto.id}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="relative flex items-center justify-center max-w-[92vw] max-h-[88vh] z-20 pointer-events-none"
+                  className="relative flex items-center justify-center max-w-[92vw] max-h-[88vh] z-20 cursor-default"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <img
                     src={activePhoto.hdUrl || activePhoto.url}
