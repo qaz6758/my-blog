@@ -26,28 +26,26 @@ function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full text-neutral-800 dark:text-[#f3f0ea] transition-transform duration-300 transform group-hover:scale-105"
+        className="w-full h-full text-neutral-800 dark:text-[#f3f0ea] transition-all duration-300 transform group-hover:scale-105"
         aria-label="Vince Ou (VO)"
       >
         <title>Vince Ou</title>
-        {/* 时钟正圆微断环：标准正圆 R=36，以左上 11点 (32, 19) 为起点，顺时针经正底 (50, 86) 完整画至右上 1点 (68, 19) */}
+        {/* 方案 2：外层呼吸感微断环 O */}
         <path
-          d="M 32 19 A 36 36 0 0 1 50 86 A 36 36 0 0 1 68 19"
+          d="M 28 20 A 38 38 0 1 0 86 42"
           stroke="currentColor"
           strokeWidth="4.2"
           strokeLinecap="round"
-          pathLength="100"
-          className="brand-ring"
+          className="transition-all duration-300 group-hover:stroke-neutral-400"
         />
-        {/* 正中心端端正正深深包裹在时钟圆内部的 V 字母 */}
+        {/* 方案 2：内切利落先锋折线 V */}
         <path
-          d="M 40 42 L 50 62 L 60 42"
+          d="M 40 38 L 52 64 L 68 38"
           stroke="currentColor"
           strokeWidth="4.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          pathLength="100"
-          className="brand-v"
+          className="transition-all duration-300 group-hover:translate-y-[-1px]"
         />
       </svg>
     </div>
