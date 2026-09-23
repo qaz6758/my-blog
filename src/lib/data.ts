@@ -179,6 +179,11 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
       };
     });
 
+    const supabaseLikesMap = new Map<string, number>();
+    (supabaseRes.data || []).forEach((row) => {
+      if (row?.id) supabaseLikesMap.set(row.id, row.likes || 0);
+    });
+
     if (notionThoughts.length > 0) {
       const formattedNotion: ThoughtMediaItem[] = notionThoughts.map((t) => {
         const dateInfo = formatThoughtDate(t.time);
@@ -197,8 +202,8 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
           tags: t.tags,
           sourceUrl: t.sourceUrl,
           posterUrl: t.posterUrl,
-          likes: t.likes,
-          upvotes: t.upvotes,
+          likes: supabaseLikesMap.get(t.id) ?? t.likes ?? 0,
+          upvotes: 0,
           replies: t.replies,
         };
       });

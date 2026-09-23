@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Heart, HeartCrack, MessageSquare, Star } from "lucide-react";
+import { Heart, MessageSquare, Star } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
@@ -17,14 +17,15 @@ const CommentSection = dynamic(
   }
 );
 
+const STORAGE_KEY = "ow_thoughts_reactions_v1";
+
 export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   const { locale, convertText } = useI18n();
 
   // 1. 独立管理互动状态
   const [likes, setLikes] = useState(item.likes || 0);
-  const [upvotes, setUpvotes] = useState(item.upvotes || 0);
   const [commentCount, setCommentCount] = useState(0);
-  const [reaction, setReaction] = useState<{ liked?: boolean; upvoted?: boolean }>({});
+  const [isLiked, setIsLiked] = useState(false);
   const [displayTime, setDisplayTime] = useState(item.time);
 
   const displayTitle = useMemo(() => {
@@ -47,29 +48,104 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
     }
   }, [item.rawDate, item.time]);
 
-  const isNote = item.type.toUpperCase() === "NOTE";
-
-  // 2. 初始化时向 Supabase 获取该文章的真实评论总数
+  // 恢复本地红心高亮状态
   useEffect(() => {
-    async function fetchCommentCount() {
-      const { count } = await supabase
-        .from("thought_comments")
-        .select("*", { count: "exact", head: true })
-        .eq("thought_id", item.id);
-      if (count !== null) setCommentCount(count);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[item.id]?.liked) {
+          setIsLiked(true);
+        }
+      }
+    } catch (e) {
+      console.warn("读取本地点赞记忆失败", e);
     }
-    fetchCommentCount();
   }, [item.id]);
 
-  // 3. 点击点赞 / 心碎的实时响应
-  const toggleReaction = (type: "liked" | "upvoted") => {
-    const willBeActive = !reaction[type];
-    setReaction((prev) => ({ ...prev, [type]: willBeActive }));
+  const isNote = item.type.toUpperCase() === "NOTE";
 
-    if (type === "liked") {
-      setLikes((prev) => (willBeActive ? prev + 1 : prev - 1));
-    } else {
-      setUpvotes((prev) => (willBeActive ? prev + 1 : prev - 1));
+  // 2. 初始化时向 Supabase 获取该文章的真实评论总数与真实点赞数
+  useEffect(() => {
+    async function fetchCommentCountAndLikes() {
+      const [commentRes, likesRes] = await Promise.all([
+        supabase
+          .from("thought_comments")
+          .select("*", { count: "exact", head: true })
+          .eq("thought_id", item.id),
+        supabase
+          .from("thoughts")
+          .select("likes")
+          .eq("id", item.id)
+          .maybeSingle(),
+      ]);
+
+      if (commentRes.count !== null) setCommentCount(commentRes.count);
+      if (likesRes.data && typeof likesRes.data.likes === "number") {
+        setLikes(likesRes.data.likes);
+      }
+    }
+    fetchCommentCountAndLikes();
+  }, [item.id]);
+
+  // 3. Supabase Realtime 实时监听当前随想录点赞变动
+  useEffect(() => {
+    const channel = supabase
+      .channel(`thought-detail-${item.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "thoughts",
+          filter: `id=eq.${item.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as { likes?: number };
+          if (typeof updated?.likes === "number") {
+            setLikes(updated.likes);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [item.id]);
+
+  // 4. 点赞交互 (函数式更新 + 本地防刷防重 + Supabase 实时读写同步)
+  const toggleLike = async () => {
+    const willBeLiked = !isLiked;
+    setIsLiked(willBeLiked);
+
+    if (typeof window !== "undefined") {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        saved[item.id] = { ...(saved[item.id] || {}), liked: willBeLiked };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      } catch (e) {
+        console.warn("写入本地点赞记忆失败", e);
+      }
+    }
+
+    const delta = willBeLiked ? 1 : -1;
+    const newLikes = Math.max(0, likes + delta);
+    setLikes(newLikes);
+
+    try {
+      const { error: rpcErr } = await supabase.rpc("increment_thought_like", {
+        target_id: item.id,
+        delta,
+      });
+      if (rpcErr) {
+        await supabase
+          .from("thoughts")
+          .update({ likes: newLikes })
+          .eq("id", item.id);
+      }
+    } catch (err) {
+      console.error("云端点赞落盘失败:", err);
     }
   };
 
@@ -156,40 +232,20 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
 
         <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
 
-        {/* 顶部互动栏（支持点击 + 与 Supabase 评论数联动） */}
+        {/* 顶部互动栏（支持点击 + 与 Supabase 评论数与点赞数联动） */}
         <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-[#777168] select-none">
           <button
             type="button"
-            onClick={() => toggleReaction("liked")}
+            onClick={toggleLike}
             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-              reaction.liked
+              isLiked
                 ? "text-[#b91c1c] dark:text-white"
                 : "hover:text-[#b91c1c] dark:hover:text-white"
             }`}
             style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
-            <Heart className={`h-3.5 w-3.5 ${reaction.liked ? "fill-current" : ""}`} />
-            <span>{likes}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => toggleReaction("upvoted")}
-            className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-              reaction.upvoted
-                ? "text-neutral-900 dark:text-[#eae5dc]"
-                : "hover:text-neutral-900 dark:hover:text-white"
-            }`}
-            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-          >
-            <HeartCrack
-              className={`h-3.5 w-3.5 transition-all ${
-                reaction.upvoted
-                  ? "text-neutral-950 dark:text-white stroke-[2.6] scale-110"
-                  : "stroke-[1.8] text-neutral-400"
-              }`}
-            />
-            <span>{Math.max(upvotes || 0, reaction.upvoted ? 1 : 0)}</span>
+            <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-current" : ""}`} />
+            <span>{Math.max(likes, isLiked ? 1 : 0)}</span>
           </button>
 
           <div className="flex items-center gap-1.5 opacity-80">

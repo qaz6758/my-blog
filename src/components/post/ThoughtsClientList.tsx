@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, HeartCrack, MessageSquare, Star, ArrowRightCircle } from "lucide-react";
+import { Heart, MessageSquare, Star, ArrowRightCircle } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -20,23 +20,24 @@ export function ThoughtsClientList({
     });
     return list.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
   });
-const STORAGE_KEY = "ow_thoughts_reactions_v1";
+  const STORAGE_KEY = "ow_thoughts_reactions_v1";
 
-// 初始状态必须是干净的空对象（首屏与服务器 100% 对齐，彻底消灭水合警告）
-const [userReactions, setUserReactions] = useState<
-  Record<string, { liked?: boolean; upvoted?: boolean }>
->({});
-// 客户端注水完成后：同时恢复红心高亮与数字补偿！
-useEffect(() => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setUserReactions(JSON.parse(saved));
+  // 初始状态必须是干净的空对象（首屏与服务器 100% 对齐，彻底消灭水合警告）
+  const [userReactions, setUserReactions] = useState<
+    Record<string, { liked?: boolean }>
+  >({});
+
+  // 客户端注水完成后：恢复红心高亮状态
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        setUserReactions(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.warn("读取本地点赞记忆失败", e);
     }
-  } catch (e) {
-    console.warn("读取本地点赞记忆失败", e);
-  }
-}, []);
+  }, []);
 
   // 1. 毫秒级后台静默获取最新 Notion 随想录（SWR 实时刷新，免部署）
   useEffect(() => {
@@ -56,20 +57,25 @@ useEffect(() => {
               const targetDate = existing?.rawDate || item.rawDate || item.time;
               const dateInfo = formatThoughtDate(targetDate);
               map.set(item.id, {
-              ...item,
-              // 🔥 核心保护：如果已有排版内容更丰富完整，坚决保留长段落排版，杜绝闪烁降级！
-              description: (existing?.description && existing.description.length > item.description.length)
-                ? existing.description
-                : (item.description || existing?.description || ""),
-              time: dateInfo.relative || existing?.time || item.time,
-              fullTime: dateInfo.full || existing?.fullTime,
-              rawDate: existing?.rawDate || item.rawDate || item.time,
-              year: item.year || existing?.year || (dateInfo.full ? dateInfo.full.slice(0, 4) : ""),
-              replies: existing?.replies ?? item.replies ?? 0,
-              likes: existing?.likes ?? item.likes ?? 0,
-              upvotes: existing?.upvotes ?? item.upvotes ?? 0,
-              _order: index,
-            } as any);
+                ...item,
+                // 🔥 核心保护：如果已有排版内容更丰富完整，坚决保留长段落排版，杜绝闪烁降级！
+                description:
+                  existing?.description &&
+                  existing.description.length > item.description.length
+                    ? existing.description
+                    : item.description || existing?.description || "",
+                time: dateInfo.relative || existing?.time || item.time,
+                fullTime: dateInfo.full || existing?.fullTime,
+                rawDate: existing?.rawDate || item.rawDate || item.time,
+                year:
+                  item.year ||
+                  existing?.year ||
+                  (dateInfo.full ? dateInfo.full.slice(0, 4) : ""),
+                replies: existing?.replies ?? item.replies ?? 0,
+                likes: existing?.likes ?? item.likes ?? 0,
+                upvotes: 0,
+                _order: index,
+              } as any);
             });
 
             const mergedList = Array.from(map.values());
@@ -85,48 +91,86 @@ useEffect(() => {
       .catch(() => {});
   }, []);
 
-  // 2. 初始化时向 Supabase 批量同步所有帖子的真实评论总数
+  // 2. 初始化与文章变动时向 Supabase 批量同步真实评论数与真实点赞数
   useEffect(() => {
-    async function fetchAllCommentCounts() {
-      const ids = initialItems.map((item) => item.id);
+    async function fetchCountsAndLikes() {
+      const ids = items.map((item) => item.id).filter(Boolean);
       if (ids.length === 0) return;
 
-      const { data, error } = await supabase
-        .from("thought_comments")
-        .select("thought_id")
-        .in("thought_id", ids);
+      const [commentsRes, likesRes] = await Promise.all([
+        supabase
+          .from("thought_comments")
+          .select("thought_id")
+          .in("thought_id", ids),
+        supabase
+          .from("thoughts")
+          .select("id, likes")
+          .in("id", ids),
+      ]);
 
-      if (data && !error) {
-        // 统计每篇帖子的评论数
-        const counts: Record<string, number> = {};
-        data.forEach((row: { thought_id: string }) => {
+      const counts: Record<string, number> = {};
+      if (commentsRes.data && !commentsRes.error) {
+        commentsRes.data.forEach((row: { thought_id: string }) => {
           counts[row.thought_id] = (counts[row.thought_id] || 0) + 1;
         });
-
-        // 批量更新列表里的回复数
-        setItems((prev) =>
-          prev.map((item) => ({
-            ...item,
-            replies: counts[item.id] || 0,
-          }))
-        );
       }
+
+      const cloudLikes: Record<string, number> = {};
+      if (likesRes.data && !likesRes.error) {
+        likesRes.data.forEach((row: { id: string; likes: number }) => {
+          if (row?.id && typeof row.likes === "number") {
+            cloudLikes[row.id] = row.likes;
+          }
+        });
+      }
+
+      setItems((prev) =>
+        prev.map((item) => ({
+          ...item,
+          replies: counts[item.id] !== undefined ? counts[item.id] : (item.replies || 0),
+          likes: cloudLikes[item.id] !== undefined ? cloudLikes[item.id] : (item.likes || 0),
+        }))
+      );
     }
 
-    fetchAllCommentCounts();
-  }, [initialItems]);
+    fetchCountsAndLikes();
+  }, [items.length]);
 
+  // 3. Supabase Realtime 实时双向同步（跨设备、跨端点赞秒级广播）
+  useEffect(() => {
+    const channel = supabase
+      .channel("public-thoughts-likes")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "thoughts" },
+        (payload) => {
+          const updated = payload.new as { id: string; likes?: number };
+          if (updated?.id && typeof updated.likes === "number") {
+            setItems((prev) =>
+              prev.map((it) =>
+                it.id === updated.id ? { ...it, likes: updated.likes! } : it
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
 
-    // 2. 点赞 / 心碎交互 (工业级终极版：函数式更新 + 幂等双写)
-  const toggleReaction = async (id: string, type: "liked" | "upvoted") => {
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // 4. 点赞交互 (函数式更新 + 本地防刷防重 + Supabase 实时读写同步)
+  const toggleLike = async (id: string) => {
     const currentReaction = userReactions[id] || {};
-    const willBeActive = !currentReaction[type];
+    const willBeActive = !currentReaction.liked;
 
     // ① 函数式安全更新：防闭包丢失，红心 100% 毫秒级响应！
     setUserReactions((prev) => {
       const updated = {
         ...prev,
-        [id]: { ...(prev[id] || {}), [type]: willBeActive },
+        [id]: { liked: willBeActive },
       };
       if (typeof window !== "undefined") {
         try {
@@ -138,34 +182,31 @@ useEffect(() => {
       return updated;
     });
 
-    // ② 找到基准数字
+    // ② 计算新点赞数（增量同步）
+    const delta = willBeActive ? 1 : -1;
     const currentItem = items.find((t) => t.id === id);
     const baseLikes = currentItem?.likes || 0;
-    const baseUpvotes = currentItem?.upvotes || 0;
-
-    const newLikes = willBeActive ? baseLikes + 1 : Math.max(0, baseLikes - 1);
-    const newUpvotes = willBeActive ? baseUpvotes + 1 : Math.max(0, baseUpvotes - 1);
+    const newLikes = Math.max(0, baseLikes + delta);
 
     // ③ 乐观更新列表展示
     setItems((list) =>
-      list.map((item) => {
-        if (item.id !== id) return item;
-        return type === "liked"
-          ? { ...item, likes: newLikes }
-          : { ...item, upvotes: newUpvotes };
-      })
+      list.map((item) => (item.id === id ? { ...item, likes: newLikes } : item))
     );
 
-    // ④ 🔥 云端神技 UPSERT：不管你是 Notion 还是本地，不存在就自动创建，存在就更新！
+    // ④ 云端落盘：优先原子 RPC，失败降级为直接 UPDATE
     try {
-      const payload: Record<string, any> = { id };
-      if (type === "liked") payload.likes = newLikes;
-      else payload.upvotes = newUpvotes;
-
-      await supabase.from("thoughts").upsert(payload, { onConflict: "id" });
-      console.log("🎉 云端 UPSERT 真正落盘成功！");
+      const { error: rpcErr } = await supabase.rpc("increment_thought_like", {
+        target_id: id,
+        delta,
+      });
+      if (rpcErr) {
+        await supabase
+          .from("thoughts")
+          .update({ likes: newLikes })
+          .eq("id", id);
+      }
     } catch (err) {
-      console.error("云端写库失败:", err);
+      console.error("云端点赞落盘失败:", err);
     }
   };
 
@@ -263,7 +304,7 @@ useEffect(() => {
               {/* 喜欢按钮 */}
               <button
                 type="button"
-                onClick={() => toggleReaction(item.id, "liked")}
+                onClick={() => toggleLike(item.id)}
                 className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
                   reaction.liked
                     ? "text-[#b91c1c] dark:text-white"
@@ -276,37 +317,16 @@ useEffect(() => {
                     reaction.liked ? "fill-current" : ""
                   }`}
                 />
-                {/* 🔥 双保险展示：保证只要红心亮起，数字保底绝对是真实累计数！ */}
+                {/* 保证只要红心亮起，数字保底绝对是真实累计数！ */}
                 <span>{Math.max(item.likes || 0, reaction.liked ? 1 : 0)}</span>
               </button>
 
-                {/* 心碎 */}
-                <button
-                  type="button"
-                  onClick={() => toggleReaction(item.id, "upvoted")}
-                  className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    reaction.upvoted
-                      ? "text-neutral-900 dark:text-[#eae5dc]"
-                      : "hover:text-neutral-900 dark:hover:text-white"
-                  }`}
-                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-                >
-                <HeartCrack
-                  className={`h-3.5 w-3.5 transition-all ${
-                    reaction.upvoted
-                      ? "text-neutral-950 dark:text-white stroke-[2.6] scale-110" 
-                      : "stroke-[1.8] text-neutral-400"
-                  }`}
-                />
-                  <span>{Math.max(item.upvotes || 0, reaction.upvoted ? 1 : 0)}</span>
-                </button>
-
-                {/* 实时评论数 */}
-                <div className="flex items-center gap-1.5 opacity-80">
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  <span>{item.replies}</span>
-                </div>
+              {/* 实时评论数 */}
+              <div className="flex items-center gap-1.5 opacity-80">
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span>{item.replies}</span>
               </div>
+            </div>
 
               {/* 查看入口 */}
               <Link
