@@ -62,12 +62,12 @@ export function DynamicPostReader({
   prevPost,
   nextPost,
 }: DynamicPostReaderProps) {
-  // 数据由服务端注入，无需客户端 loading 等待
-  const [loading, setLoading] = useState(false);
+  // 数据由服务端注入，无需客户端 loading 等待；若无 initialPost 则客户端首屏展示仿真骨架屏
+  const [loading, setLoading] = useState(!initialPost);
   const [post, setPost] = useState<PostDetail | null>(initialPost || null);
   const [thought, setThought] = useState<ThoughtMediaItem | null>(null);
   const [mode, setMode] = useState<"post" | "thought" | "404">(
-    initialPost ? "post" : "404"
+    initialPost ? "post" : "post"
   );
   // 鼠标悬停文章正文字体范围或目录自身时触发目录展开（Antfu 同款交互：严格限定正文列，两侧留白绝不触发）
   const [isArticleHovered, setIsArticleHovered] = useState(false);
@@ -226,7 +226,7 @@ export function DynamicPostReader({
   }, [initialPost]);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {/* 1. 1:1 像素级仿真骨架屏 */}
       {loading ? (
         <motion.div
@@ -355,7 +355,7 @@ export function DynamicPostReader({
                   <nav className="my-16 grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-black/[0.08] dark:border-white/[0.08] pt-8">
                     {prevPost ? (
                       <Link
-                         href={`/posts/${prevPost.slug || prevPost.id}`}
+                         href={`/posts/${prevPost.slug || prevPost.source_url || prevPost.id}`}
                          className="group flex flex-col gap-2 text-left transition-colors"
                        >
                          <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
@@ -372,7 +372,7 @@ export function DynamicPostReader({
 
                     {nextPost ? (
                       <Link
-                         href={`/posts/${nextPost.slug || nextPost.id}`}
+                         href={`/posts/${nextPost.slug || nextPost.source_url || nextPost.id}`}
                          className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
                        >
                          <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">

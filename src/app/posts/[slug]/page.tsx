@@ -7,7 +7,7 @@ import { siteUrl } from '@/lib/site';
 export const dynamicParams = false;
 export const revalidate = 60;
 
-// 1. 构建期预渲染当前已发布的 Notion 文章 Slug
+// 1. 构建期预渲染当前已发布的 Notion 文章 Slug 与 ID（杜绝未命中 404）
 export async function generateStaticParams() {
   const posts = await fetchPosts();
 
@@ -15,11 +15,20 @@ export async function generateStaticParams() {
     return [];
   }
 
-  return posts
-    .filter((post) => Boolean(post.slug || post.id))
-    .map((post) => ({
-      slug: post.slug || post.id,
-    }));
+  const params: { slug: string }[] = [];
+  for (const post of posts) {
+    if (post.slug) {
+      params.push({ slug: post.slug });
+    }
+    if (post.id) {
+      params.push({ slug: post.id });
+      const noDash = post.id.replace(/-/g, '');
+      if (noDash !== post.id) {
+        params.push({ slug: noDash });
+      }
+    }
+  }
+  return params;
 }
 
 // 2. 动态生成文章 SEO 元数据 (标题、描述、OpenGraph、Twitter 及 Canonical 规范链接)

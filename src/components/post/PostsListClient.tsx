@@ -54,12 +54,17 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
       .then((res) => res.json())
       .then((result) => {
         if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
-          const published = result.data.filter(
-            (p: any) =>
-              p.status?.includes('已发布') ||
-              p.status?.includes('Published') ||
-              p.status?.includes('🚀')
-          );
+          const published = result.data
+            .filter(
+              (p: any) =>
+                p.status?.includes('已发布') ||
+                p.status?.includes('Published') ||
+                p.status?.includes('🚀')
+            )
+            .map((p: any) => ({
+              ...p,
+              slug: p.slug || p.source_url || p.id,
+            }));
           if (published.length > 0) {
             setPosts(published);
           }
@@ -127,7 +132,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                   const date = post.published_at || post.created_at;
                   const formattedDate = formatPostDate(date);
                   const readTime = getReadTime(post);
-                  const targetLink = "/posts/" + (post.slug || post.id);
+                  const targetLink = "/posts/" + (post.slug || (post as any).source_url || post.id);
 
                   return (
                     <Link
