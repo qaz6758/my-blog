@@ -104,7 +104,7 @@ export default function RootLayout({
                   var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var isDark = saved ? saved === 'dark' : systemDark;
                   var themeColor = isDark ? '#050505' : '#ffffff';
-                  var colorScheme = isDark ? 'dark' : 'light';
+                  var colorScheme = isDark ? 'only dark' : 'only light';
 
                   if (isDark) {
                     docEl.classList.add('dark');
@@ -129,7 +129,7 @@ export default function RootLayout({
                   });
                   var csMeta = document.querySelector('meta[name="color-scheme"]');
                   if (csMeta) {
-                    csMeta.setAttribute('content', colorScheme);
+                    csMeta.setAttribute('content', 'light dark');
                   }
 
                   // 零延迟同步 cookie，保证后续每次刷新服务端 100% 字节直出
@@ -164,7 +164,7 @@ export default function RootLayout({
               }
               @media (prefers-color-scheme: dark) {
                 :root {
-                  color-scheme: dark;
+                  color-scheme: only dark;
                 }
                 html:not(.light),
                 html:not(.light) body {
@@ -176,13 +176,13 @@ export default function RootLayout({
               html.light body {
                 background-color: #ffffff !important;
                 color: #222222 !important;
-                color-scheme: light !important;
+                color-scheme: only light !important;
               }
               html.dark,
               html.dark body {
                 background-color: #050505 !important;
                 color: #e5e5e5 !important;
-                color-scheme: dark !important;
+                color-scheme: only dark !important;
               }
               /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
               html.no-transitions,

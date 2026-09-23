@@ -104,7 +104,6 @@ function updateMetaColorScheme(newTheme: Theme) {
 
   try {
     const themeColor = newTheme === "dark" ? "#050505" : "#ffffff";
-    const colorScheme = newTheme === "dark" ? "dark" : "light";
 
     // 仅原地更新属性，坚决不从 DOM 树中 remove() 节点，保护 React 19 HostHoistable (tag 26) 虚拟 DOM 树完整性
     const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
@@ -115,7 +114,7 @@ function updateMetaColorScheme(newTheme: Theme) {
 
     const colorSchemeMetas = document.querySelectorAll('meta[name="color-scheme"]');
     colorSchemeMetas.forEach((m) => {
-      m.setAttribute("content", colorScheme);
+      m.setAttribute("content", "light dark");
     });
   } catch {}
 }
@@ -150,7 +149,7 @@ export function ThemeProvider({
     if (newTheme === "dark") {
       root.classList.add("dark");
       root.classList.remove("light");
-      root.style.colorScheme = "dark";
+      root.style.colorScheme = "only dark";
       root.style.backgroundColor = "#050505";
       if (document.body) {
         document.body.style.backgroundColor = "#050505";
@@ -159,7 +158,7 @@ export function ThemeProvider({
     } else {
       root.classList.remove("dark");
       root.classList.add("light");
-      root.style.colorScheme = "light";
+      root.style.colorScheme = "only light";
       root.style.backgroundColor = "#ffffff";
       if (document.body) {
         document.body.style.backgroundColor = "#ffffff";

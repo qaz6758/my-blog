@@ -99,14 +99,14 @@ html.light,
 html.light body {
   background-color: #ffffff !important;
   color: #222222 !important;
-  color-scheme: light !important;
+  color-scheme: only light !important;
 }
 
 html.dark,
 html.dark body {
   background-color: #050505 !important;
   color: #e5e5e5 !important;
-  color-scheme: dark !important;
+  color-scheme: only dark !important;
 }
 
 /*
