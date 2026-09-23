@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchPosts, fetchPostDetail } from '@/lib/data';
 import { DynamicPostReader, PostDetail } from '@/components/post/DynamicPostReader';
+import { siteUrl } from '@/lib/site';
 
 export const dynamicParams = false;
 export const revalidate = 60;
@@ -39,7 +40,7 @@ export async function generateMetadata({
 
   const title = post.title;
   const description = post.summary || post.title;
-  const canonicalUrl = `https://vinceou.site/posts/${post.slug || post.id}`;
+  const canonicalUrl = siteUrl(`/posts/${post.slug || post.id}`);
   const images = post.cover_image ? [post.cover_image] : ['/og-cover.png'];
 
   return {

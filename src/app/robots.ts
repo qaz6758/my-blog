@@ -1,17 +1,16 @@
 // app/robots.ts
 import { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vinceou.site";
-
   return {
     rules: {
       userAgent: "*",
       allow: "/",
       disallow: ["/api/*", "/_next/*"],
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: siteUrl("/sitemap.xml"),
   };
 }

@@ -35,13 +35,14 @@ import { MusicProvider } from "@/components/playlist/MusicContext";
 import { I18nProvider } from "@/lib/i18n/I18nContext";
 import { FrontendShell } from "@/components/layout/FrontendShell";
 import { siteConfig } from "@/config/site";
+import { SITE_URL, siteUrl } from "@/lib/site";
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://vinceou.site"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: `${siteConfig.name}'s Blog`,
     template: `%s | ${siteConfig.name}'s Blog`,
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${siteConfig.name}'s Blog`,
     description: siteConfig.description,
-    url: "https://vinceou.site",
+    url: siteUrl("/"),
     siteName: siteConfig.name,
     images: [
       {
