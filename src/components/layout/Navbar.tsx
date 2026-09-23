@@ -19,7 +19,7 @@ const NAV_LINKS = [
   { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
 ];
 
-function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string }) {
+function BrandLogo({ className = "h-10 w-10 sm:h-11 sm:w-11" }: { className?: string }) {
   return (
     <div className={`relative flex items-center justify-center select-none ${className}`}>
       <svg
@@ -30,22 +30,22 @@ function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string
         aria-label="Vince Ou (VO)"
       >
         <title>Vince Ou</title>
-        {/* 方案 2：外层呼吸感微断环 O */}
+        {/* 方案 2：外层呼吸感微断环 O（圆融微断口） */}
         <path
           d="M 28 20 A 38 38 0 1 0 86 42"
           stroke="currentColor"
-          strokeWidth="4.2"
+          strokeWidth="4.5"
           strokeLinecap="round"
-          className="transition-all duration-300 group-hover:stroke-neutral-400"
+          className="brand-ring"
         />
         {/* 方案 2：内切利落先锋折线 V */}
         <path
           d="M 40 38 L 52 64 L 68 38"
           stroke="currentColor"
-          strokeWidth="4.5"
+          strokeWidth="4.8"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="transition-all duration-300 group-hover:translate-y-[-1px]"
+          className="brand-v"
         />
       </svg>
     </div>
