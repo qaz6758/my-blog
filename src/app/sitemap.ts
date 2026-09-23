@@ -2,6 +2,7 @@
 import { MetadataRoute } from "next";
 import { fetchPosts, fetchThoughts } from "@/lib/data";
 
+export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
