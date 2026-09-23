@@ -561,11 +561,13 @@ html.hide-playlist-grid [data-playlist-grid] {
   stroke-dashoffset: 0;
 }
 
-/* 鼠标悬停 (hover) 触发自然顺畅的一笔书写圆融微断环动效 */
+/* 鼠标悬停 (hover) 或每10秒周期 (is-drawing) 触发一笔书写圆融微断环动效 */
+.brand-ring.is-drawing,
 .group:hover .brand-ring {
   animation: drawRingScheme2 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.brand-v.is-drawing,
 .group:hover .brand-v {
   animation: drawVScheme2 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
 }

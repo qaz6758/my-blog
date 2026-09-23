@@ -19,7 +19,28 @@ const NAV_LINKS = [
   { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
 ];
 
-function BrandLogo({ className = "h-10 w-10 sm:h-11 sm:w-11" }: { className?: string }) {
+function BrandLogo({ className = "h-13 w-13 sm:h-16 sm:w-16" }: { className?: string }) {
+  const [isDrawing, setIsDrawing] = React.useState(false);
+
+  React.useEffect(() => {
+    // 首次进入 350ms 后画一次
+    const initialTimer = setTimeout(() => {
+      setIsDrawing(true);
+      setTimeout(() => setIsDrawing(false), 950);
+    }, 350);
+
+    // 每 10 秒自动周期性画出圆融微断环
+    const interval = setInterval(() => {
+      setIsDrawing(true);
+      setTimeout(() => setIsDrawing(false), 950);
+    }, 10000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <div className={`relative flex items-center justify-center select-none ${className}`}>
       <svg
@@ -34,9 +55,9 @@ function BrandLogo({ className = "h-10 w-10 sm:h-11 sm:w-11" }: { className?: st
         <path
           d="M 28 20 A 38 38 0 1 0 86 42"
           stroke="currentColor"
-          strokeWidth="4.5"
+          strokeWidth="4.6"
           strokeLinecap="round"
-          className="brand-ring"
+          className={`brand-ring ${isDrawing ? "is-drawing" : ""}`}
         />
         {/* 方案 2：内切利落先锋折线 V */}
         <path
@@ -45,7 +66,7 @@ function BrandLogo({ className = "h-10 w-10 sm:h-11 sm:w-11" }: { className?: st
           strokeWidth="4.8"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="brand-v"
+          className={`brand-v ${isDrawing ? "is-drawing" : ""}`}
         />
       </svg>
     </div>
@@ -139,7 +160,7 @@ export function Navbar() {
         {/* 顶部通透全延展容器 (对齐 Anthony Fu antfu.me 极客排版：最边缘留白 20px) */}
         <div className="relative mx-auto flex h-full w-full items-center justify-end px-5">
           {/* ===================== 左侧：手写连笔 OW 艺术签名 Logo + 状态胶囊 (对齐 Antfu: absolute xl:fixed) ===================== */}
-          <div className="flex items-center gap-3 absolute xl:fixed left-5 top-3.5 sm:top-3.5 z-50">
+          <div className="flex items-center gap-3 absolute xl:fixed left-4 sm:left-5 top-1.5 sm:top-1 z-50">
             <Link
               href="/"
               className="group flex items-center shrink-0 cursor-pointer select-none opacity-80 hover:opacity-100 transition-opacity duration-200"
