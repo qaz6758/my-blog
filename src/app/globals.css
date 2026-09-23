@@ -522,3 +522,54 @@ html.view-transition-active [data-theme-toggle] svg {
 html.hide-playlist-grid [data-playlist-grid] {
   display: none !important;
 }
+
+/*
+ * ============================================================
+ * 顶部导航栏 BrandLogo (85% 顶部微断圆 + 正中心包裹 V) - Antfu 同款动效
+ * ============================================================
+ */
+@keyframes antfu-draw-circle {
+  0% {
+    stroke-dashoffset: 220;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes antfu-draw-v {
+  0% {
+    stroke-dashoffset: 90;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.brand-ring {
+  stroke-dasharray: 220;
+  stroke-dashoffset: 0;
+  animation: antfu-draw-circle 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.brand-v {
+  stroke-dasharray: 90;
+  stroke-dashoffset: 0;
+  animation: antfu-draw-v 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+/* 遵循 Antfu 交互逻辑：鼠标 hover (或 group-hover) 时从左往右顺畅重新绘制一遍 */
+.group:hover .brand-ring,
+.group:active .brand-ring {
+  animation: antfu-draw-circle 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.group:hover .brand-v,
+.group:active .brand-v {
+  animation: antfu-draw-v 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+}

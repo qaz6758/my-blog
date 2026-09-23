@@ -19,23 +19,33 @@ const NAV_LINKS = [
   { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
 ];
 
-function BrandLogo({ className = "h-9 w-9 sm:h-11 sm:w-11" }: { className?: string }) {
+function BrandLogo({ className = "h-8 w-8 sm:h-9 sm:w-9" }: { className?: string }) {
   return (
     <div className={`relative flex items-center justify-center select-none ${className}`}>
       <svg
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full text-neutral-800 dark:text-[#f3f0ea] transition-all duration-300 transform group-hover:scale-105"
-        aria-label="OW (Vince Ou)"
+        className="w-full h-full text-neutral-800 dark:text-[#f3f0ea] transition-transform duration-300 transform group-hover:scale-105"
+        aria-label="Vince Ou (VO)"
       >
-        <title>OW @ vinceou.site</title>
+        <title>Vince Ou</title>
+        {/* 85% 顶部开阔圆：从左上方 (34, 18) 顺时针一路向右向右上 (66, 18) 画出大圆 */}
         <path
-          d="M 36 14 C 20 20 13 46 16 72 C 19 86 28 88 36 82 C 43 74 46 44 42 24 C 40 14 34 16 32 24 C 31 32 38 36 48 34 C 51 46 51 70 54 84 C 56 90 61 88 64 74 C 69 54 71 44 74 42 C 77 42 75 62 77 82 C 79 90 84 88 87 72 C 92 48 94 26 95 12"
+          d="M 34 18 A 36 36 0 1 1 66 18"
           stroke="currentColor"
-          strokeWidth="3.2"
+          strokeWidth="4.2"
+          strokeLinecap="round"
+          className="brand-ring"
+        />
+        {/* 内芯：端端正正包裹在圆心正中的 V 字母 */}
+        <path
+          d="M 33 34 L 50 68 L 67 34"
+          stroke="currentColor"
+          strokeWidth="4.6"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className="brand-v"
         />
       </svg>
     </div>
@@ -134,7 +144,7 @@ export function Navbar() {
               href="/"
               className="group flex items-center shrink-0 cursor-pointer select-none opacity-80 hover:opacity-100 transition-opacity duration-200"
               aria-label="回到首页"
-              title="OW @ vinceou.site"
+              title="Vince Ou"
             >
               <BrandLogo />
             </Link>
