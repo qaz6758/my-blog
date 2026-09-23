@@ -179,6 +179,7 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
       };
     });
 
+    // 同步 Supabase 云端真实点赞数，与首屏静态注水无缝对齐（杜绝快照闪烁）
     const supabaseLikesMap = new Map<string, number>();
     (supabaseRes.data || []).forEach((row) => {
       if (row?.id) supabaseLikesMap.set(row.id, row.likes || 0);
