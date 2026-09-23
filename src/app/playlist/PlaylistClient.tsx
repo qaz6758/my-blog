@@ -97,6 +97,9 @@ export default function PlaylistClient({
             }
             return json.data;
           });
+          try {
+            sessionStorage.setItem("ow_playlists_cache_v1", JSON.stringify(json.data));
+          } catch {}
           return;
         }
       }
@@ -114,7 +117,23 @@ export default function PlaylistClient({
   };
 
   useEffect(() => {
-    // 页面加载后立即在后台静默获取最新的实时歌单数据（SWR 机制，确保删歌/加歌秒级呈现）
+    // 1. 尝试从 sessionStorage 优先恢复上次验证过的最新歌单，杜绝刷新时由于打包旧快照造成的视觉跳变
+    try {
+      const cached = sessionStorage.getItem("ow_playlists_cache_v1");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPlaylists((prev) => {
+            if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
+              return parsed;
+            }
+            return prev;
+          });
+        }
+      }
+    } catch {}
+
+    // 2. 页面加载后立即在后台静默获取最新的实时歌单数据（SWR 机制，确保删歌/加歌秒级呈现）
     loadNotionPlaylists();
   }, []);
 

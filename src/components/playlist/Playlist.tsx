@@ -87,72 +87,83 @@ export function Playlist({
           >
 
             {/* 增加呼吸感：比照片墙稍微多一点留白，适当增加列数以控制单张封面的极限大小，拉开间距 */}
+            {/* 增加呼吸感：比照片墙稍微多一点留白，适当增加列数以控制单张封面的极限大小，拉开间距 */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-8 md:gap-10 lg:gap-12">
-              {playlists.map((playlist) => (
-                <div
-                  key={playlist.id}
-                  onClick={() => handleSelectPlaylist(playlist.id)}
-                  className="group flex cursor-pointer flex-col w-full"
-                >
-                  {/* 歌单封面卡片 (纸墨世界风格：无圆角，无阴影，静谧刻痕) */}
-                  <div className="relative aspect-square w-full overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                    {(() => {
-                      const rawCover =
-                        playlist.cover ||
-                        (playlist as any).cover_url ||
-                        (playlist as any).coverUrl ||
-                        "";
-                      return (
-                        <img
-                          src={getProxyImageUrl(rawCover) || FALLBACK_COVER}
-                          alt={playlist.title}
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            if (target.dataset.errorCount === "2") {
-                              target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-                              return;
-                            }
-                            if (target.dataset.errorCount === "1") {
-                              target.dataset.errorCount = "2";
-                              target.src = FALLBACK_COVER;
-                              return;
-                            }
-                            target.dataset.errorCount = "1";
-                            if (
-                              rawCover &&
-                              rawCover.includes("music.126.net")
-                            ) {
-                              target.src = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`);
-                            } else {
-                              target.src = FALLBACK_COVER;
-                            }
-                          }}
-                          className="h-full w-full object-cover transition-transform"
-                          style={{ transitionDuration: "var(--realm-motion-duration)" }}
-                        />
-                      );
-                    })()}
+              <AnimatePresence>
+                {playlists.map((playlist) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    transition={{
+                      opacity: { duration: 0.25 },
+                      layout: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+                    }}
+                    key={playlist.id}
+                    onClick={() => handleSelectPlaylist(playlist.id)}
+                    className="group flex cursor-pointer flex-col w-full"
+                  >
+                    {/* 歌单封面卡片 (纸墨世界风格：无圆角，无阴影，静谧刻痕) */}
+                    <div className="relative aspect-square w-full overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                      {(() => {
+                        const rawCover =
+                          playlist.cover ||
+                          (playlist as any).cover_url ||
+                          (playlist as any).coverUrl ||
+                          "";
+                        return (
+                          <img
+                            src={getProxyImageUrl(rawCover) || FALLBACK_COVER}
+                            alt={playlist.title}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              if (target.dataset.errorCount === "2") {
+                                target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                                return;
+                              }
+                              if (target.dataset.errorCount === "1") {
+                                target.dataset.errorCount = "2";
+                                target.src = FALLBACK_COVER;
+                                return;
+                              }
+                              target.dataset.errorCount = "1";
+                              if (
+                                rawCover &&
+                                rawCover.includes("music.126.net")
+                              ) {
+                                target.src = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawCover)}&w=480&h=480&fit=cover`);
+                              } else {
+                                target.src = FALLBACK_COVER;
+                              }
+                            }}
+                            className="h-full w-full object-cover transition-transform"
+                            style={{ transitionDuration: "var(--realm-motion-duration)" }}
+                          />
+                        );
+                      })()}
 
-                    {/* 悬浮播放标 (静谧克制版) */}
-                    <div className="absolute inset-0 flex items-end justify-end p-2.5 bg-black/10 opacity-0 transition-opacity group-hover:opacity-100" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-none bg-white/90 text-neutral-950 dark:bg-neutral-900/90 dark:text-white transition-transform scale-95 group-hover:scale-100 active:scale-90" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                        <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                      {/* 悬浮播放标 (静谧克制版) */}
+                      <div className="absolute inset-0 flex items-end justify-end p-2.5 bg-black/10 opacity-0 transition-opacity group-hover:opacity-100" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                        <div className="flex h-9 w-9 items-center justify-center rounded-none bg-white/90 text-neutral-950 dark:bg-neutral-900/90 dark:text-white transition-transform scale-95 group-hover:scale-100 active:scale-90" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                          <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* 标题与描述信息 */}
-                  <div className="mt-3 w-full">
-                    <h2 className="truncate text-[13.5px] sm:text-[14px] font-medium tracking-tight text-neutral-900 dark:text-neutral-200 transition-opacity group-hover:opacity-75" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                      {playlist.title}
-                    </h2>
-                    <p className="mt-0.5 truncate text-[12px] text-neutral-500 dark:text-neutral-400 font-normal">
-                      {playlist.tag ? `${playlist.tag} · ` : ""}{playlist.songs?.length || 0} 首歌曲
-                    </p>
-                  </div>
-                </div>
-              ))}
+                    {/* 标题与描述信息 */}
+                    <div className="mt-3 w-full">
+                      <h2 className="truncate text-[13.5px] sm:text-[14px] font-medium tracking-tight text-neutral-900 dark:text-neutral-200 transition-opacity group-hover:opacity-75" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                        {playlist.title}
+                      </h2>
+                      <p className="mt-0.5 truncate text-[12px] text-neutral-500 dark:text-neutral-400 font-normal">
+                        {playlist.tag ? `${playlist.tag} · ` : ""}{playlist.songs?.length || 0} 首歌曲
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </motion.div>
         ) : (
