@@ -410,6 +410,19 @@ export function DynamicPostReader({
                 />
               </article>
 
+              {/* 返回文章列表 cd .. (Anthony Fu 同款经典风格) */}
+              <div className="mt-10 sm:mt-12 mb-4">
+                <Link
+                  href="/posts"
+                  className="group inline-flex items-center gap-1.5 font-mono text-[14px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer select-none"
+                >
+                  <span className="opacity-50 select-none">&gt;</span>
+                  <span className="underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-700 group-hover:decoration-current">
+                    cd ..
+                  </span>
+                </Link>
+              </div>
+
               {/* 上下一篇导航 */}
               <div>
                 {(prevPost || nextPost) && (
