@@ -146,28 +146,73 @@ function richTextToMarkdown(richTexts: any[] = []): string {
 }
 
 /**
- * 获取页面的子块 (Block Children)
+ * 严格判断 Notion 页面是否属于已发布状态
+ * 绝不把未发布的草稿公开
+ */
+export function isPagePublished(properties: any): boolean {
+  if (!properties) return false;
+
+  // 1. 优先检查 Published 勾选框
+  const pubCheckbox = findProp(properties, 'Published', '公开', '发布');
+  if (pubCheckbox && pubCheckbox.type === 'checkbox') {
+    return Boolean(pubCheckbox.checkbox);
+  }
+
+  // 2. 检查状态属性
+  const statusProp = findProp(properties, '状态', 'Status', 'State', '阶段');
+  if (statusProp) {
+    const statusVal = getStatus(statusProp);
+    if (!statusVal) return false;
+    return (
+      statusVal.includes('已发布') ||
+      statusVal.includes('Published') ||
+      statusVal.includes('🚀') ||
+      statusVal.includes('✅')
+    );
+  }
+
+  return false;
+}
+
+/**
+ * 获取页面的子块 (Block Children) - 支持超 100 块长文完整分页拉取
  */
 async function fetchBlockChildren(blockId: string): Promise<any[]> {
   const cleanId = extractDatabaseId(blockId);
   if (!cleanId || !NOTION_API_KEY) return [];
 
-  try {
-    const res = await fetch(`https://api.notion.com/v1/blocks/${cleanId}/children?page_size=100`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${NOTION_API_KEY}`,
-        'Notion-Version': NOTION_VERSION,
-      },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      next: { revalidate: 60 },
-    });
+  const results: any[] = [];
+  let cursor: string | undefined = undefined;
 
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.results || [];
+  try {
+    do {
+      const url = new URL(`https://api.notion.com/v1/blocks/${cleanId}/children`);
+      url.searchParams.set('page_size', '100');
+      if (cursor) {
+        url.searchParams.set('start_cursor', cursor);
+      }
+
+      const res: Response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${NOTION_API_KEY}`,
+          'Notion-Version': NOTION_VERSION,
+        },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        next: { revalidate: 60, tags: ['posts', `post:${cleanId}`] },
+      });
+
+      if (!res.ok) break;
+      const data: any = await res.json();
+      if (Array.isArray(data.results)) {
+        results.push(...data.results);
+      }
+      cursor = data.has_more ? data.next_cursor : undefined;
+    } while (cursor);
+
+    return results;
   } catch {
-    return [];
+    return results;
   }
 }
 
@@ -240,88 +285,88 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
 }
 
 /**
- * 从 Notion 抓取全部已发布文章
+ * 从 Notion 抓取全部已发布文章 (严格过滤草稿，注入 ISR 标签)
  */
 export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
   const postsDbId = extractDatabaseId(process.env.NOTION_POSTS_DB_ID);
   if (!postsDbId || !NOTION_API_KEY) return [];
 
+  const items: NotionPostItem[] = [];
+  let cursor: string | undefined = undefined;
+
   try {
-    const res = await fetch(`https://api.notion.com/v1/databases/${postsDbId}/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${NOTION_API_KEY}`,
-        'Notion-Version': NOTION_VERSION,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ page_size: 100 }),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) {
-      console.warn('[Notion Posts Warning] 查询失败:', res.statusText);
-      return [];
-    }
-
-    const data = await res.json();
-    const items: NotionPostItem[] = [];
-
-    for (const page of data.results || []) {
-      const p = page.properties;
-      const status = getStatus(findProp(p, '状态', 'Status', 'State'));
-      const isCheckboxPublished = getCheckbox(findProp(p, 'Published', '公开', '发布'));
-
-      // 仅展示已发布或准备发布的文章
-      const isPublished =
-        isCheckboxPublished ||
-        status.includes('已发布') ||
-        status.includes('准备发布') ||
-        status.includes('Published') ||
-        status.includes('🚀') ||
-        status.includes('✅');
-
-      if (status && !isPublished) {
-        continue;
-      }
-
-      const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
-      const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
-      const title = getText(findProp(p, '文章标题', 'Title', 'Name', '标题')) || '未命名文章';
-      const category = getSelect(findProp(p, '主题/分类', 'Category', '分类', '主题')) || '技术';
-      let tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
-      if (!tagsList || tagsList.length === 0) {
-        const rawTagsText = getText(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
-        if (rawTagsText) {
-          tagsList = rawTagsText.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
-        }
-      }
-      const summary =
-        getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要', '文本')) || '';
-      
-      // 提取自定义网址 slug，若无则使用干净的 page id
-      const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
-      const cleanSlug = customUrl
-        ? customUrl.replace(/^https?:\/\/[^/]+\/posts\//, '').replace(/^\/posts\//, '').replace(/^\//, '').trim()
-        : page.id.replace(/-/g, '');
-
-      items.push({
-        id: page.id,
-        slug: cleanSlug,
-        title,
-        created_at: new Date(rawDate).toISOString(),
-        published_at: new Date(rawDate).toISOString(),
-        summary,
-        category,
-        tags: tagsList,
-        cover_image: getCover(page),
-        source: 'Notion 原创',
-        source_url: `/posts/${cleanSlug}`,
-        post_type: 'notion',
-        status: status || '已发布 🚀',
-        is_pinned: isPinned,
+    do {
+      const res: Response = await fetch(`https://api.notion.com/v1/databases/${postsDbId}/query`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${NOTION_API_KEY}`,
+          'Notion-Version': NOTION_VERSION,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          page_size: 100,
+          start_cursor: cursor,
+        }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        next: { revalidate: 60, tags: ['posts'] },
       });
-    }
+
+      if (!res.ok) {
+        console.warn('[Notion Posts Warning] 查询失败:', res.statusText);
+        break;
+      }
+
+      const data: any = await res.json();
+
+      for (const page of data.results || []) {
+        const p = page.properties;
+        
+        // 严格检查是否已发布（未勾选或草稿直接跳过）
+        if (!isPagePublished(p)) {
+          continue;
+        }
+
+        const status = getStatus(findProp(p, '状态', 'Status', 'State'));
+        const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
+        const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
+        const title = getText(findProp(p, '文章标题', 'Title', 'Name', '标题')) || '未命名文章';
+        const category = getSelect(findProp(p, '主题/分类', 'Category', '分类', '主题')) || '技术';
+        let tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+        if (!tagsList || tagsList.length === 0) {
+          const rawTagsText = getText(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
+          if (rawTagsText) {
+            tagsList = rawTagsText.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
+          }
+        }
+        const summary =
+          getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要', '文本')) || '';
+        
+        // 提取自定义网址 slug，若无则使用干净的 page id
+        const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
+        const cleanSlug = customUrl
+          ? customUrl.replace(/^https?:\/\/[^/]+\/posts\//, '').replace(/^\/posts\//, '').replace(/^\//, '').trim()
+          : page.id.replace(/-/g, '');
+
+        items.push({
+          id: page.id,
+          slug: cleanSlug,
+          title,
+          created_at: new Date(rawDate).toISOString(),
+          published_at: new Date(rawDate).toISOString(),
+          summary,
+          category,
+          tags: tagsList,
+          cover_image: getCover(page),
+          source: 'Notion 原创',
+          source_url: `/posts/${cleanSlug}`,
+          post_type: 'notion',
+          status: status || '已发布 🚀',
+          is_pinned: isPinned,
+        });
+      }
+
+      cursor = data.has_more ? data.next_cursor : undefined;
+    } while (cursor);
 
     // 优先按置顶排前，其次按发布时间倒序
     items.sort((a, b) => {
@@ -338,7 +383,7 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
 }
 
 /**
- * 获取单篇 Notion 文章详情与正文
+ * 获取单篇 Notion 文章详情与正文 (未发布文章拦截返回 null)
  */
 export async function fetchPostDetailFromNotion(slugOrId: string): Promise<NotionPostItem | null> {
   if (!NOTION_API_KEY) return null;
@@ -366,7 +411,7 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
           'Notion-Version': NOTION_VERSION,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        next: { revalidate: 60 },
+        next: { revalidate: 60, tags: ['posts', `post:${slugOrId}`, `post:${targetPageId}`] },
       }),
       fetchBlockChildren(targetPageId),
     ]);
@@ -374,6 +419,11 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
     if (!pageRes.ok) return null;
     const page = await pageRes.json();
     const p = page.properties;
+
+    // 严格校验是否已发布：若为未发布草稿，直接返回 null 触发 404
+    if (!isPagePublished(p)) {
+      return null;
+    }
 
     const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
     const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
@@ -444,7 +494,7 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
         ],
       }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags: ['thoughts'] },
     });
 
     if (!res.ok) return [];

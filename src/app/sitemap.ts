@@ -2,8 +2,7 @@
 import { MetadataRoute } from "next";
 import { fetchPosts, fetchThoughts } from "@/lib/data";
 
-export const dynamic = "force-static";
-export const revalidate = 3600; // 每小时重新生成一次 Sitemap
+export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vinceou.site";

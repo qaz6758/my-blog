@@ -1,12 +1,12 @@
-// src/app/posts/[slug]/page.tsx
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchPosts, fetchPostDetail } from '@/lib/data';
 import { DynamicPostReader, PostDetail } from '@/components/post/DynamicPostReader';
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 export const revalidate = 60;
 
-// 1. 构建期提取所有已发布文章的 Slug（包含 Notion 原创与 Supabase 文章）
+// 1. 构建期预渲染当前已发布的 Notion 文章 Slug
 export async function generateStaticParams() {
   const posts = await fetchPosts();
 
@@ -19,6 +19,51 @@ export async function generateStaticParams() {
     .map((post) => ({
       slug: post.slug || post.id,
     }));
+}
+
+// 2. 动态生成文章 SEO 元数据 (标题、描述、OpenGraph、Twitter 及 Canonical 规范链接)
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }> | { slug: string };
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  const post = await fetchPostDetail(slug);
+
+  if (!post) {
+    return {
+      title: '文章未找到',
+    };
+  }
+
+  const title = post.title;
+  const description = post.summary || post.title;
+  const canonicalUrl = `https://vinceou.site/posts/${post.slug || post.id}`;
+  const images = post.cover_image ? [post.cover_image] : ['/og-cover.png'];
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      type: 'article',
+      publishedTime: post.published_at || post.created_at,
+      authors: ['Vince Ou'],
+      images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images,
+    },
+  };
 }
 
 // 2. 服务端预取当前文章 + 前后篇数据，直接注入客户端

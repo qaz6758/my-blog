@@ -256,54 +256,15 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
   };
 }
 
-// ================= 博客文章接口 (Notion CMS 优先 + Supabase 备份) =================
+// ================= 博客文章接口 (Notion CMS 唯一内容源) =================
 
-export async function fetchPosts(limit: number = 60): Promise<NotionPostItem[]> {
+export async function fetchPosts(limit?: number): Promise<NotionPostItem[]> {
   try {
-    // 1. 并行从 Notion 与 Supabase 拉取文章 (Notion 原创全量保留，Supabase 限制最新条目以极大加速 CI/CD 构建与部署)
-    const [notionPosts, supabaseRes] = await Promise.all([
-      fetchNotionPosts().catch(() => []),
-      supabase
-        .from('posts')
-        .select('id, slug, title, summary, category, tags, cover_image, status, published_at, created_at')
-        .eq('is_published', true)
-        .order('published_at', { ascending: false, nullsFirst: false })
-        .limit(limit),
-    ]);
-
-    const supabaseItems: NotionPostItem[] = (supabaseRes.data || []).map((item) => ({
-      id: item.id,
-      slug: item.slug || item.id,
-      title: item.title,
-      created_at: item.created_at,
-      published_at: item.published_at || item.created_at,
-      summary: item.summary || '',
-      category: item.category || '技术',
-      tags: item.tags || [],
-      cover_image: item.cover_image || undefined,
-      source: item.title?.startsWith('http') ? 'RSS 聚合' : '博客存档',
-      source_url: `/posts/${item.slug || item.id}`,
-      post_type: 'original',
-      status: item.status || '已发布',
-      is_pinned: Boolean((item as any).is_pinned),
-    }));
-
-    // 去重逻辑：如果 Notion 和 Supabase 存在相同 slug 或 id，以 Notion 为准
-    const notionSlugs = new Set(notionPosts.map((p) => p.slug));
-    const filteredSupabase = supabaseItems.filter(
-      (p) => !notionSlugs.has(p.slug) && !notionSlugs.has(p.id)
-    );
-
-    const merged = [...notionPosts, ...filteredSupabase];
-    merged.sort((a, b) => {
-      if (a.is_pinned && !b.is_pinned) return -1;
-      if (!a.is_pinned && b.is_pinned) return 1;
-      const timeA = new Date(a.published_at || a.created_at).getTime();
-      const timeB = new Date(b.published_at || b.created_at).getTime();
-      return timeB - timeA;
-    });
-
-    return merged;
+    const posts = await fetchNotionPosts();
+    if (limit && limit > 0) {
+      return posts.slice(0, limit);
+    }
+    return posts;
   } catch (err) {
     console.warn('[Fetch Posts Error]:', err);
     return [];
@@ -311,47 +272,7 @@ export async function fetchPosts(limit: number = 60): Promise<NotionPostItem[]> 
 }
 
 export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem | null> {
-  // 1. 优先尝试从 Notion 抓取文章（包含完整 Blocks 转换后的 Markdown 正文）
-  const notionPost = await fetchNotionPostDetail(slugOrId).catch(() => null);
-  if (notionPost && notionPost.content) {
-    return notionPost;
-  }
-
-  // 2. 若 Notion 未命中，从 Supabase 查询
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
-  const query = supabase.from('posts').select('*');
-  const { data, error } = isUuid 
-    ? await query.or(`slug.eq.${slugOrId},id.eq.${slugOrId}`).single()
-    : await query.eq('slug', slugOrId).single();
-
-  if (error || !data) {
-    return notionPost || null;
-  }
-
-  const isRss =
-    Boolean(data.slug?.startsWith('rss-')) ||
-    (Array.isArray(data.tags)
-      ? data.tags.some((t: string) => typeof t === 'string' && t.toLowerCase() === 'rss')
-      : typeof data.tags === 'string' && data.tags.toLowerCase().includes('rss')) ||
-    data.category === 'RSS';
-
-  return {
-    id: data.id,
-    slug: data.slug || data.id,
-    title: data.title,
-    created_at: data.created_at,
-    published_at: data.published_at || data.created_at,
-    summary: data.summary || '',
-    category: data.category || '技术',
-    tags: data.tags || [],
-    cover_image: data.cover_image || undefined,
-    source: isRss ? 'RSS 聚合' : '原创',
-    source_url: `/posts/${data.slug}`,
-    post_type: isRss ? 'rss' : 'original',
-    status: data.status || '已发布',
-    is_pinned: Boolean((data as any).is_pinned),
-    content: data.content || '',
-  };
+  return await fetchNotionPostDetail(slugOrId);
 }
 
 // ================= 向下兼容别名 (防止旧组件报错) =================

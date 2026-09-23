@@ -101,23 +101,6 @@ export function DynamicPostReader({
   // 多语言与文案转换（全局设置，正體中文由 OpenCC 客户端秒转）
   const { locale: globalLocale, convertText } = useI18n();
 
-  // 判断当前文章是否为 RSS 外部聚合文章（评论区仅在博主个人原创文章展示，RSS 聚合文章彻底不出现）
-  const isRssArticle = useMemo(() => {
-    if (!post) return false;
-    if (post.post_type === "rss") return true;
-    if (post.slug?.startsWith("rss-")) return true;
-    if (post.source === "RSS 聚合" || post.source === "RSS") return true;
-    if (post.category?.toLowerCase() === "rss") return true;
-    if (Array.isArray(post.tags)) {
-      return post.tags.some(
-        (t) => typeof t === "string" && t.trim().toLowerCase() === "rss"
-      );
-    }
-    if (typeof post.tags === "string" && post.tags.toLowerCase().includes("rss")) {
-      return true;
-    }
-    return false;
-  }, [post]);
 
   const rawContent = post?.content || post?.summary || "";
   const postTitle = post?.title || "";
@@ -369,12 +352,10 @@ export function DynamicPostReader({
                 )}
               </div>
 
-              {/* 评论区：仅在博主个人原创文章中展现，RSS 聚合文章彻底不出现 */}
-              {!isRssArticle && (
-                <div className="mt-20">
-                  <CommentSection postId={String(post.id)} locale={globalLocale} />
-                </div>
-              )}
+              {/* 评论区 */}
+              <div className="mt-20">
+                <CommentSection postId={String(post.id)} locale={globalLocale} />
+              </div>
             </main>
 
             {/* 右侧：空白占位，确保正文绝对居中 */}

@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Menu, X, Rss, ArrowUp } from "lucide-react";
+import { Sun, Moon, Menu, X, ArrowUp } from "lucide-react";
 
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { StatusCapsule } from "@/components/layout/StatusCapsule";
@@ -190,20 +190,6 @@ export function Navbar() {
                 </span>
               </div>
 
-              {/* RSS */}
-              <div className="group relative flex items-center justify-center">
-                <Link
-                  href="/api/rss"
-                  target="_blank"
-                  className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
-                  aria-label="RSS Feed"
-                >
-                  <Rss className="h-[19px] w-[19px] stroke-[2]" />
-                </Link>
-                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded bg-[#18181b] border border-white/10 text-white px-2 py-0.5 text-[11px] font-mono shadow-md whitespace-nowrap z-50">
-                  RSS
-                </span>
-              </div>
 
               {/* Theme Toggle */}
               <div className="group relative flex items-center justify-center">
@@ -332,14 +318,6 @@ export function Navbar() {
                 </svg>
                 <span>GitHub</span>
               </a>
-              <Link
-                href="/api/rss"
-                target="_blank"
-                className="flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-[#eae5dc] transition-colors"
-              >
-                <Rss className="h-3.5 w-3.5 stroke-[1.9]" />
-                <span>RSS</span>
-              </Link>
             </div>
           </motion.div>
         )}

@@ -167,15 +167,6 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <div className="flex items-center">
               <a
-                href="/api/rss"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-neutral-700 hover:text-neutral-950 dark:text-[#e7e5e4] dark:hover:text-white transition-colors duration-200 dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
-              >
-                {t("footer.rss")}
-              </a>
-              <span className="mx-1.5 text-neutral-400 dark:text-neutral-500 select-none">·</span>
-              <a
                 href="/sitemap.xml"
                 target="_blank"
                 rel="noopener noreferrer"
