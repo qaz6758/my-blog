@@ -53,7 +53,9 @@ export async function generateMetadata({
   const images = post.cover_image ? [post.cover_image] : ['/og-cover.png'];
 
   return {
-    title,
+    title: {
+      absolute: title,
+    },
     description,
     alternates: {
       canonical: canonicalUrl,
