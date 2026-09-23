@@ -419,7 +419,7 @@ export function DynamicPostReader({
                          href={`/posts/${prevPost.slug || prevPost.source_url || prevPost.id}`}
                          className="group flex flex-col gap-2 text-left transition-colors"
                        >
-                         <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
+                         <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
                            <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
                            {globalLocale === "zh-TW" ? "上一篇" : globalLocale === "en" ? "Previous" : globalLocale === "ja" ? "前の記事" : globalLocale === "ko" ? "이전 글" : "上一篇"}
                          </span>
@@ -436,7 +436,7 @@ export function DynamicPostReader({
                          href={`/posts/${nextPost.slug || nextPost.source_url || nextPost.id}`}
                          className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
                        >
-                         <span className="text-[11px] text-neutral-400 dark:text-[#777168] flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">
+                         <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">
                            {globalLocale === "zh-TW" ? "下一篇" : globalLocale === "en" ? "Next" : globalLocale === "ja" ? "次の記事" : globalLocale === "ko" ? "다음 글" : "下一篇"}
                            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                          </span>
@@ -473,26 +473,6 @@ export function DynamicPostReader({
           className="relative min-h-screen w-full bg-transparent px-4 pt-24 pb-16 sm:px-8 lg:px-12 antialiased flex flex-col justify-between"
         >
           <main className="mx-auto w-full max-w-[65ch]">
-            <header className="mb-10 pl-1">
-              <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-[#eae5dc] sm:text-4xl">
-                思考
-              </h1>
-              <p className="mt-3 text-2xl text-neutral-500 dark:text-[#777168] tracking-widest">
-                感君倾耳。
-              </p>
-            </header>
-
-            <div className="mb-6 pl-1">
-              <Link
-                href="/thoughts"
-                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-[#b91c1c] dark:text-[#9d9589] dark:hover:text-white transition-colors"
-                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                返回
-              </Link>
-            </div>
-
             <ThoughtDetailClient item={thought} />
           </main>
         </motion.div>
@@ -515,7 +495,7 @@ export function DynamicPostReader({
             className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>返回首页</span>
+            <span>{globalLocale === "en" ? "Back to Home" : "返回首页"}</span>
           </Link>
         </motion.div>
       )}

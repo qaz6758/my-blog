@@ -68,223 +68,52 @@
 
 /*
  * ============================================================
- * 全局底色与排印变量规范（消除首屏 FOUC 与刷新闪烁）
+ * 全局底色、动态参数与排印变量（消除首屏 FOUC 与刷新闪烁）
  * ============================================================
  */
 
 :root {
   --page-bg: #ffffff;
   --page-text: #222222;
-}
-
-html.dark {
-  --page-bg: #050505 !important;
-  --page-text: #e5e5e5 !important;
+  --realm-motion-duration: 0.18s;
+  --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.light {
-  --page-bg: #ffffff !important;
-  --page-text: #222222 !important;
-}
-
-html {
-  scrollbar-gutter: stable;
-}
-
-body {
-  color: var(--page-text);
+  color-scheme: only light !important;
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
+  --page-bg: #ffffff;
+  --page-text: #222222;
+  --realm-motion-duration: 0.18s;
+  --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.light,
 html.light body {
   background-color: #ffffff !important;
   color: #222222 !important;
-  color-scheme: only light !important;
+}
+
+html.dark {
+  color-scheme: only dark !important;
+  forced-color-adjust: none;
+  -webkit-forced-color-adjust: none;
+  --page-bg: #050505;
+  --page-text: #e5e5e5;
+  --realm-motion-duration: 0.32s;
+  --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
 }
 
 html.dark,
 html.dark body {
   background-color: #050505 !important;
   color: #e5e5e5 !important;
-  color-scheme: only dark !important;
 }
 
 /*
  * ============================================================
- * 纯净微光选区高亮 (Anthony Fu 同款)
- * ============================================================
- */
-
-::selection {
-  background: rgba(125, 125, 125, 0.25);
-}
-
-.dark ::selection,
-html.dark ::selection {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-/*
- * ============================================================
- * 双界文本链接系统 (Prose Link)
- * 昼行：石墨黑底色，Hover 显落款朱砂与轻快节拍，印泥落纸
- * 夜行：澄澈淡墨灰，Hover 升华如清泉月华，纯白留白，零霓虹杂质
- * ============================================================
- */
-
-.prose-link {
-  font-weight: 600;
-  color: #171717;
-  border-bottom: 1px solid rgba(185, 28, 28, 0.35);
-  padding-bottom: 1px;
-  text-decoration: none !important;
-  cursor: pointer;
-  transition: color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
-              border-color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
-              opacity 0.2s ease;
-}
-
-/* 昼行悬停：落款朱砂，利落干净，无廉价荧光 */
-.prose-link:hover {
-  color: #b91c1c !important;
-  border-bottom-color: #b91c1c !important;
-}
-
-/* 夜行常态：温润淡墨灰 */
-.dark .prose-link {
-  color: #a8a29e;
-  border-bottom: 1px solid rgba(168, 162, 158, 0.28);
-}
-
-/* 夜行悬停：极致纯净，月华澄澈，零发光污染 */
-.dark .prose-link:hover {
-  color: #ffffff !important;
-  border-bottom-color: #ffffff !important;
-}
-
-/*
- * ============================================================
- * 双界交错色彩原子类
- * 昼行：自然克制的街头手稿色调（朱砂、青刃、旧金）
- * 夜行：沉静黑白墨阶梯（月白、素霜、皓月），去高饱和杂质
- * ============================================================
- */
-
-/* 核心强调：昼行朱砂落款，夜行澄澈月白 */
-.champloo-text-crimson {
-  color: #b91c1c;
-}
-.dark .champloo-text-crimson {
-  color: #eae5dc;
-}
-
-/* 刀芒强调：昼行青刃，夜行素霜灰 */
-.champloo-text-cyan {
-  color: #0369a1;
-}
-.dark .champloo-text-cyan {
-  color: #d6d3d1;
-}
-
-/* 律动强调：昼行向日葵旧金，夜行温润皓月 */
-.champloo-text-gold {
-  color: #b45309;
-}
-.dark .champloo-text-gold {
-  color: #ffffff;
-}
-
-/* 默认基准变量：优先跟随 --page-bg，绝不在 :root 裸状态写死浅色背景 */
-:root {
-  --realm-bg: var(--page-bg);
-  --realm-surface: #f5efe3;
-  --realm-surface-secondary: #eae3d5;
-  --realm-surface-tertiary: #dfd7c5;
-
-  --realm-border: rgba(50, 40, 30, 0.08);
-  --realm-border-strong: rgba(50, 40, 30, 0.16);
-
-  --realm-ink-primary: var(--page-text);
-  --realm-ink-secondary: #6e6559;
-  --realm-ink-muted: #9c9284;
-
-  --realm-accent-cinnabar: #b91c1c;
-  --realm-accent-indigo: #0369a1;
-  --realm-accent-gold: #b45309;
-
-  --realm-motion-duration: 0.18s;
-  --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
-
-  --background: var(--realm-bg);
-  --foreground: var(--realm-ink-primary);
-}
-
-html.light {
-  color-scheme: only light;
-  forced-color-adjust: none;
-  -webkit-forced-color-adjust: none;
-
-  /* 昼行：现代利落纯白、深灰墨字、极致呼吸感 */
-  --realm-bg: #ffffff;
-  --realm-surface: #f9f9f9;
-  --realm-surface-secondary: #f3f3f3;
-  --realm-surface-tertiary: #eaeaea;
-
-  --realm-border: rgba(0, 0, 0, 0.08);
-  --realm-border-strong: rgba(0, 0, 0, 0.14);
-
-  --realm-ink-primary: #222222;
-  --realm-ink-secondary: #666666;
-  --realm-ink-muted: #999999;
-
-  --realm-accent-cinnabar: #b91c1c;
-  --realm-accent-indigo: #0369a1;
-  --realm-accent-gold: #b45309;
-
-  --realm-motion-duration: 0.18s;
-  --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
-
-  --background: var(--realm-bg);
-  --foreground: var(--realm-ink-primary);
-  background-color: #ffffff !important;
-  color: #222222 !important;
-}
-
-html.dark {
-  color-scheme: dark;
-  forced-color-adjust: none;
-  -webkit-forced-color-adjust: none;
-
-  /* 夜行：Anthony Fu 极致深黑与纯净灰白 */
-  --realm-bg: #050505;
-  --realm-surface: #101010;
-  --realm-surface-secondary: #181818;
-  --realm-surface-tertiary: #222222;
-
-  --realm-border: rgba(255, 255, 255, 0.08);
-  --realm-border-strong: rgba(255, 255, 255, 0.14);
-
-  --realm-ink-primary: #e5e5e5;
-  --realm-ink-secondary: #a3a3a3;
-  --realm-ink-muted: #737373;
-
-  --realm-accent-cinnabar: #ffffff;
-  --realm-accent-indigo: #d4d4d8;
-  --realm-accent-gold: #ffffff;
-
-  --realm-motion-duration: 0.32s;
-  --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
-
-  --background: var(--realm-bg);
-  --foreground: var(--realm-ink-primary);
-  background-color: #050505 !important;
-  color: #e5e5e5 !important;
-}
-
-/*
- * ============================================================
- * HTML & 全局文本排版渲染优化
+ * HTML & 全局排版渲染优化
  * ============================================================
  */
 
@@ -322,12 +151,77 @@ body {
 
 /*
  * ============================================================
- * Root Elements
+ * 纯净微光选区高亮 (纯粹黑白高反差)
  * ============================================================
  */
 
-#__next {
-  min-height: 100%;
+::selection {
+  background: #000000;
+  color: #ffffff;
+}
+
+.dark ::selection,
+html.dark ::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+/*
+ * ============================================================
+ * 双界文本链接系统 (Prose Link)
+ * 昼行：纯粹石墨黑，Hover 加深纯黑下划线
+ * 夜行：澄澈中性灰，Hover 升华纯白留白
+ * ============================================================
+ */
+
+.prose-link {
+  font-weight: 600;
+  color: #171717;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  padding-bottom: 1px;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+              border-color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+              opacity 0.2s ease;
+}
+
+/* 昼行悬停：利落纯黑，加深下划线 */
+.prose-link:hover {
+  color: #000000 !important;
+  border-bottom-color: #000000 !important;
+}
+
+/* 夜行常态：中性淡冷灰 */
+.dark .prose-link {
+  color: #d4d4d4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* 夜行悬停：极致纯白留白 */
+.dark .prose-link:hover {
+  color: #ffffff !important;
+  border-bottom-color: #ffffff !important;
+}
+
+/*
+ * ============================================================
+ * 交互与外设优化 (Focus, Tap, ProgressBar)
+ * ============================================================
+ */
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
+}
+
+html.dark :focus-visible {
+  outline-color: rgba(255, 255, 255, 0.35);
 }
 
 #top-progress-bar,
@@ -341,18 +235,9 @@ body {
 
 /*
  * ============================================================
- * Scrollbar
+ * 自定义滚动条 (Webkit Scrollbar)
  * ============================================================
  */
-
-html {
-  scrollbar-color: #c4c4c4 transparent;
-  scrollbar-width: thin;
-}
-
-html.dark {
-  scrollbar-color: #3a3a3a transparent;
-}
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -378,35 +263,6 @@ html.dark ::-webkit-scrollbar-thumb {
 
 html.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.22);
-}
-
-/*
- * ============================================================
- * Links & Buttons & Images
- * ============================================================
- */
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-img {
-  max-width: 100%;
-}
-
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-}
-
-:focus-visible {
-  outline: 2px solid rgba(0, 0, 0, 0.35);
-  outline-offset: 2px;
-}
-
-html.dark :focus-visible {
-  outline-color: rgba(255, 255, 255, 0.35);
 }
 
 /*
@@ -448,32 +304,26 @@ html.dark .ink-divider::after {
   opacity: 0.4;
 }
 
-/* --- 2. 漫画分格卡片 (Manga Panel Card) 手绘漫画版 --- */
+/* --- 2. 漫画分格卡片 (Manga Panel Card) 纯粹硬朗方正波普版 --- */
 .manga-panel {
   position: relative;
   background: #ffffff;
-  /* 稍粗的实线，配合微妙的不规则圆角模拟手绘墨线 */
-  border: 2.5px solid #050505;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-  /* 漫画中经典的硬切角排版阴影 */
-  box-shadow: 5px 5px 0 #050505;
+  /* 方正硬朗实线直角边框与波普投影 */
+  border: 2px solid #050505;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #050505;
   z-index: 1;
-  transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1), box-shadow 0.2s ease;
 }
 
 html.dark .manga-panel {
   background: #080808;
   border-color: #ffffff;
-  box-shadow: 5px 5px 0 #ffffff;
+  box-shadow: 4px 4px 0 #ffffff;
 }
 
 .manga-panel:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 7px 7px 0 currentColor;
+  transform: none;
 }
-
-
-
 
 /*
  * ============================================================
@@ -533,11 +383,6 @@ html.dark .manga-panel {
     translate: none !important;
   }
 }
-
-
-
-
-
 
 /*
  * ============================================================
@@ -637,7 +482,7 @@ html.view-transition-active [data-theme-toggle] svg {
 
 /*
  * ============================================================
- * 方案 B：CRT 示波器光线压扁湮灭动画 (CRT Oscilloscope Collapse)
+ * CRT 示波器光线压扁湮灭动画 (CRT Oscilloscope Collapse)
  * ============================================================
  */
 
@@ -669,38 +514,11 @@ html.view-transition-active [data-theme-toggle] svg {
   pointer-events: none !important;
 }
 
-
-
-/* 5. 古卷画芯背景与装裱 (Scroll Canvas Paper - 浪客行生宣与新闻纸质感) */
-.scroll-canvas-bg {
-  background-color: #f2ece0;
-  background-image: 
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(242, 236, 224, 0.8) 100%),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 32px,
-      rgba(150, 120, 80, 0.02) 32px,
-      rgba(150, 120, 80, 0.02) 33px
-    );
-  box-shadow: inset 0 0 28px rgba(90, 70, 40, 0.05);
-}
-
-.dark .scroll-canvas-bg {
-  background-color: #1a1816;
-  background-image: 
-    radial-gradient(ellipse at center, rgba(30, 28, 25, 0.6) 0%, rgba(24, 22, 20, 0.95) 100%),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 32px,
-      rgba(255, 255, 255, 0.012) 32px,
-      rgba(255, 255, 255, 0.012) 33px
-    );
-  box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.65);
-}
-
-/* 歌单直达预阻断：杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现 */
+/*
+ * ============================================================
+ * 歌单直达预阻断：杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现
+ * ============================================================
+ */
 html.hide-playlist-grid [data-playlist-grid] {
   display: none !important;
 }

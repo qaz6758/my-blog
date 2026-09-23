@@ -12,45 +12,45 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Footer() {
   const { mounted, enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const isEn = locale === "en";
 
   // 当前季节标签（随自然节气自动流转，无需手动下拉）
-const SEASON_MAP = {
-  spring: "春樱漫舞",
-  summer: "夏夜流萤",
-  autumn: "秋枫飘落",
-  winter: "静谧初雪",
-} as const;
-const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
+  const SEASON_MAP = {
+    spring: isEn ? "Spring Cherry" : "春樱漫舞",
+    summer: isEn ? "Summer Fireflies" : "夏夜流萤",
+    autumn: isEn ? "Autumn Maples" : "秋枫飘落",
+    winter: isEn ? "Silent First Snow" : "静谧初雪",
+  } as const;
+  const seasonTitle = SEASON_MAP[activeSeason] || (isEn ? "Silent First Snow" : "静谧初雪");
 
   return (
-    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 transition-colors duration-300 mt-auto">
+    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 transition-colors duration-300 mt-auto px-6 sm:px-8">
       {/* 顶部分割线：极淡水墨虚化化境线，无硬切缝隙 */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-black/[0.04] dark:via-white/[0.04] to-transparent pointer-events-none z-10" />
 
       {/* 画卷全景背景 */}
       <InkMountainBackground />
 
-      {/* 内容层：预留上方苍穹与巍峨远峰，文字如古典题跋置于云谷之间 */}
-      <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pt-12 pb-10 sm:px-8 sm:pt-36 sm:pb-12">
-        {/* ===================== 上半部分：品牌大字 + 3列导航 (融合浪客行/混沌武士主题) ===================== */}
-                {/* ===================== 上半部分：品牌大字 + 3列导航 ===================== */}
-        <div className="flex flex-col sm:flex-row items-start justify-start sm:justify-center gap-10 sm:gap-16 md:gap-24">
-          {/* 左侧：品牌名、名言宣言（手机端靠左，电脑端保持左齐） */}
-          <div className="flex flex-col items-start text-left space-y-3 max-w-sm">
+      {/* 内容层：容器居中，尺寸与全站正文 max-w-[660px] 像素级无缝垂直对齐 */}
+      <div className="relative z-10 mx-auto w-full max-w-[660px] pt-12 pb-10 sm:pt-36 sm:pb-12">
+        {/* ===================== 上半部分：品牌大字 + 3列导航 ===================== */}
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-10 sm:gap-8">
+          {/* 左侧：品牌名、名言宣言（左对齐，宽度充足绝不折单字） */}
+          <div className="flex flex-col items-start text-left space-y-3 shrink-0 sm:max-w-[340px]">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900 dark:text-white flex items-center gap-2.5">
               {siteConfig.name}
             </h2>
-            {/* 纯净引用文本 */}
-            <div className="my-1 text-[13px] sm:text-[13.5px] font-medium text-neutral-700 dark:text-neutral-300 leading-relaxed font-serif tracking-wide select-text">
+            {/* 纯净引用文本：单行优雅呈现，杜绝孤字掉行 */}
+            <div className="my-1 text-[13px] sm:text-[13.5px] font-medium text-neutral-700 dark:text-neutral-300 leading-relaxed font-serif tracking-wide select-text whitespace-nowrap">
               {t("footer.motto")}
             </div>
             <div className="pt-0.5 text-xs leading-relaxed text-neutral-600 dark:text-[#b8b2a8] font-sans">
               <p>© 2026 - Present Powered by Next.js & React</p>
             </div>
           </div>
-          {/* 3列导航链接（手机端靠左，电脑端保持居中） */}
-          <div className="flex items-start justify-start sm:justify-center gap-8 sm:gap-10 md:gap-14 text-left shrink-0">
+          {/* 3列导航链接 */}
+          <div className="flex items-start justify-between sm:justify-end gap-6 sm:gap-8 md:gap-10 text-left shrink-0">
             {/* 第 1 列：关于 */}
             <div className="space-y-3">
               <h3 className="text-[13.5px] sm:text-sm font-semibold text-neutral-900 dark:text-white tracking-wide dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">
@@ -161,16 +161,16 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
           </div>
         </div>
 
-        {/* ===================== 下半部分：次级工具条 (高对比度清晰化优化) ===================== */}
-        <div className="mt-10 sm:mt-12 pt-5 sm:pt-6 border-t border-black/[0.08] dark:border-white/10 flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 gap-y-3 text-[12.5px] sm:text-xs font-medium text-neutral-700 dark:text-[#e7e5e4]">
-          {/* 左侧条目：RSS 订阅 · 站点地图 · 订阅 | 简体中文 | 背景效果开关 */}
+        {/* ===================== 下半部分：次级工具条 (严格保持左对齐) ===================== */}
+        <div className="mt-10 sm:mt-12 pt-5 sm:pt-6 border-t border-black/[0.08] dark:border-white/10 flex items-center justify-start text-[12.5px] sm:text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          {/* 条目：站点地图 | 简体中文 | 背景效果开关（与上方左侧品牌文案严格在同一直线） */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <div className="flex items-center">
               <a
                 href="/sitemap.xml"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-700 hover:text-neutral-950 dark:text-[#e7e5e4] dark:hover:text-white transition-colors duration-200 dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
+                className="text-neutral-700 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-white transition-colors duration-200 dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
               >
                 {t("footer.sitemap")}
               </a>
@@ -194,13 +194,17 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
               <button
                 type="button"
                 onClick={toggleEnabled}
-                className="cursor-pointer select-none text-neutral-700 hover:text-neutral-950 dark:text-[#e7e5e4] dark:hover:text-white transition-colors duration-200 focus:outline-none dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
-                title={`背景特效当前状态：${enabled ? "开启" : "关闭"}（${seasonTitle}）`}
+                className="cursor-pointer select-none text-neutral-700 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-white transition-colors duration-200 focus:outline-none dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)]"
+                title={
+                  isEn
+                    ? `Background effect: ${enabled ? "Enabled" : "Disabled"} (${seasonTitle})`
+                    : `背景特效当前状态：${enabled ? "开启" : "关闭"}（${seasonTitle}）`
+                }
               >
                 <span>{t("footer.bg_effect")}</span>
               </button>
 
-              {/* 图二同款极简纯粹开关：清晰线框 + 内部高亮小方块 */}
+              {/* 极简纯粹开关：清晰线框 + 内部高亮小方块 */}
               {mounted && (
                 <button
                   type="button"
@@ -211,11 +215,19 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
                       : "border border-neutral-400 dark:border-neutral-500"
                   }`}
                   title={
-                    enabled
+                    isEn
+                      ? enabled
+                        ? `Click to disable background effect (${seasonTitle})`
+                        : "Click to enable background effect"
+                      : enabled
                       ? `点击关闭背景特效（当前：${seasonTitle}）`
                       : "点击开启背景特效"
                   }
-                  aria-label={enabled ? "关闭背景特效" : "开启背景特效"}
+                  aria-label={
+                    isEn
+                      ? enabled ? "Disable background effect" : "Enable background effect"
+                      : enabled ? "关闭背景特效" : "开启背景特效"
+                  }
                 >
                   <span
                     className={`inline-block h-2 w-2 rounded-[1px] transition-transform duration-200 ${
@@ -228,9 +240,6 @@ const seasonTitle = SEASON_MAP[activeSeason] || "静谧初雪";
               )}
             </div>
           </div>
-
-          {/* 右侧：严格去除备案信息，保持纯净留白 */}
-          <div />
         </div>
       </div>
     </footer>

@@ -147,20 +147,20 @@ export function StatusCapsule({
   const renderCardContent = () => (
     <div className="w-full select-none p-3.5 manga-panel">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-400">
           LIVE DESK
         </span>
-        <span className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
+        <span className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
           <span
             className={`h-1.5 w-1.5 rounded-none ${
-              isOnline ? "bg-neutral-800 dark:bg-[#eae5dc]" : "bg-neutral-300 dark:bg-neutral-700"
+              isOnline ? "bg-neutral-800 dark:bg-white" : "bg-neutral-300 dark:bg-neutral-700"
             }`}
           />
           {isOnline ? "ON" : "OFF"}
         </span>
       </div>
 
-      <div className="mt-1.5 text-[13px] font-semibold text-neutral-900 dark:text-[#eae5dc]">
+      <div className="mt-1.5 text-[13px] font-semibold text-neutral-900 dark:text-neutral-100">
         {nickname}
       </div>
 
@@ -185,10 +185,10 @@ export function StatusCapsule({
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col justify-center">
-              <div className="truncate text-xs font-bold text-neutral-900 dark:text-[#eae5dc]">
+              <div className="truncate text-xs font-bold text-neutral-900 dark:text-neutral-100">
                 {musicTitle}
               </div>
-              <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-[#9d9589]">
+              <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-neutral-400">
                 {musicArtist}
               </div>
             </div>
@@ -196,19 +196,19 @@ export function StatusCapsule({
 
           <div className="mt-3 flex items-center gap-2">
             <div className="flex h-2.5 items-end gap-[2px]">
-              <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
-              <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-2.5 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
-              <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
+              <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
+              <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-2.5 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
+              <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
             </div>
 
             <div className="relative h-[2px] flex-1 overflow-hidden bg-black/5 dark:bg-white/10">
               <div 
-                className="absolute left-0 top-0 h-full bg-[#b91c1c] dark:bg-white transition-all duration-1000 ease-linear"
+                className="absolute left-0 top-0 h-full bg-neutral-900 dark:bg-white transition-all duration-1000 ease-linear"
                 style={{ width: `${progressPercent}%` }} 
               />
             </div>
 
-            <span className="text-[9px] font-mono text-neutral-400 dark:text-[#777168]">
+            <span className="text-[9px] font-mono text-neutral-400 dark:text-neutral-400">
               {formatTime(localProgress)} / {formatTime(musicDuration)}
             </span>
           </div>
@@ -217,7 +217,7 @@ export function StatusCapsule({
 
       {/* App 使用状态 */}
       {!isMusic && !hasApp && (
-        <div className="mt-3 text-[10px] font-mono text-neutral-400 dark:text-[#777168]">No active status</div>
+        <div className="mt-3 text-[10px] font-mono text-neutral-400 dark:text-neutral-400">No active status</div>
       )}
       
       {hasApp && liveStatus.app?.name && (
@@ -241,7 +241,7 @@ export function StatusCapsule({
               <Laptop className="h-3 w-3 text-neutral-500" />
             )}
           </div>
-          <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
+          <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
             {liveStatus.app.name}
           </span>
         </div>
@@ -279,7 +279,7 @@ export function StatusCapsule({
                 className="h-full w-full object-cover rounded-[1px]"
               />
             ) : isMusic ? (
-              <Music2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-pulse text-[#b91c1c] dark:text-[#eae5dc]" />
+              <Music2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-pulse text-neutral-900 dark:text-white" />
             ) : hasApp && (liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)) ? (
               <img
                 src={liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)!}
@@ -307,7 +307,7 @@ export function StatusCapsule({
 
           <div className="flex min-w-0 max-w-[140px] sm:max-w-[160px] flex-col text-left leading-none">
             <span 
-              className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-[#777168] dark:font-normal group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors"
+              className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-neutral-400 dark:font-normal group-hover:text-black dark:group-hover:text-white transition-colors"
               style={{ transitionDuration: "var(--realm-motion-duration)" }}
             >
               {isMusic
@@ -342,7 +342,7 @@ export function StatusCapsule({
               )}
             </div>
             <div className="flex min-w-0 max-w-[140px] sm:max-w-[160px] flex-col text-right leading-none">
-              <span className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-[#777168] dark:font-normal group-hover:text-[#b91c1c] dark:group-hover:text-white transition-colors">
+              <span className="truncate text-[10px] sm:text-[11px] font-mono font-medium text-neutral-800 dark:text-neutral-400 dark:font-normal group-hover:text-black dark:group-hover:text-white transition-colors">
                 {liveStatus.app.name}
               </span>
             </div>
@@ -362,13 +362,13 @@ export function StatusCapsule({
               className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] manga-panel p-3.5 shadow-sm"
             >
               <div className="flex items-center justify-between mb-3 border-b border-black/[0.04] dark:border-white/[0.04] pb-2">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-[#777168]">
+                <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-400">
                   LIVE DESK
                 </span>
-                <span className="flex items-center gap-1 text-[9px] font-mono text-neutral-500 dark:text-[#9d9589]">
+                <span className="flex items-center gap-1 text-[9px] font-mono text-neutral-500 dark:text-neutral-400">
                   <span
                     className={`h-1 w-1 rounded-none ${
-                      isOnline ? "bg-neutral-800 dark:bg-[#eae5dc]" : "bg-neutral-300 dark:bg-neutral-700"
+                      isOnline ? "bg-neutral-800 dark:bg-white" : "bg-neutral-300 dark:bg-neutral-700"
                     }`}
                   />
                   {isOnline ? "ON" : "OFF"}
@@ -394,10 +394,10 @@ export function StatusCapsule({
                     </div>
 
                     <div className="flex min-w-0 flex-1 flex-col justify-center">
-                      <div className="truncate text-xs font-bold text-neutral-900 dark:text-[#eae5dc]">
+                      <div className="truncate text-xs font-bold text-neutral-900 dark:text-neutral-100">
                         {musicTitle}
                       </div>
-                      <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-[#9d9589]">
+                      <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-neutral-400">
                         {musicArtist}
                       </div>
                     </div>
@@ -405,19 +405,19 @@ export function StatusCapsule({
 
                   <div className="mt-2.5 flex items-center gap-2">
                     <div className="flex h-2 items-end gap-[2px]">
-                      <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
-                      <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-2 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
-                      <span className={`w-[2px] bg-neutral-800 dark:bg-[#eae5dc] ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-2 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
                     </div>
 
                     <div className="relative h-[2px] flex-1 overflow-hidden bg-black/5 dark:bg-white/10">
                       <div 
-                        className="absolute left-0 top-0 h-full bg-[#b91c1c] dark:bg-white transition-all duration-1000 ease-linear"
+                        className="absolute left-0 top-0 h-full bg-neutral-900 dark:bg-white transition-all duration-1000 ease-linear"
                         style={{ width: `${progressPercent}%` }} 
                       />
                     </div>
 
-                    <span className="text-[9px] font-mono text-neutral-400 dark:text-[#777168]">
+                    <span className="text-[9px] font-mono text-neutral-400 dark:text-neutral-400">
                       {formatTime(localProgress)}
                     </span>
                   </div>
@@ -425,7 +425,7 @@ export function StatusCapsule({
               )}
 
               {!isMusic && !hasApp && (
-                <div className="text-[10px] font-mono text-neutral-400 dark:text-[#777168]">No active status</div>
+                <div className="text-[10px] font-mono text-neutral-400 dark:text-neutral-400">No active status</div>
               )}
               
               {hasApp && liveStatus.app?.name && (
@@ -449,7 +449,7 @@ export function StatusCapsule({
                       <Laptop className="h-3 w-3 text-neutral-400" />
                     )}
                   </div>
-                  <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-[#9d9589]">
+                  <span className="truncate text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
                     {liveStatus.app.name}
                   </span>
                 </div>

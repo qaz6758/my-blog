@@ -2,9 +2,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Heart, MessageSquare, Star } from "lucide-react";
-import { ThoughtMediaItem, formatThoughtDate } from "@/lib/data";
+import { Heart, MessageSquare, Star, ArrowLeft } from "lucide-react";
+import { ThoughtMediaItem, formatThoughtDate, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
 
@@ -63,12 +64,12 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   // 客户端挂载时动态计算相对时间，与列表页算法严格统一
   useEffect(() => {
     if (thoughtItem.rawDate || thoughtItem.time) {
-      const info = formatThoughtDate(thoughtItem.rawDate || thoughtItem.time);
+      const info = formatThoughtDate(thoughtItem.rawDate || thoughtItem.time, locale);
       if (info.relative) {
         setDisplayTime(info.relative);
       }
     }
-  }, [thoughtItem.rawDate, thoughtItem.time]);
+  }, [thoughtItem.rawDate, thoughtItem.time, locale]);
 
   // 恢复本地红心高亮状态
   useEffect(() => {
@@ -171,22 +172,43 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
     }
   };
 
+  const isEn = locale === "en";
+
   return (
     <>
+      {/* 顶部标题：响应多语言切换 */}
+      <header className="mb-8 pl-1">
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-3xl font-sans">
+          {isEn ? "Thoughts" : "思考"}
+        </h1>
+        <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 tracking-widest font-sans">
+          {isEn ? "Whispers of mind" : "感君倾耳"}
+        </p>
+      </header>
+
+      <div className="mb-6 pl-1">
+        <Link
+          href="/thoughts"
+          className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-[#71717a] dark:hover:text-[#f4f4f5] transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {isEn ? "Back" : "cd.."}
+        </Link>
+      </div>
+
       {/* 独立内容块 */}
-      {/* 独立内容块 */}
-      <article className="relative rounded-none p-4 sm:p-5 shadow-sm manga-panel font-serif transition-all">
+      <article className="relative rounded-none p-4 sm:p-5 manga-panel font-sans">
         <div className="mb-3 flex items-center gap-2 text-xs">
-          <span className="font-semibold text-neutral-900 dark:text-[#eae5dc]">
+          <span className="font-semibold text-neutral-900 dark:text-neutral-100">
             {thoughtItem.author}
           </span>
           {thoughtItem.action && (
-            <span className="text-neutral-500 dark:text-[#9d9589]">
-              {thoughtItem.action}
+            <span className="text-neutral-500 dark:text-neutral-400">
+              {translateAction(thoughtItem.action, isEn)}
             </span>
           )}
           <span
-            className="text-neutral-400 dark:text-[#777168]"
+            className="text-neutral-400 dark:text-neutral-400"
             title={thoughtItem.fullTime || thoughtItem.time}
           >
             {displayTime}
@@ -196,14 +218,14 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
         {/* 主体渲染 */}
         {isNote ? (
           <>
-            <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d6d0c7] whitespace-pre-line text-justify">
+            <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-neutral-300 whitespace-pre-line text-justify">
               {displayDesc}
             </div>
             {thoughtItem.posterUrl && (
               <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
                 <img
                   src={thoughtItem.posterUrl}
-                  alt={displayTitle || "随笔配图"}
+                  alt={displayTitle || (isEn ? "Attachment image" : "随笔配图")}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -224,18 +246,18 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             )}
             
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-[#9d9589] uppercase">
+              <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
                 {thoughtItem.type} {thoughtItem.year ? `· ${thoughtItem.year}` : ""}
               </div>
-              <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#eae5dc] tracking-tight">
+              <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
                 {displayTitle}
               </h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-[#9d9589] whitespace-pre-line text-justify">
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-neutral-400 whitespace-pre-line text-justify">
                 {displayDesc}
               </p>
               
               {(thoughtItem.rating || thoughtItem.tags || thoughtItem.sourceUrl) && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#777168]">
+                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400">
                   {thoughtItem.rating && (
                     <span className="inline-flex items-center gap-1">
                       <Star className="h-3 w-3 fill-current" />
@@ -255,14 +277,14 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
         <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
 
         {/* 顶部互动栏（支持点击 + 与 Supabase 评论数与点赞数联动） */}
-        <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-[#777168] select-none">
+        <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-neutral-400 select-none">
           <button
             type="button"
             onClick={toggleLike}
             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
               isLiked
-                ? "text-[#b91c1c] dark:text-white"
-                : "hover:text-[#b91c1c] dark:hover:text-white"
+                ? "text-neutral-900 dark:text-white font-bold"
+                : "hover:text-neutral-900 dark:hover:text-white"
             }`}
             style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >

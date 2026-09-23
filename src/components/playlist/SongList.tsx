@@ -48,7 +48,7 @@ export function SongList({
   return (
     <div className="w-full select-none antialiased" onMouseLeave={() => setHoveredIndex(null)}>
       {/* ===================== 表头：与下方数据列 100% 垂直像素级对齐 ===================== */}
-      <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-[#86868b]  border-black/[0.08] dark:border-white/[0.08]">
+      <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-neutral-400  border-black/[0.08] dark:border-white/[0.08]">
         {/* 歌曲列 (包含与下方序号、封面对应占位，使“歌曲”精准对齐歌名) */}
         <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3">
           <span className="w-5 text-center font-mono shrink-0">#</span>
@@ -81,10 +81,10 @@ export function SongList({
               <div
                 onClick={() => onSelectSong(song)}
                 onMouseEnter={() => setHoveredIndex(index)}
-                className={`relative z-10 group flex items-center px-3 sm:px-4 py-2.5 rounded-xl text-[13.5px] leading-none transition-colors duration-150 cursor-pointer ${
+                className={`relative z-10 group flex items-center px-3 sm:px-4 py-2.5 text-[13.5px] leading-none transition-colors duration-150 cursor-pointer ${
                   isCurrent
-                    ? "bg-[#9A0014] dark:bg-[#920013] text-white shadow-md shadow-[#9A0014]/25"
-                    : "text-neutral-900 dark:text-neutral-200 hover:bg-black/[0.035] dark:hover:bg-white/[0.05]"
+                    ? "bg-black text-white dark:bg-white dark:text-black shadow-none rounded-lg"
+                    : "text-neutral-900 dark:text-neutral-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] rounded-lg px-3 sm:px-4"
                 }`}
               >
                 {/* 1. 歌曲列 (序号 + 封面 + 歌名) */}
@@ -92,7 +92,7 @@ export function SongList({
                   {/* 序号 (统一使用 tabular-nums 保证数字与中文绝对对齐) */}
                   <span
                     className={`w-5 text-center tabular-nums text-xs font-medium shrink-0 ${
-                      isCurrent ? "text-white/90" : "text-neutral-400 dark:text-[#86868b]"
+                      isCurrent ? "text-white/90 dark:text-black/90" : "text-neutral-400 dark:text-neutral-400"
                     }`}
                   >
                     {trackIndex}
@@ -161,9 +161,9 @@ export function SongList({
                       }`}
                     >
                       {isCurrent && isPlaying ? (
-                        <Pause className="h-3 w-3 fill-white text-white" />
+                        <Pause className="h-3 w-3 fill-white text-white dark:fill-black dark:text-black" />
                       ) : (
-                        <Play className="h-3 w-3 fill-white text-white ml-0.5" />
+                        <Play className="h-3 w-3 fill-white text-white dark:fill-black dark:text-black ml-0.5" />
                       )}
                     </div>
                   </div>
@@ -173,7 +173,7 @@ export function SongList({
                     <span
                       className={`truncate font-medium text-[13.5px] ${
                         isCurrent
-                          ? "text-white font-semibold"
+                          ? "text-white dark:text-black font-black"
                           : "text-neutral-900 dark:text-white"
                       }`}
                     >
@@ -184,7 +184,7 @@ export function SongList({
                       <span
                         className={`shrink-0 rounded-[2px] px-1 py-0.2 text-[9px] font-bold ${
                           isCurrent
-                            ? "bg-white/25 text-white"
+                            ? "bg-white/25 text-white dark:bg-black/25 dark:text-black"
                             : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
                         }`}
                       >
@@ -198,8 +198,8 @@ export function SongList({
                 <div
                   className={`w-[30%] sm:w-[28%] md:w-[28%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
                     isCurrent
-                      ? "text-white/90 font-normal"
-                      : "text-neutral-500 dark:text-[#a1a1a6]"
+                      ? "text-white/90 dark:text-black/90 font-bold"
+                      : "text-neutral-500 dark:text-neutral-400"
                   }`}
                 >
                   {song.artist || "未知歌手"}
@@ -209,8 +209,8 @@ export function SongList({
                 <div
                   className={`hidden md:block md:w-[24%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
                     isCurrent
-                      ? "text-white/80 font-normal"
-                      : "text-neutral-500 dark:text-[#a1a1a6]"
+                      ? "text-white/80 dark:text-black/80 font-bold"
+                      : "text-neutral-500 dark:text-neutral-400"
                   }`}
                 >
                   {song.album || song.title}
@@ -221,8 +221,8 @@ export function SongList({
                   <span
                     className={`tabular-nums text-xs sm:text-[13px] ${
                       isCurrent
-                        ? "text-white font-medium"
-                        : "text-neutral-400 dark:text-[#86868b]"
+                        ? "text-white dark:text-black font-bold"
+                        : "text-neutral-400 dark:text-neutral-400"
                     }`}
                   >
                     {formatDuration(song.duration || "3:45")}

@@ -95,7 +95,7 @@ export function Playlist({
                   className="group flex cursor-pointer flex-col w-full"
                 >
                   {/* 歌单封面卡片 (纸墨世界风格：无圆角，无阴影，静谧刻痕) */}
-                  <div className="relative aspect-square w-full overflow-hidden rounded-none bg-[#ded5c4]/60 dark:bg-[#1a1816] ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                  <div className="relative aspect-square w-full overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                     {(() => {
                       const rawCover =
                         playlist.cover ||
@@ -128,7 +128,7 @@ export function Playlist({
                               target.src = FALLBACK_COVER;
                             }
                           }}
-                          className="h-full w-full object-cover transition-transform group-hover:grayscale-[20%]"
+                          className="h-full w-full object-cover transition-transform"
                           style={{ transitionDuration: "var(--realm-motion-duration)" }}
                         />
                       );
@@ -136,7 +136,7 @@ export function Playlist({
 
                     {/* 悬浮播放标 (静谧克制版) */}
                     <div className="absolute inset-0 flex items-end justify-end p-2.5 bg-black/10 opacity-0 transition-opacity group-hover:opacity-100" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-none bg-white/90 text-[#b91c1c] transition-transform scale-95 group-hover:scale-100 active:scale-90" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-none bg-white/90 text-neutral-950 dark:bg-neutral-900/90 dark:text-white transition-transform scale-95 group-hover:scale-100 active:scale-90" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                         <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
                       </div>
                     </div>
@@ -144,10 +144,10 @@ export function Playlist({
 
                   {/* 标题与描述信息 */}
                   <div className="mt-3 w-full">
-                    <h2 className="truncate text-[13.5px] sm:text-[14px] font-medium tracking-tight text-neutral-900 dark:text-[#eae5dc] transition-opacity group-hover:opacity-75" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
+                    <h2 className="truncate text-[13.5px] sm:text-[14px] font-medium tracking-tight text-neutral-900 dark:text-neutral-200 transition-opacity group-hover:opacity-75" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                       {playlist.title}
                     </h2>
-                    <p className="mt-0.5 truncate text-[12px] text-neutral-500 dark:text-[#9d9589] font-normal">
+                    <p className="mt-0.5 truncate text-[12px] text-neutral-500 dark:text-neutral-400 font-normal">
                       {playlist.tag ? `${playlist.tag} · ` : ""}{playlist.songs?.length || 0} 首歌曲
                     </p>
                   </div>
@@ -182,7 +182,7 @@ export function Playlist({
                 {/* Hero 头部排版 (纸墨留白风格) */}
                 <div className="mb-5 sm:mb-7 flex flex-col md:flex-row items-stretch gap-8 sm:gap-10 pt-1 pb-2">
                   {/* 左侧封面 */}
-                  <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-none bg-[#ded5c4]/60 dark:bg-[#1a1816] shadow-none ring-1 ring-black/5 dark:ring-white/5 grayscale-[10%]">
+                  <div className="relative aspect-square w-48 sm:w-56 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 border-2 border-black dark:border-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)]">
                     {(() => {
                       const rawHeroCover =
                         activePlaylist.cover ||
@@ -225,20 +225,20 @@ export function Playlist({
                   <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                     {/* 上部区块 */}
                     <div className="pt-2 sm:pt-4">
-                      <h1 className="text-[26px] sm:text-[28px] md:text-[30px] font-bold tracking-tight text-neutral-900 dark:text-[#eae5dc] leading-[1.15]">
+                      <h1 className="text-[26px] sm:text-[28px] md:text-[30px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 leading-[1.15]">
                         {activePlaylist.title}
                       </h1>
-                      <div className="mt-2 text-[17px] sm:text-[19px] font-medium text-[#b91c1c] dark:text-[#eae5dc] leading-[1.2]">
+                      <div className="mt-2 text-[17px] sm:text-[19px] font-medium text-neutral-900 dark:text-neutral-300 leading-[1.2]">
                         {activePlaylist.tag || "Tape"}
                       </div>
-                      <p className="mt-2 text-xs text-neutral-400 dark:text-[#777168] font-mono">
+                      <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-400 font-mono">
                         精选集 · {activePlaylist.songs?.length || 0} 首歌曲
                       </p>
                     </div>
 
                     {/* 下部区块：简介描述 + 播放按钮 (去拟物化) */}
                     <div className="mt-5 md:mt-0">
-                      <p className="text-[12.5px] sm:text-[13px] leading-[1.65] text-neutral-500 dark:text-[#9d9589] max-w-[540px]">
+                      <p className="text-[12.5px] sm:text-[13px] leading-[1.65] text-neutral-500 dark:text-neutral-400 max-w-[540px]">
                         {activePlaylist.description || activePlaylist.curatorNote || `这张歌单为你持续聚焦精选好歌与经典佳作，点开聆听，即刻把心仪旋律加入你的个人资料库。`}
                       </p>
 
@@ -246,7 +246,7 @@ export function Playlist({
                         <button
                           type="button"
                           onClick={() => onPlayAll(activePlaylist)}
-                          className="inline-flex items-center justify-center gap-2 rounded-none border border-black/[0.08] dark:border-white/[0.08] bg-transparent text-[#b91c1c] dark:text-white hover:bg-black/[0.02] dark:hover:bg-white/[0.05] px-6 py-2.5 text-[13.5px] font-semibold transition-colors cursor-pointer select-none leading-none"
+                          className="inline-flex items-center justify-center gap-2 rounded-none border-2 border-black dark:border-white bg-transparent text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)] active:shadow-[2px_2px_0_0_rgba(0,0,0,1)] dark:active:shadow-[2px_2px_0_0_rgba(255,255,255,1)] active:translate-x-[2px] active:translate-y-[2px] px-8 py-2.5 text-[14px] font-bold uppercase tracking-widest transition-all cursor-pointer select-none leading-none"
                           style={{ transitionDuration: "var(--realm-motion-duration)" }}
                         >
                           <Play className="h-3.5 w-3.5 fill-current shrink-0" />

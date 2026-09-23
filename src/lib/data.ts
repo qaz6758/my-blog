@@ -84,17 +84,57 @@ export function getThoughtTimestamp(
   return 0;
 }
 
-// 辅助函数：格式化时间（几天前 + 智能回退为 几年几月几日 星期几）
-export function formatThoughtDate(dateStr: string): { relative: string; full: string } {
+// 随想录动态行为动词英汉映射
+const ACTION_TRANSLATIONS: Record<string, string> = {
+  "记录了": "recorded",
+  "想到了": "pondered",
+  "思考了": "reflected",
+  "读过": "read",
+  "在读": "reading",
+  "想读": "wants to read",
+  "观赏了": "watched",
+  "在看": "watching",
+  "想看": "wants to watch",
+  "听了": "listened to",
+  "在听": "listening to",
+  "想听": "wants to listen",
+  "玩过": "played",
+  "在玩": "playing",
+  "想玩": "wants to play",
+  "标记为": "marked as",
+  "分享了": "shared",
+  "发布了": "published",
+};
+
+export function translateAction(action?: string, isEn?: boolean): string {
+  if (!action) return isEn ? "recorded" : "记录了";
+  if (!isEn) return action;
+  return ACTION_TRANSLATIONS[action.trim()] || action;
+}
+
+// 辅助函数：格式化时间（几天前 + 智能回退为 几年几月几日 星期几 / 英文本地化）
+export function formatThoughtDate(
+  dateStr: string,
+  locale: string = "zh-CN"
+): { relative: string; full: string } {
   if (!dateStr) return { relative: '', full: '' };
   const date = parseAnyDate(dateStr);
   if (!date || isNaN(date.getTime())) return { relative: dateStr, full: dateStr };
 
+  const isEn = locale === "en";
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
-  const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-  const full = `${year}年${month}月${day}日 ${days[date.getDay()]}`;
+  const daysZh = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  
+  const fullZh = `${year}年${month}月${day}日 ${daysZh[date.getDay()]}`;
+  const fullEn = date.toLocaleDateString("en-US", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+  const full = isEn ? fullEn : fullZh;
 
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -111,35 +151,35 @@ export function formatThoughtDate(dateStr: string): { relative: string; full: st
     date.getMinutes() === 0 &&
     (/00:00(?::00)?$/.test(dateStr.trim()) || !/(\d{1,2}):(\d{1,2})/.test(dateStr));
 
-  // 如果是今天，且未指定具体时分（默认零点），直接显示为“今天”，避免误算为十几个小时前
+  // 如果是今天，且未指定具体时分（默认零点），直接显示为“今天”/“Today”，避免误算为十几个小时前
   if (isToday && isDefaultMidnight) {
-    return { relative: '今天', full };
+    return { relative: isEn ? 'Today' : '今天', full };
   }
 
   // 未来时间或 5 分钟以内
   if (diffMs < 5 * 60 * 1000) {
-    return { relative: '刚刚', full };
+    return { relative: isEn ? 'Just now' : '刚刚', full };
   }
 
   const diffMin = Math.floor(diffMs / (1000 * 60));
   if (diffMin < 60) {
-    return { relative: `${diffMin}分钟前`, full };
+    return { relative: isEn ? `${diffMin}m ago` : `${diffMin}分钟前`, full };
   }
 
   const diffHour = Math.floor(diffMin / 60);
   if (diffHour < 24) {
-    return { relative: `${diffHour}小时前`, full };
+    return { relative: isEn ? `${diffHour}h ago` : `${diffHour}小时前`, full };
   }
 
   const diffDay = Math.floor(diffHour / 24);
   if (diffDay === 1) {
-    return { relative: '昨天', full };
+    return { relative: isEn ? 'Yesterday' : '昨天', full };
   }
   if (diffDay < 7) {
-    return { relative: `${diffDay}天前`, full };
+    return { relative: isEn ? `${diffDay}d ago` : `${diffDay}天前`, full };
   }
 
-  // 超过 7 天，自动回退为完整日期（几年几月几日 星期几）
+  // 超过 7 天，自动回退为完整日期
   return { relative: full, full };
 }
 

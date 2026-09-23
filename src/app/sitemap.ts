@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // 2. 博客文章页面 (包含 Notion 原创文章，采用标准语义化 Slug)
+
   let postsSitemap: MetadataRoute.Sitemap = [];
   try {
     const posts = await fetchPosts(500);

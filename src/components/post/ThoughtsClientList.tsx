@@ -3,14 +3,18 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, MessageSquare, Star, ArrowRightCircle } from "lucide-react";
-import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp } from "@/lib/data";
+import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+import { useI18n } from "@/lib/i18n/I18nContext";
 
 export function ThoughtsClientList({
   initialItems,
 }: {
   initialItems: ThoughtMediaItem[];
 }) {
+  const { locale } = useI18n();
+  const isEn = locale === "en";
+
   const [items, setItems] = useState<ThoughtMediaItem[]>(() => {
     const seen = new Set<string>();
     const list = (initialItems || []).filter((item) => {
@@ -48,25 +52,23 @@ export function ThoughtsClientList({
     fetch(`${workerUrl}/api/thoughts`)
       .then((res) => res.json())
       .then((result) => {
-        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+        if (result?.success && Array.isArray(result.data)) {
           setItems((prev) => {
-            const map = new Map<string, ThoughtMediaItem>();
-            prev.forEach((item) => map.set(item.id, item));
-            result.data.forEach((item: ThoughtMediaItem, index: number) => {
-              const existing = map.get(item.id);
-              const targetDate = existing?.rawDate || item.rawDate || item.time;
-              const dateInfo = formatThoughtDate(targetDate);
-              map.set(item.id, {
+            const existingMap = new Map<string, ThoughtMediaItem>();
+            prev.forEach((item) => existingMap.set(item.id, item));
+
+            // 以最新的 Notion 数据源为唯一真实基准：Notion 中已删除的项即时剔除
+            const updatedList: ThoughtMediaItem[] = result.data.map((item: ThoughtMediaItem, index: number) => {
+              const existing = existingMap.get(item.id);
+              const targetDate = item.rawDate || item.time || existing?.rawDate || existing?.time || "";
+              const dateInfo = formatThoughtDate(targetDate, locale);
+              return {
                 ...item,
-                // 🔥 核心保护：如果已有排版内容更丰富完整，坚决保留长段落排版，杜绝闪烁降级！
-                description:
-                  existing?.description &&
-                  existing.description.length > item.description.length
-                    ? existing.description
-                    : item.description || existing?.description || "",
+                // 实时采用最新 Notion 数据，支持修改与删除秒级生效
+                description: item.description ?? existing?.description ?? "",
                 time: dateInfo.relative || existing?.time || item.time,
                 fullTime: dateInfo.full || existing?.fullTime,
-                rawDate: existing?.rawDate || item.rawDate || item.time,
+                rawDate: targetDate,
                 year:
                   item.year ||
                   existing?.year ||
@@ -75,16 +77,15 @@ export function ThoughtsClientList({
                 likes: existing?.likes ?? item.likes ?? 0,
                 upvotes: 0,
                 _order: index,
-              } as any);
+              } as any;
             });
 
-            const mergedList = Array.from(map.values());
-            mergedList.sort((a: any, b: any) => {
+            updatedList.sort((a: any, b: any) => {
               const diff = getThoughtTimestamp(b) - getThoughtTimestamp(a);
               if (diff !== 0) return diff;
               return (a._order ?? 0) - (b._order ?? 0);
             });
-            return mergedList;
+            return updatedList;
           });
         }
       })
@@ -211,136 +212,160 @@ export function ThoughtsClientList({
   };
 
   return (
-    <div className="space-y-6">
-      {items.map((item) => {
-        const reaction = userReactions[item.id] || {};
-        const isNote = item.type.toUpperCase() === "NOTE";
+    <div className="w-full">
+      {/* 顶部标题：响应多语言切换 */}
+      <header className="mb-8 pl-1">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-3xl font-sans">
+            {isEn ? "Thoughts" : "思考"}
+          </h1>
+        </div>
+        <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 tracking-widest font-sans">
+          {isEn ? "Whispers of mind, bound into volumes" : "感君倾耳，辑录成册"}
+        </p>
+      </header>
 
-        return (
-          <article
-            key={item.id}
-            className="relative rounded-none p-4 sm:p-5 shadow-sm manga-panel font-serif transition-all"
-          >
-            {/* 头部信息 */}
-            <div className="mb-3 flex items-center gap-2 text-xs">
-              <span className="font-semibold text-neutral-900 dark:text-[#eae5dc]">
-                {item.author}
-              </span>
-              {item.action && (
-                <span className="text-neutral-500 dark:text-[#9d9589]">
-                  {item.action}
+      <div className="space-y-6">
+        {items.map((item) => {
+          const reaction = userReactions[item.id] || {};
+          const isNote = item.type.toUpperCase() === "NOTE";
+          const targetDate = item.rawDate || item.time;
+          const dateInfo = formatThoughtDate(targetDate, locale);
+
+          return (
+            <article
+              key={item.id}
+              className="relative rounded-none p-4 sm:p-5 manga-panel font-sans"
+            >
+              {/* 头部信息 */}
+              <div className="mb-3 flex items-center gap-2 text-xs">
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  {item.author}
                 </span>
-              )}
-              <span
-                className="text-neutral-400 dark:text-[#777168]"
-                title={item.fullTime || item.time}
-              >
-                {item.time}
-              </span>
-            </div>
-
-            {/* 2. 主体渲染 */}
-            {isNote ? (
-              <>
-                <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-[#d6d0c7] whitespace-pre-line text-justify">
-                  {item.description}
-                </div>
-                {item.posterUrl && (
-                  <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
-                    <img
-                      src={item.posterUrl}
-                      alt={item.title || "随笔配图"}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+                {item.action && (
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    {translateAction(item.action, isEn)}
+                  </span>
                 )}
-              </>
-            ) : (
-              <div className="mb-4 rounded-lg border border-black/[0.05] bg-black/[0.02] p-3 sm:p-3.5 dark:border-white/[0.05] dark:bg-white/[0.02] flex flex-row-reverse gap-3.5 sm:gap-4">
-                {item.posterUrl && (
-                  <div className="w-16 sm:w-20 shrink-0 self-start">
-                    <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
+                <span
+                  className="text-neutral-400 dark:text-neutral-400"
+                  title={dateInfo.full || item.fullTime || item.time}
+                >
+                  {dateInfo.relative || item.time}
+                </span>
+              </div>
+
+              {/* 2. 主体渲染 */}
+              {isNote ? (
+                <>
+                  <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-neutral-300 whitespace-pre-line text-justify">
+                    {item.description}
+                  </div>
+                  {item.posterUrl && (
+                    <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
                       <img
                         src={item.posterUrl}
-                        alt={item.title}
+                        alt={item.title || (isEn ? "Attachment image" : "随笔配图")}
                         className="h-full w-full object-cover"
                       />
                     </div>
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-[#9d9589] uppercase">
-                    {item.type} {item.year ? `· ${item.year}` : ""}
-                  </div>
-                  <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-[#eae5dc] tracking-tight">
-                    {item.title}
-                  </h2>
-                  <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-[#9d9589] line-clamp-3 text-justify">
-                    {item.description}
-                  </p>
-                  {(item.rating || item.tags || item.sourceUrl) && (
-                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-[#71717a]">
-                      {item.rating && (
-                        <span className="inline-flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-current" />
-                          {item.rating}
-                        </span>
-                      )}
-                      {item.tags && <span>· {item.tags}</span>}
-                      {item.sourceUrl && (
-                        <span className="truncate">· {item.sourceUrl}</span>
-                      )}
+                  )}
+                </>
+              ) : (
+                <div className="mb-4 rounded-lg border border-black/[0.05] bg-black/[0.02] p-3 sm:p-3.5 dark:border-white/[0.05] dark:bg-white/[0.02] flex flex-row-reverse gap-3.5 sm:gap-4">
+                  {item.posterUrl && (
+                    <div className="w-16 sm:w-20 shrink-0 self-start">
+                      <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
+                        <img
+                          src={item.posterUrl}
+                          alt={item.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     </div>
                   )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
+                      {item.type} {item.year ? `· ${item.year}` : ""}
+                    </div>
+                    <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
+                      {item.title}
+                    </h2>
+                    <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-neutral-400 line-clamp-3 text-justify">
+                      {item.description}
+                    </p>
+                    {(item.rating || item.tags || item.sourceUrl) && (
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+                        {item.rating && (
+                          <span className="inline-flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-current" />
+                            {item.rating}
+                          </span>
+                        )}
+                        {item.tags && <span>· {item.tags}</span>}
+                        {item.sourceUrl && (
+                          <span className="truncate">· {item.sourceUrl}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+              )}
+
+              <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
+
+              {/* 底部交互栏 */}
+              <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 select-none">
+                <div className="flex items-center gap-4">
+                  {/* 喜欢按钮 */}
+                  <button
+                    type="button"
+                    onClick={() => toggleLike(item.id)}
+                    className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      reaction.liked
+                        ? "text-neutral-900 dark:text-white font-bold"
+                        : "hover:text-neutral-900 dark:hover:text-white"
+                    }`}
+                    style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                  >
+                    <Heart
+                      className={`h-3.5 w-3.5 ${
+                        reaction.liked ? "fill-current" : ""
+                      }`}
+                    />
+                    {/* 保证只要红心亮起，数字保底绝对是真实累计数！ */}
+                    <span>{Math.max(item.likes || 0, reaction.liked ? 1 : 0)}</span>
+                  </button>
+
+                  {/* 实时评论数 */}
+                  <div className="flex items-center gap-1.5 opacity-80">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span>{item.replies}</span>
+                  </div>
+                </div>
+
+                {/* 查看入口 */}
+                <Link
+                  href={`/thoughts/${item.id}`}
+                  prefetch={false}
+                  className="flex items-center gap-1 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                  style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
+                >
+                  {isEn ? "View" : "查看"} <ArrowRightCircle className="h-3.5 w-3.5 opacity-80" />
+                </Link>
               </div>
-            )}
+            </article>
+          );
+        })}
+      </div>
 
-            <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
-
-            {/* 底部交互栏 */}
-            <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-[#777168] select-none">
-              <div className="flex items-center gap-4">
-              {/* 喜欢按钮 */}
-              <button
-                type="button"
-                onClick={() => toggleLike(item.id)}
-                className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  reaction.liked
-                    ? "text-[#b91c1c] dark:text-white"
-                    : "hover:text-[#b91c1c] dark:hover:text-white"
-                }`}
-                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-              >
-                <Heart
-                  className={`h-3.5 w-3.5 ${
-                    reaction.liked ? "fill-current" : ""
-                  }`}
-                />
-                {/* 保证只要红心亮起，数字保底绝对是真实累计数！ */}
-                <span>{Math.max(item.likes || 0, reaction.liked ? 1 : 0)}</span>
-              </button>
-
-              {/* 实时评论数 */}
-              <div className="flex items-center gap-1.5 opacity-80">
-                <MessageSquare className="h-3.5 w-3.5" />
-                <span>{item.replies}</span>
-              </div>
-            </div>
-
-              {/* 查看入口 */}
-              <Link
-                href={`/thoughts/${item.id}`}
-                prefetch={false}
-                className="flex items-center gap-1 hover:text-[#b91c1c] dark:hover:text-white transition-colors"
-                style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
-              >
-                查看 <ArrowRightCircle className="h-3.5 w-3.5 opacity-80" />
-              </Link>
-            </div>
-          </article>
-        );
-      })}
+      {items.length === 0 && (
+        <div className="py-24 text-center">
+          <p className="text-[15px] font-sans text-neutral-500 dark:text-neutral-400">
+            {isEn ? "No thoughts yet" : "暂无随想录"}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -71,7 +71,7 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
           origin: { x, y },
         });
       }}
-      className={`group relative flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none ${className}`}
+      className={`group relative flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none ${className}`}
       aria-label="切换明暗主题"
     >
       <Sun className="h-[19px] w-[19px] stroke-[2] rotate-0 scale-100 transition-transform duration-300 dark:-rotate-90 dark:scale-0" />
@@ -179,7 +179,7 @@ export function Navbar() {
                   href="https://github.com/qaz6758"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-[#eae5dc] opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
+                  className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
                   aria-label="GitHub Profile"
                 >
                   <svg className="h-[20px] w-[20px]" fill="currentColor" viewBox="0 0 24 24">
@@ -209,7 +209,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-700 hover:text-neutral-950 dark:text-[#9d9589] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
               aria-label="切换菜单"
             >
               {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -286,17 +286,17 @@ export function Navbar() {
                     >
                       <span className={`relative z-10 transition-colors ${
                         isActive
-                          ? "text-neutral-900 dark:text-[#eae5dc] font-medium tracking-wide"
-                          : "text-neutral-500 dark:text-[#888176] font-normal tracking-wide hover:text-neutral-800 dark:hover:text-[#c4bfb6]"
+                          ? "text-neutral-900 dark:text-white font-medium tracking-wide"
+                          : "text-neutral-500 dark:text-neutral-400 font-normal tracking-wide hover:text-neutral-800 dark:hover:text-neutral-200"
                       }`}>
                         {t(link.key)}
                       </span>
                       
-                      {/* Active 痕迹 (极短、极细的朱砂/月白) */}
+                      {/* Active 痕迹 (极短、极细的纯黑/纯白) */}
                       <span 
                         className={`absolute left-2 bottom-1 h-[1.5px] transition-all duration-300 ease-out pointer-events-none rounded-full ${
                           isActive
-                            ? "w-[16px] bg-[#b91c1c] dark:bg-white/40 opacity-100"
+                            ? "w-[16px] bg-neutral-950 dark:bg-white opacity-100"
                             : "w-0 bg-transparent opacity-0"
                         }`}
                       />
@@ -312,7 +312,7 @@ export function Navbar() {
                 href="https://github.com/qaz6758"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-[#eae5dc] transition-colors"
+                className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white transition-colors"
               >
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />

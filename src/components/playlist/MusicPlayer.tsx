@@ -363,7 +363,7 @@ export function MusicPlayer({
                     <svg
                       viewBox="0 0 24 24"
                       fill="currentColor"
-                      className="h-4 w-4 text-[#b91c1c]"
+                      className="h-4 w-4 text-neutral-900 dark:text-white"
                     >
                       <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2zm14-1v6l5-3-5-3z" />
                     </svg>
@@ -394,7 +394,7 @@ export function MusicPlayer({
                         onClick={() => onSelectSong?.(song)}
                         className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-left transition-colors cursor-pointer ${
                           isCurrent
-                            ? "bg-[#b91c1c] text-white font-medium shadow-none shadow-none"
+                            ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-950 font-medium shadow-sm"
                             : "text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-neutral-950 dark:hover:text-white"
                         }`}
                       >
@@ -575,8 +575,8 @@ export function MusicPlayer({
                   <div className="flex items-center gap-1 min-w-0">
                     <span className={`truncate font-semibold text-[12px] sm:text-[13px] tracking-tight leading-none transition-colors duration-300 ${
                       isPlaying
-                        ? "text-[#b91c1c] dark:text-[#b91c1c]"
-                        : "text-neutral-900 dark:text-white"
+                        ? "text-neutral-950 dark:text-white font-bold"
+                        : "text-neutral-900 dark:text-neutral-300"
                     }`}>
                       {currentSong.title}
                     </span>
@@ -599,7 +599,7 @@ export function MusicPlayer({
                   onClick={onToggleShuffle}
                   className={`p-1.5 transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5 ${
                     isShuffle
-                      ? "text-[#b91c1c]"
+                      ? "text-neutral-950 dark:text-white font-semibold"
                       : "text-neutral-400 hover:text-neutral-900 dark:text-white/40 dark:hover:text-white"
                   }`}
                   title={isShuffle ? "随机播放：开" : "随机播放：关"}
@@ -643,7 +643,7 @@ export function MusicPlayer({
                   onClick={onToggleRepeat}
                   className={`p-1.5 transition-colors cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/5 ${
                     repeatMode !== "off"
-                      ? "text-[#b91c1c]"
+                      ? "text-neutral-950 dark:text-white font-semibold"
                       : "text-neutral-400 hover:text-neutral-900 dark:text-white/40 dark:hover:text-white"
                   }`}
                   title={
@@ -708,8 +708,8 @@ export function MusicPlayer({
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={`truncate font-semibold text-[13px] tracking-tight leading-tight transition-colors duration-300 ${
                       isPlaying
-                        ? "text-[#b91c1c] dark:text-[#b91c1c]"
-                        : "text-neutral-900 dark:text-white"
+                        ? "text-neutral-950 dark:text-white font-bold"
+                        : "text-neutral-900 dark:text-neutral-300"
                     }`}>
                       {currentSong.title}
                     </span>
@@ -721,7 +721,7 @@ export function MusicPlayer({
                   </div>
                   <p className="truncate text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5">
                     {volumeToast ? (
-                      <span className="text-[#b91c1c] dark:text-[#b91c1c] font-medium font-mono">
+                      <span className="text-neutral-950 dark:text-white font-medium font-mono">
                         音量: {volumeToast}
                       </span>
                     ) : (
@@ -789,7 +789,7 @@ export function MusicPlayer({
                   onClick={() => setShowPlaylist((prev) => !prev)}
                   className={`p-1 transition-colors cursor-pointer ${
                     showPlaylist
-                      ? "text-[#b91c1c]"
+                      ? "text-neutral-950 dark:text-white"
                       : "text-neutral-500 dark:text-white/60"
                   }`}
                   title="待播清单"
@@ -865,8 +865,8 @@ export function MusicPlayer({
                   onClick={() => setShowPlaylist((prev) => !prev)}
                   className={`p-1.5 rounded-full transition-colors cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 ${
                     showPlaylist
-                      ? "text-[#b91c1c]"
-                      : "text-neutral-500 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white"
+                      ? "text-neutral-950 dark:text-white"
+                      : "text-neutral-500 hover:text-neutral-950 dark:text-white/60 dark:hover:text-white"
                   }`}
                   title="待播清单"
                 >
