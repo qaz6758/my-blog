@@ -52,13 +52,21 @@ function processAndOptimizeHtml(rawHtml: string): string {
     cleaned = bodyMatch[1];
   }
 
-  // 2. 全面剥离外层 DOCTYPE、html、head、body 及其残存标签（支持跨行与各种 DTD 声明）
+  // 2. 全面剥离危险与外层标签 (防范存储型 XSS 注入并规范 HTML 结构)
   cleaned = cleaned
     .replace(/<!DOCTYPE[\s\S]*?>/gi, "")
     .replace(/<head[\s\S]*?<\/head>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<\/?(html|head|body|meta|link)[^>]*>/gi, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<object[\s\S]*?<\/object>/gi, "")
+    .replace(/<embed[\s\S]*?<\/embed>/gi, "")
+    .replace(/<form[\s\S]*?<\/form>/gi, "")
+    .replace(/<\/?(html|head|body|meta|link|base|script|iframe|object|embed|form|input|button)[^>]*>/gi, "")
+    // 剥离所有内联 on* 事件处理器 (例如 onerror, onload, onclick)
+    .replace(/\s+on[a-zA-Z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    // 剥离 href/src 危险伪协议 (javascript:, vbscript:)
+    .replace(/\b(href|src)\s*=\s*(["'])\s*(?:javascript|vbscript):[\s\S]*?\2/gi, '$1="#"')
     .trim();
 
   // 3. 常见排版字符实体安全转码解码 (消除 don&rsquo;t 等丑陋实体源码)

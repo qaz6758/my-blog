@@ -1,9 +1,10 @@
 name: 🎵 Auto Sync NetEase Music to R2
 
+# on:
+#   schedule:
+#     # 暂时停用：脚本 scripts/sync-music.js 尚未补齐，避免每日凌晨执行失败报警
+#     - cron: '0 20 * * *'
 on:
-  schedule:
-    # 每天北京时间凌晨 04:00 (UTC 20:00) 自动静默检测并同步网易云新歌
-    - cron: '0 20 * * *'
   workflow_dispatch:
     # 支持在 GitHub 网页端或手机 GitHub App 一键手动触发
     inputs:
