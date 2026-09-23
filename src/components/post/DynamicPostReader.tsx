@@ -158,6 +158,7 @@ export function DynamicPostReader({
     if (typeof window === "undefined") return;
     const pathname = window.location.pathname;
     const matchThought = pathname.match(/\/thoughts\/([^\/\?#]+)/);
+    const matchPost = pathname.match(/\/posts\/([^\/\?#]+)/);
 
     if (matchThought) {
       const id = matchThought[1];
@@ -180,8 +181,45 @@ export function DynamicPostReader({
         })
         .catch(() => setThought(null))
         .finally(() => setLoading(false));
+    } else if (matchPost) {
+      const slug = decodeURIComponent(matchPost[1]);
+      setMode("post");
+      setLoading(true);
+      const workerUrl =
+        process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+        "https://notion-api.dedeboki123.workers.dev";
+
+      // 动态检索 Notion 唯一数据源
+      fetch(`${workerUrl}/api/posts`)
+        .then((res) => res.json())
+        .then(async (result) => {
+          if (result?.success && Array.isArray(result.data)) {
+            const matched = result.data.find(
+              (p: any) =>
+                p.slug === slug ||
+                p.id === slug ||
+                p.source_url === slug ||
+                p.id?.replace(/-/g, '') === slug.replace(/-/g, '')
+            );
+            if (matched && (matched.status?.includes('已发布') || matched.status?.includes('Published') || matched.status?.includes('🚀'))) {
+              const detailRes = await fetch(`${workerUrl}/api/posts/${matched.id}`);
+              const detailData = await detailRes.json();
+              if (detailData?.success && detailData.data) {
+                setPost(detailData.data);
+                return;
+              }
+            }
+          }
+          setPost(null);
+          setMode("404");
+        })
+        .catch(() => {
+          setPost(null);
+          setMode("404");
+        })
+        .finally(() => setLoading(false));
     } else {
-      // 没有 initialPost 且不是 /thoughts 路由，直接 404
+      // 没有 initialPost 且不是 /thoughts 或 /posts 路由，直接 404
       setLoading(false);
       setMode("404");
     }

@@ -8,14 +8,7 @@ export async function GET() {
   try {
     const data = await fetchPlaylists();
     return NextResponse.json(
-      { success: true, data },
-      {
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
-        },
-      }
+      { success: true, data }
     );
   } catch (error: any) {
     console.error("❌ Notion API 错误:", error);

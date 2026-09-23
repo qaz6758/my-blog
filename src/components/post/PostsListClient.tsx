@@ -44,7 +44,29 @@ function formatPostDate(dateString: string) {
 }
 
 export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
-  const posts = initialPosts;
+  const [posts, setPosts] = React.useState<PostItem[]>(initialPosts);
+
+  React.useEffect(() => {
+    const workerUrl =
+      process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+      "https://notion-api.dedeboki123.workers.dev";
+    fetch(`${workerUrl}/api/posts`)
+      .then((res) => res.json())
+      .then((result) => {
+        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+          const published = result.data.filter(
+            (p: any) =>
+              p.status?.includes('已发布') ||
+              p.status?.includes('Published') ||
+              p.status?.includes('🚀')
+          );
+          if (published.length > 0) {
+            setPosts(published);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};

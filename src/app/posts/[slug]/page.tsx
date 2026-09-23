@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { fetchPosts, fetchPostDetail } from '@/lib/data';
 import { DynamicPostReader, PostDetail } from '@/components/post/DynamicPostReader';
 
-export const dynamicParams = true;
+export const dynamicParams = false;
 export const revalidate = 60;
 
 // 1. 构建期预渲染当前已发布的 Notion 文章 Slug
