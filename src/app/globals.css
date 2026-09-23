@@ -530,7 +530,7 @@ html.hide-playlist-grid [data-playlist-grid] {
  */
 @keyframes antfu-draw-circle {
   0% {
-    stroke-dashoffset: 220;
+    stroke-dashoffset: 100;
   }
   100% {
     stroke-dashoffset: 0;
@@ -539,10 +539,10 @@ html.hide-playlist-grid [data-playlist-grid] {
 
 @keyframes antfu-draw-v {
   0% {
-    stroke-dashoffset: 90;
+    stroke-dashoffset: 100;
     opacity: 0;
   }
-  25% {
+  20% {
     opacity: 1;
   }
   100% {
@@ -552,13 +552,13 @@ html.hide-playlist-grid [data-playlist-grid] {
 }
 
 .brand-ring {
-  stroke-dasharray: 220;
+  stroke-dasharray: 100;
   stroke-dashoffset: 0;
   animation: antfu-draw-circle 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .brand-v {
-  stroke-dasharray: 90;
+  stroke-dasharray: 100;
   stroke-dashoffset: 0;
   animation: antfu-draw-v 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
 }
@@ -571,5 +571,5 @@ html.hide-playlist-grid [data-playlist-grid] {
 
 .group:hover .brand-v,
 .group:active .brand-v {
-  animation: antfu-draw-v 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+  animation: antfu-draw-v 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
 }
