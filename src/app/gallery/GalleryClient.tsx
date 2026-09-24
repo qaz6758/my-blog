@@ -9,7 +9,20 @@ import { getGalleryImages } from "@/lib/gallery";
 import { supabase } from "@/lib/supabase";
 
 export default function GalleryClient({ photos: initialPhotos = [] }: { photos: GalleryImage[] }) {
-  const [photos, setPhotos] = useState<GalleryImage[]>(initialPhotos);
+  const [photos, setPhotos] = useState<GalleryImage[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = sessionStorage.getItem("ow_gallery_photos_v1");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return initialPhotos;
+  });
   const [isGrid, setIsGrid] = useState(true);
   const [activePhoto, setActivePhoto] = useState<GalleryImage | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -33,11 +46,15 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
                 (p, idx) =>
                   p.id === fresh[idx]?.id &&
                   p.url === fresh[idx]?.url &&
-                  p.title === fresh[idx]?.title
+                  p.title === fresh[idx]?.title &&
+                  p.sortOrder === fresh[idx]?.sortOrder
               )
             ) {
               return prev;
             }
+            try {
+              sessionStorage.setItem("ow_gallery_photos_v1", JSON.stringify(fresh));
+            } catch {}
             return fresh;
           });
         }
@@ -175,7 +192,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
                 fill
                 className="object-cover transition-opacity duration-300 group-hover:opacity-90"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                priority={index < 8}
+                priority={index < 16}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUCsA+sAAAAASUVORK5CYII="
               />
@@ -202,7 +219,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
                 height={photo.height || 800}
                 className="w-full h-auto object-cover transition-opacity duration-300 group-hover:opacity-90"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                priority={index < 8}
+                priority={index < 16}
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkqAcAAIUAgUCsA+sAAAAASUVORK5CYII="
               />

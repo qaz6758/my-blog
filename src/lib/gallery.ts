@@ -6,6 +6,8 @@ interface PhotoRow {
   id: string;
   url: string;
   created_at?: string | null;
+  sort_order?: number | null;
+  order?: number | null;
   title?: string | null;
 
   category?: string | null;
@@ -46,15 +48,15 @@ export function getOptimizedThumbnailUrl(
   }
   if (!url) return "";
 
-  // 1. Unsplash 图片利用其原生参数压缩为 800px WebP 缩略图并经由 Worker 优选节点永久缓存
+  // 1. Unsplash 图片利用其原生参数压缩为 1200px WebP 缩略图并经由 Worker 优选节点永久缓存
   if (url.includes("images.unsplash.com")) {
     const base = url.split("?")[0];
-    return getProxyImageUrl(`${base}?auto=format&fit=crop&w=800&q=75`);
+    return getProxyImageUrl(`${base}?auto=format&fit=crop&w=1200&q=85`);
   }
 
   // 2. Supabase Storage 等海外超大原图（单张常达 5MB~10MB+）
-  // 经由全球边缘 CDN 动态转码压缩为 800px WebP 缩略图，再通过自建 Worker 优选节点永久边缘缓存（实现 30ms 秒显）
-  const wsrv = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800&fit=cover&output=webp&q=75`;
+  // 经由全球边缘 CDN 动态转码压缩为 1200px 高清 WebP 缩略图，加入 &we (Without Enlargement) 避免原本尺寸较小的图片被强行放大而模糊
+  const wsrv = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=1200&fit=cover&output=webp&q=85&we`;
   return getProxyImageUrl(wsrv);
 }
 
@@ -62,15 +64,15 @@ export function getOptimizedThumbnailUrl(
  * =========================================================
  * 高清大图预览 URL 解析器 (专供 Lightbox 弹窗秒显)
  * =========================================================
- * 原图 5MB~11MB 经由全球边缘 CDN 压缩为 2000px WebP (仅 ~100KB)，并通过 Worker 优选节点永久缓存
+ * 原图经由全球边缘 CDN 转码为 2400px WebP，加 &we 避免小图强行放大导致像素化
  */
 export function getOptimizedHDUrl(url: string): string {
   if (!url) return "";
   if (url.includes("images.unsplash.com")) {
     const base = url.split("?")[0];
-    return getProxyImageUrl(`${base}?auto=format&fit=contain&w=2000&q=85`);
+    return getProxyImageUrl(`${base}?auto=format&fit=contain&w=2400&q=90`);
   }
-  const wsrv = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=2000&fit=contain&output=webp&q=85`;
+  const wsrv = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=2400&fit=contain&output=webp&q=90&we`;
   return getProxyImageUrl(wsrv);
 }
 
@@ -106,6 +108,9 @@ function normalizeGalleryImage(row: PhotoRow): GalleryImage {
 
     // 高清弹窗预览图 (2000px WebP，秒级加载)
     hdUrl,
+
+    // 排序序号 (1, 2, 3...)
+    sortOrder: row.sort_order ?? row.order ?? null,
 
     width,
 
@@ -189,6 +194,15 @@ export async function getGalleryImages(
     }
 
     const rows = (data as PhotoRow[]) ?? [];
+    // 优先按序号从小到大升序排序 (1, 2, 3...)，未指定序号的按上传时间由新到旧排列
+    rows.sort((a, b) => {
+      const orderA = a.sort_order ?? a.order ?? null;
+      const orderB = b.sort_order ?? b.order ?? null;
+      if (orderA !== null && orderB !== null) return orderA - orderB;
+      if (orderA !== null) return -1;
+      if (orderB !== null) return 1;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
     return rows.map((row) => normalizeGalleryImage(row));
   } catch (err) {
     console.error("[Gallery] 查询 Supabase photos 失败:", err);
