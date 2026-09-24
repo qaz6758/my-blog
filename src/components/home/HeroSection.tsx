@@ -47,7 +47,7 @@ export function HeroSection() {
   const space = locale === "en" ? " " : "";
 
   return (
-    <div className="relative w-full overflow-hidden pt-[160px] sm:pt-[196px] pb-20 sm:pb-24 px-6 sm:px-8">
+    <div className="relative w-full overflow-hidden pt-28 sm:pt-32 pb-20 sm:pb-24 px-6 sm:px-8">
       <main className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left slide-enter-content">
         {/* ===================== 核心身份标题 ===================== */}
         <div className="text-left mb-5 sm:mb-6">
