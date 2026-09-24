@@ -561,7 +561,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
 
   const proseClassName = `
     text-[15.5px] sm:text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
-    [&_p]:mb-[1.35rem]
+    [&_p]:mb-[1.05rem]
     [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[32px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-14 [&_h1]:mb-6 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.15] [&_h1]:tracking-tight
     [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[26px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-16 [&_h2]:mb-6 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
     [&_h3]:scroll-mt-24 [&_h3]:text-[20px] sm:[&_h3]:text-[23px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-14 [&_h3]:mb-5 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
@@ -608,7 +608,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={proseClassName}
+          className={`${proseClassName} slide-enter-content`}
           dangerouslySetInnerHTML={{ __html: cleanHtmlContent }}
         />
       ) : (
@@ -616,7 +616,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={proseClassName}
+          className={`${proseClassName} slide-enter-content`}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -634,9 +634,9 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
 
                 return (
                   <div
-                    className={`my-6 border-l-[3.5px] ${alertConfig.borderColor} pl-4 py-1 bg-transparent not-italic select-text transition-colors`}
+                    className={`my-4 border-l-[3.5px] ${alertConfig.borderColor} pl-4 py-1 bg-transparent not-italic select-text transition-colors`}
                   >
-                    <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-2 select-none`}>
+                    <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-1 select-none`}>
                       <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
                       <span>{alertTitle}</span>
                     </div>

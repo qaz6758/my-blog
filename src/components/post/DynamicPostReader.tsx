@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
@@ -45,6 +45,8 @@ export interface PostDetail {
   post_type?: string;
   cover_image?: string;
   status?: string;
+  inspiration?: string;
+  inspiration_url?: string;
 }
 
 export interface DynamicPostReaderProps {
@@ -138,16 +140,7 @@ export function DynamicPostReader({
     }
     
     // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
-    content = content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "").trim();
-
-    // 智能补充“创意和灵感来源”标识：若 Notion 属性中配置了灵感/摘要，且正文开篇未写引用块，自动在顶部注入统一的 Note 标识
-    const summaryText = (post.summary || "").trim();
-    const hasOpeningBlockquote = /^\s*>\s*/.test(content) || /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(content);
-    if (summaryText && !hasOpeningBlockquote) {
-      content = `> ${summaryText}\n\n${content}`;
-    }
-
-    return content;
+    return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "").trim();
   }, [post, globalLocale, rawContent, convertText]);
 
   // 估算文章阅读耗时
@@ -203,17 +196,21 @@ export function DynamicPostReader({
               setPost((current) => {
                 if (!current) return latest;
                 const isChanged =
-                  latest.content !== current.content ||
-                  latest.title !== current.title ||
-                  latest.summary !== current.summary ||
-                  latest.category !== current.category ||
-                  latest.cover_image !== current.cover_image ||
-                  JSON.stringify(latest.tags) !== JSON.stringify(current.tags);
+                  (latest.content && latest.content !== current.content) ||
+                  (latest.title && latest.title !== current.title) ||
+                  (latest.summary && latest.summary !== current.summary) ||
+                  (latest.inspiration && latest.inspiration !== current.inspiration) ||
+                  (latest.category && latest.category !== current.category) ||
+                  (latest.cover_image && latest.cover_image !== current.cover_image) ||
+                  (latest.tags && JSON.stringify(latest.tags) !== JSON.stringify(current.tags));
 
                 if (isChanged) {
                   return {
                     ...current,
                     ...latest,
+                    inspiration: latest.inspiration || current.inspiration,
+                    inspiration_url: latest.inspiration_url || current.inspiration_url,
+                    summary: latest.summary || current.summary,
                     slug: current.slug || latest.slug,
                     source_url: current.source_url || latest.source_url,
                   };
@@ -363,8 +360,8 @@ export function DynamicPostReader({
           transition={SMOOTH_TRANSITION}
           className="relative min-h-screen w-full flex flex-col items-center justify-between"
         >
-          {/* Grid 居中贴边布局 (100% 严格对称大局观：左边 Logo 与目录 20px，右边导航栏 20px，中间正文绝对居中) */}
-          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,720px)_1fr] px-5 pt-[88px]">
+          {/* Grid 居中贴边布局 (100% 严格对称大局观：左边 Logo 与目录 20px，右边导航栏 20px，中间正文绝对居中，65ch 黄金阅读宽度) */}
+          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,65ch)_1fr] px-5 pt-[88px]">
             
             {/* 左侧：目录 (其最左侧与顶部 Logo 严格同轴对齐，距最左侧 20px，距 Logo 底部 28px 呼吸留白) */}
             <div className="hidden xl:block relative">
@@ -382,14 +379,15 @@ export function DynamicPostReader({
               </aside>
             </div>
 
-            {/* 中间：正文主阅读列 (绝对居中，距屏幕两边留白绝对均等) */}
+            {/* 中间：正文主阅读列 (绝对居中，65ch 黄金聚拢阅读宽，距屏幕两边留白绝对均等) */}
             <main
-              className="relative z-10 w-full min-w-0 pb-20 pt-8 sm:pt-10"
+              className="relative z-10 w-full max-w-[65ch] mx-auto min-w-0 pb-20 pt-3 sm:pt-4"
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
             >
               
-              <header className="mb-8 relative">
+              {/* 标题头部保持静止不动（消除位移动画），正文段落优雅递进滑入 */}
+              <header className="mb-6 relative">
                 <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold tracking-tight text-black dark:text-white leading-[1.15] font-sans relative inline-block">
                   {displayTitle}
                 </h1>
@@ -405,6 +403,31 @@ export function DynamicPostReader({
                     </span>
                   )}
                 </p>
+
+                {/* 创意和灵感来源专属标识 */}
+                {post.inspiration && (
+                  <div className="mt-4 border-l-[3px] border-amber-500/80 dark:border-amber-400/80 pl-3.5 py-0.5 select-text">
+                    <div className="flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400 mb-0.5 select-none">
+                      <Lightbulb className="h-3.5 w-3.5 shrink-0 stroke-[2.2]" />
+                      <span>{globalLocale === "en" ? "Inspiration & Source" : "创意和灵感来源"}</span>
+                    </div>
+                    <div className="text-[14px] sm:text-[14.5px] leading-[1.65] text-neutral-600 dark:text-neutral-300 font-sans">
+                      {post.inspiration_url ? (
+                        <a
+                          href={post.inspiration_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline underline-offset-4 decoration-amber-500/40 inline-flex items-center gap-1"
+                        >
+                          <span>{post.inspiration}</span>
+                          <span className="text-[11px] opacity-60">↗</span>
+                        </a>
+                      ) : (
+                        <span>{post.inspiration}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </header>
 
               {/* 正文渲染区 (标准语义 lang 属性，助力 Chrome/Safari/Edge 浏览器原生秒翻) */}

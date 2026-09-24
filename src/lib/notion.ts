@@ -20,6 +20,8 @@ export interface NotionPostItem {
   status: string;
   is_pinned?: boolean;
   content?: string;
+  inspiration?: string;
+  inspiration_url?: string;
 }
 
 export interface NotionThoughtItem {
@@ -460,12 +462,11 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
         tagsList = rawTagsText.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
       }
     }
-    let summary =
-      getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要', '文本')) || '';
-
-    // 若“灵感与创意”是 Relation 关联属性，拉取对应关联条目的标题作为摘要与灵感来源
+    // 1. 严格解析“灵感与创意”独立关联属性 (Inspiration Source)
+    let inspiration = '';
+    let inspirationUrl = '';
     const relProp = findProp(p, '灵感与创意', 'Inspiration', 'Source', '灵感', '创意');
-    if (!summary && relProp && relProp.type === 'relation' && Array.isArray(relProp.relation) && relProp.relation.length > 0) {
+    if (relProp && relProp.type === 'relation' && Array.isArray(relProp.relation) && relProp.relation.length > 0) {
       const relId = relProp.relation[0].id;
       try {
         const relRes = await fetch(`https://api.notion.com/v1/pages/${relId}`, {
@@ -481,13 +482,21 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
           const relData = await relRes.json();
           const titleProp = findProp(relData.properties, '创意/链接', 'Title', 'Name', '标题', '创意', '灵感');
           if (titleProp) {
-            summary = getText(titleProp);
+            inspiration = getText(titleProp);
+          }
+          const urlProp = findProp(relData.properties, '来源网址', 'Url', 'URL', '链接');
+          if (urlProp) {
+            inspirationUrl = getUrl(urlProp);
           }
         }
       } catch (err) {
         console.warn('[Notion Inspiration Warning] 解析灵感关联失败:', err);
       }
     }
+
+    // 2. 解析摘要 (Summary)
+    let summary = getText(findProp(p, '文本', 'Summary', 'Description', '简介', '摘要')) || inspiration || '';
+
     const status = getStatus(findProp(p, '状态', 'Status', 'State'));
     const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
     const cleanSlug = customUrl
@@ -512,6 +521,8 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
       status: status || '已发布 🚀',
       is_pinned: isPinned,
       content: markdownContent,
+      inspiration,
+      inspiration_url: inspirationUrl,
     };
   } catch (error) {
     console.warn('[Notion PostDetail Warning] 获取 Notion 文章详情异常:', error);
