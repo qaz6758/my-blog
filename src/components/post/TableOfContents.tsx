@@ -239,15 +239,16 @@ export function TableOfContents({
       className={`select-none w-full ${className}`}
     >
       <div className="mb-6 flex flex-col items-start">
-        {/* 顶部 ≡ 图标（彻底去除任何方框底色与外边距偏移，严格与文字起始线同轴） */}
+        {/* 顶部 ≡ 按钮（Anthony Fu 同款 .table-of-contents-anchor 方框微圆角质感按钮，严格与头像同轴居中） */}
         <div
-          className={`mb-3.5 flex items-center justify-start transition-colors duration-300 ${
+          className={`w-7 h-7 rounded-[4px] border transition-all duration-300 flex items-center justify-center cursor-pointer ml-1.5 mb-4 ${
             isVisible
-              ? "text-neutral-900 dark:text-neutral-100"
-              : "text-neutral-400/70 dark:text-neutral-500/70"
+              ? "border-black/20 dark:border-white/20 bg-black/5 dark:bg-white/10 text-black dark:text-white shadow-xs"
+              : "border-black/10 dark:border-white/10 bg-transparent text-neutral-400 dark:text-neutral-500 hover:border-black/20 dark:hover:border-white/20 hover:text-black dark:hover:text-white"
           }`}
+          aria-label="文章目录大纲"
         >
-          <TocIcon className="w-[18px] h-[16px]" />
+          <TocIcon className="w-[14px] h-[12px]" />
         </div>
         
         {/* 目录列表：仅在鼠标进入正文范围或进入左侧时 700ms 平滑浮现，移出时 700ms 淡出 */}

@@ -139,8 +139,8 @@ export function Navbar() {
       >
         {/* 顶部通透全延展容器 (对齐 Anthony Fu antfu.me 极客排版：最边缘留白 20px) */}
         <div className="relative mx-auto flex h-full w-full items-center justify-end px-5">
-          {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (对齐 Antfu: absolute xl:fixed) ===================== */}
-          <div className="flex items-center gap-3 absolute xl:fixed left-4 sm:left-5 top-3.5 sm:top-4 z-50">
+          {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (严格 20px 视口间距: left-5 top-5) ===================== */}
+          <div className="flex items-center gap-3 absolute xl:fixed left-4 sm:left-5 top-3.5 sm:top-5 z-50">
             <Link
               href="/"
               className="group flex items-center shrink-0 cursor-pointer select-none transition-transform duration-300 ease-out hover:scale-105 active:scale-95"

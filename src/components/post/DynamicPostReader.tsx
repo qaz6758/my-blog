@@ -362,12 +362,12 @@ export function DynamicPostReader({
           className="relative min-h-screen w-full flex flex-col items-center justify-between"
         >
           {/* Grid 居中贴边布局 (100% 严格对称大局观：左边 Logo 与目录 20px，右边导航栏 20px，中间正文绝对居中) */}
-          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,720px)_1fr] px-5 pt-[82px]">
+          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,720px)_1fr] px-5 pt-[88px]">
             
-            {/* 左侧：目录 (其最左侧与顶部 Logo 严格同轴对齐，距最左侧 20px，距 Logo 底部 24px) */}
+            {/* 左侧：目录 (其最左侧与顶部 Logo 严格同轴对齐，距最左侧 20px，距 Logo 底部 28px 呼吸留白) */}
             <div className="hidden xl:block relative">
               <aside
-                className="sticky top-[82px] w-[200px] 2xl:w-[260px] flex flex-col"
+                className="sticky top-[88px] w-[220px] 2xl:w-[280px] flex flex-col"
                 onPointerEnter={handlePointerEnter}
                 onPointerLeave={handlePointerLeave}
               >
