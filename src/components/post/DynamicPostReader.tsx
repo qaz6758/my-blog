@@ -122,6 +122,13 @@ export function DynamicPostReader({
     return post.title;
   }, [post, globalLocale, convertText]);
 
+  // 确保浏览器标签页与窗口标题始终与当前文章标题保持精准同步
+  useEffect(() => {
+    if (displayTitle) {
+      document.title = displayTitle;
+    }
+  }, [displayTitle]);
+
   // 计算展示正文（正體中文自动 OpenCC 纯离线秒转）
   const displayContent = useMemo(() => {
     if (!post) return "";
@@ -131,7 +138,16 @@ export function DynamicPostReader({
     }
     
     // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
-    return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "");
+    content = content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "").trim();
+
+    // 智能补充“创意和灵感来源”标识：若 Notion 属性中配置了灵感/摘要，且正文开篇未写引用块，自动在顶部注入统一的 Note 标识
+    const summaryText = (post.summary || "").trim();
+    const hasOpeningBlockquote = /^\s*>\s*/.test(content) || /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(content);
+    if (summaryText && !hasOpeningBlockquote) {
+      content = `> ${summaryText}\n\n${content}`;
+    }
+
+    return content;
   }, [post, globalLocale, rawContent, convertText]);
 
   // 估算文章阅读耗时

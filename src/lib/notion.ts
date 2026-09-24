@@ -460,8 +460,34 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
         tagsList = rawTagsText.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
       }
     }
-    const summary =
+    let summary =
       getText(findProp(p, '灵感与创意', 'Summary', 'Description', '简介', '摘要', '文本')) || '';
+
+    // 若“灵感与创意”是 Relation 关联属性，拉取对应关联条目的标题作为摘要与灵感来源
+    const relProp = findProp(p, '灵感与创意', 'Inspiration', 'Source', '灵感', '创意');
+    if (!summary && relProp && relProp.type === 'relation' && Array.isArray(relProp.relation) && relProp.relation.length > 0) {
+      const relId = relProp.relation[0].id;
+      try {
+        const relRes = await fetch(`https://api.notion.com/v1/pages/${relId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${NOTION_API_KEY}`,
+            'Notion-Version': NOTION_VERSION,
+          },
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          next: { revalidate: 10 },
+        });
+        if (relRes.ok) {
+          const relData = await relRes.json();
+          const titleProp = findProp(relData.properties, '创意/链接', 'Title', 'Name', '标题', '创意', '灵感');
+          if (titleProp) {
+            summary = getText(titleProp);
+          }
+        }
+      } catch (err) {
+        console.warn('[Notion Inspiration Warning] 解析灵感关联失败:', err);
+      }
+    }
     const status = getStatus(findProp(p, '状态', 'Status', 'State'));
     const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
     const cleanSlug = customUrl

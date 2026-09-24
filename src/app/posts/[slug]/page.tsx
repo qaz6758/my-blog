@@ -4,7 +4,7 @@ import { fetchPosts, fetchPostDetail } from '@/lib/data';
 import { DynamicPostReader, PostDetail } from '@/components/post/DynamicPostReader';
 import { siteUrl } from '@/lib/site';
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 export const revalidate = 10;
 
 // 1. 构建期预渲染当前已发布的 Notion 文章 Slug 与 ID（杜绝未命中 404）
