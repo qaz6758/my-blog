@@ -164,20 +164,22 @@ function processAndOptimizeHtml(rawHtml: string): string {
     let typeKey = "note";
     let cleanedInner = inner;
 
-    if (alertMatch) {
-      const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
-      typeKey = rawKey.includes("warn") ? "warning" : rawKey.includes("tip") ? "tip" : rawKey.includes("import") ? "important" : rawKey.includes("caut") ? "caution" : "note";
-
-      cleanedInner = inner.replace(
-        /^\s*(<p[^>]*>)?\s*(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)\s*(<br\s*\/?>)?/i,
-        "$1"
-      );
+    if (!alertMatch) {
+      return `<blockquote ${attrs} class="my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans"><div class="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
     }
+
+    const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
+    typeKey = rawKey.includes("warn") ? "warning" : rawKey.includes("tip") ? "tip" : rawKey.includes("import") ? "important" : rawKey.includes("caut") ? "caution" : "note";
+
+    cleanedInner = inner.replace(
+      /^\s*(<p[^>]*>)?\s*(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)\s*(<br\s*\/?>)?/i,
+      "$1"
+    );
 
     const c = configMap[typeKey] || configMap.note;
 
-    return `<div class="my-6 border-l-[3.5px] ${c.border} pl-4 py-1 bg-transparent not-italic select-text">
-  <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-2 select-none">
+    return `<div class="my-4 border-l-[3.5px] ${c.border} pl-4 py-1 bg-transparent not-italic select-text">
+  <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-1 select-none">
     ${c.svg}
     <span>${c.title}</span>
   </div>
@@ -450,12 +452,21 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   );
 }
 
-export function PostContentWrapper({ content, isHtml, locale: propLocale }: PostContentWrapperProps) {
+function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: PostContentWrapperProps) {
   const { locale: contextLocale } = useI18n();
   const locale = propLocale || contextLocale;
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
+
+  useEffect(() => {
+    // 动画仅在初次进入时执行 2 秒，随后永久移除动画类，彻底杜绝悬浮、二次渲染引发的重播与反复跳闪
+    const timer = setTimeout(() => {
+      setHasEntered(true);
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -608,7 +619,7 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} slide-enter-content`}
+          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
           dangerouslySetInnerHTML={{ __html: cleanHtmlContent }}
         />
       ) : (
@@ -616,15 +627,27 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} slide-enter-content`}
+          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // 用户指定极简 Note 框（极简亮蓝左竖线 + ⓘ 笔记 + 纯净透明无底色）
+              // 引用块渲染：普通引用（如名人名言、对话）渲染为极简高雅引用；只有显式带 [!NOTE]/[!TIP] 标识时才渲染为 Note/Tip 提示卡片
               blockquote: ({ children, node, ...props }) => {
                 const text = getNodeText(children).trim();
-                const alertConfig = getAlertConfig(text) || ALERT_MAP.note;
+                const alertConfig = getAlertConfig(text);
+
+                // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净左竖线 + 无 Note 图标与大标题）
+                if (!alertConfig) {
+                  return (
+                    <blockquote className="my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans">
+                      <div className="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                        {children}
+                      </div>
+                    </blockquote>
+                  );
+                }
+
                 const AlertIcon = alertConfig.icon;
                 const cleanChildren = stripAlertPrefix(children);
                 const alertTitle =
@@ -802,3 +825,5 @@ export function PostContentWrapper({ content, isHtml, locale: propLocale }: Post
     </>
   );
 }
+
+export const PostContentWrapper = React.memo(PostContentWrapperInternal);

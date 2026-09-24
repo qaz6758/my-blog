@@ -12,14 +12,7 @@ import { ThoughtMediaItem } from "@/lib/data";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { calculateReadTime, formatDate } from "@/lib/utils";
 
-// ─── 动态按需加载模块（内联声明，无需额外包装文件） ──────────────
-const PostContentWrapper = dynamic(
-  () =>
-    import("@/components/post/PostContentWrapper").then(
-      (m) => m.PostContentWrapper
-    ),
-  { ssr: true }
-);
+import { PostContentWrapper } from "@/components/post/PostContentWrapper";
 
 const CommentSection = dynamic(
   () =>
@@ -139,8 +132,27 @@ export function DynamicPostReader({
       content = convertText(rawContent);
     }
     
-    // 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
-    return content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "").trim();
+    // 1. 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
+    content = content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "").trim();
+
+    // 2. 智能剥离正文开篇与顶部“创意和灵感来源”重复的引用导言（杜绝图文双重堆叠）
+    if (post.inspiration) {
+      const normInsp = post.inspiration.replace(/[\s\p{P}]/gu, "");
+      const matchQuote = content.match(/^\s*>\s*([^\n]+)(?:\r?\n)*/);
+      if (matchQuote) {
+        const quoteText = matchQuote[1].replace(/[\s\p{P}]/gu, "");
+        // 如果开篇引用文字与灵感来源高度相似（前6字匹配或互相包含），判定为重复导言，予以剥离
+        if (
+          (normInsp.length >= 6 && quoteText.length >= 6 && normInsp.slice(0, 6) === quoteText.slice(0, 6)) ||
+          (normInsp.length >= 8 && quoteText.includes(normInsp.slice(0, 8))) ||
+          (quoteText.length >= 8 && normInsp.includes(quoteText.slice(0, 8)))
+        ) {
+          content = content.replace(/^\s*>\s*[^\n]+(?:\r?\n)*/, "").trim();
+        }
+      }
+    }
+
+    return content;
   }, [post, globalLocale, rawContent, convertText]);
 
   // 估算文章阅读耗时
@@ -162,66 +174,12 @@ export function DynamicPostReader({
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
       "https://api.vinceou.site";
 
-    // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
+    // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏，杜绝多次重复重载与动画重播）
     if (initialPost) {
-      setPost(initialPost);
-      setMode("post");
-      setLoading(false);
-
-      // 2. SWR (Stale-While-Revalidate)：后台静默对比 Notion 最新修改（免重新部署）
-      const targetId = initialPost.id;
-      if (targetId) {
-        fetch(`${workerUrl}/api/posts/${targetId}`)
-          .then((res) => {
-            if (!res.ok) throw new Error("Fetch failed");
-            return res.json();
-          })
-          .then((detailData) => {
-            if (detailData?.success && detailData.data) {
-              const latest = detailData.data;
-              const isPub =
-                latest.status?.includes("已发布") ||
-                latest.status?.includes("Published") ||
-                latest.status?.includes("🚀") ||
-                latest.status?.includes("✅");
-
-              // 如果在 Notion 中被取消发布（改为草稿或归档），前端自动降级为 404
-              if (!isPub) {
-                setPost(null);
-                setMode("404");
-                return;
-              }
-
-              // 对比是否有实质内容或标题变更，有变更才平滑触发更新
-              setPost((current) => {
-                if (!current) return latest;
-                const isChanged =
-                  (latest.content && latest.content !== current.content) ||
-                  (latest.title && latest.title !== current.title) ||
-                  (latest.summary && latest.summary !== current.summary) ||
-                  (latest.inspiration && latest.inspiration !== current.inspiration) ||
-                  (latest.category && latest.category !== current.category) ||
-                  (latest.cover_image && latest.cover_image !== current.cover_image) ||
-                  (latest.tags && JSON.stringify(latest.tags) !== JSON.stringify(current.tags));
-
-                if (isChanged) {
-                  return {
-                    ...current,
-                    ...latest,
-                    inspiration: latest.inspiration || current.inspiration,
-                    inspiration_url: latest.inspiration_url || current.inspiration_url,
-                    summary: latest.summary || current.summary,
-                    slug: current.slug || latest.slug,
-                    source_url: current.source_url || latest.source_url,
-                  };
-                }
-                return current;
-              });
-            }
-          })
-          .catch(() => {
-            // 容灾机制：网络异常或超时静默忽略，维持 initialPost 正常展示
-          });
+      if (post?.id !== initialPost.id) {
+        setPost(initialPost);
+        setMode("post");
+        setLoading(false);
       }
       return;
     }
