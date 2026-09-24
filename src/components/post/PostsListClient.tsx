@@ -154,7 +154,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       <span className="text-[16px] sm:text-[17px] font-sans font-normal leading-relaxed text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
                         {post.title}
                       </span>
-                      <span className="shrink-0 font-mono text-[12px] sm:text-[12.5px] text-neutral-400 dark:text-neutral-500 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 whitespace-nowrap transition-colors duration-150">
+                      <span className="shrink-0 font-sans text-[13px] text-neutral-400 dark:text-neutral-500 whitespace-nowrap">
                         {formattedDate}
                         {readTime ? <span> · {readTime}{isEn ? "min" : "分钟"}</span> : ""}
                       </span>
