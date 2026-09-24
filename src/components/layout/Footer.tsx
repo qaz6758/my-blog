@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n/I18nContext";
 import { InkMountainBackground } from "./InkMountainBackground";
 
 export function Footer() {
-  const { enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
+  const { mounted, enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
   const { t } = useI18n();
 
   // 当前季节标签（随自然节气自动流转）
@@ -53,10 +53,10 @@ export function Footer() {
           <span>2026-PRESENT © {siteConfig.name}</span>
         </div>
 
-        {/* 站点构建信息与实用工具整合为紧凑的一行，告别孤立浮动 */}
-        <div className="text-xs opacity-40 font-sans flex items-center gap-2.5 flex-wrap pt-0.5">
+        {/* 站点构建信息与实用工具整合为紧凑的一行 */}
+        <div className="text-xs opacity-50 font-sans flex items-center gap-2.5 flex-wrap pt-0.5">
           <span>Powered by Next.js & React</span>
-          <span className="select-none opacity-60">·</span>
+          <span className="select-none opacity-40">·</span>
           <a
             href="/sitemap.xml"
             target="_blank"
@@ -66,20 +66,52 @@ export function Footer() {
           >
             sitemap
           </a>
-          <span className="select-none opacity-60">·</span>
-          <button
-            type="button"
-            onClick={toggleEnabled}
-            className="cursor-pointer hover:underline underline-offset-4 focus:outline-none"
-            title={
-              enabled
-                ? `Background effect: Enabled (${seasonTitle})`
-                : "Background effect: Disabled"
-            }
-            aria-label="Toggle background effect"
-          >
-            {enabled ? "fx on" : "fx off"}
-          </button>
+          <span className="select-none opacity-40">·</span>
+
+          {/* 背景效果控制（恢复用户原本的高辨识度精致微型线框开关） */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleEnabled}
+              className="cursor-pointer select-none hover:underline focus:outline-none"
+              title={
+                enabled
+                  ? `Background effect: Enabled (${seasonTitle})`
+                  : "Background effect: Disabled"
+              }
+            >
+              <span>{t("footer.bg_effect")}</span>
+            </button>
+
+            {/* 极简纯粹开关：清晰线框 + 内部高亮小方块 */}
+            {mounted && (
+              <button
+                type="button"
+                onClick={toggleEnabled}
+                className={`relative inline-flex h-3.5 w-6.5 items-center rounded-[2.5px] transition-colors duration-200 focus:outline-none cursor-pointer p-[1.5px] bg-transparent ${
+                  enabled
+                    ? "border border-[#f472b6] dark:border-[#f472b6]"
+                    : "border border-neutral-400 dark:border-neutral-500"
+                }`}
+                title={
+                  enabled
+                    ? `Click to disable background effect (${seasonTitle})`
+                    : "Click to enable background effect"
+                }
+                aria-label={
+                  enabled ? "Disable background effect" : "Enable background effect"
+                }
+              >
+                <span
+                  className={`inline-block h-2 w-2 rounded-[1px] transition-transform duration-200 ${
+                    enabled
+                      ? "translate-x-3 bg-[#f472b6] dark:bg-[#f472b6] shadow-[0_0_6px_rgba(244,114,182,0.8)]"
+                      : "translate-x-0 bg-neutral-400 dark:bg-neutral-400"
+                  }`}
+                />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </footer>
