@@ -4,7 +4,7 @@
  * ============================================================
  * Tailwind v4 全局字体映射 (@theme) - Anthony Fu (antfu.me) 同款字体套装
  * 包含:
- * 1. font-sans: Inter (antfu.me 官方主力无衬线)
+ * 1. font-sans: 原生系统字体栈 (antfu.me 官方同款零延迟首屏直出，物理消除 FOUT 闪屏)
  * 2. font-mono: DM Mono (antfu.me 官方代码与元信息等宽)
  * 3. font-serif: DM Serif Display + ui-serif (antfu 衬线设计)
  * 4. font-wisper: Bad Script (antfu.me 标志性手写便签/随笔体)
@@ -13,20 +13,23 @@
 
 @theme {
   --font-sans:
-    var(--font-inter),
-    Inter,
     ui-sans-serif,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "WenQuanYi Micro Hei",
     "Segoe UI",
     Roboto,
     "Helvetica Neue",
     Arial,
-    "PingFang SC",
-    "Hiragino Sans GB",
-    "Microsoft YaHei",
-    sans-serif;
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    "Noto Color Emoji";
 
   --font-mono:
     var(--font-dm-mono),

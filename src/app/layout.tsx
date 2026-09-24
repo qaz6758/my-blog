@@ -1,14 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, DM_Mono, DM_Serif_Display, Bad_Script } from "next/font/google";
+import { DM_Mono, DM_Serif_Display, Bad_Script } from "next/font/google";
 import "@/app/globals.css";
 
-// Anthony Fu (antfu.me) 同款字体全家桶配置
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
+// Anthony Fu (antfu.me) 同款字体配置：正文 100% 走原生系统字体栈（0ms 秒开无 FOUT），仅特色功能采用精简字体
 const dmMono = DM_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
@@ -87,7 +81,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable}`}
+      className={`${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable}`}
       suppressHydrationWarning
     >
       <head>
