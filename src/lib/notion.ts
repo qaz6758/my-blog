@@ -123,6 +123,30 @@ function getCover(page: any): string {
   return '';
 }
 
+function getNumber(prop: any): number | null {
+  if (!prop) return null;
+  if (prop.type === 'number') return typeof prop.number === 'number' ? prop.number : null;
+  return null;
+}
+
+function getImageFromPage(page: any): string {
+  if (!page) return '';
+  const p = page.properties;
+  if (p) {
+    const fileProp = findProp(p, 'Photo', 'Image', 'Cover', '封面', '图片', '照片', 'File', 'Files');
+    if (fileProp) {
+      if (fileProp.type === 'files' && Array.isArray(fileProp.files) && fileProp.files.length > 0) {
+        const f = fileProp.files[0];
+        return f?.file?.url || f?.external?.url || '';
+      }
+      if (fileProp.type === 'url') {
+        return fileProp.url || '';
+      }
+    }
+  }
+  return getCover(page);
+}
+
 /**
  * 递归转换 Notion RichText 为 Markdown 格式
  */
@@ -548,6 +572,98 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
     items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
     return items;
   } catch {
+    return [];
+  }
+}
+
+export interface NotionPhotoItem {
+  id: string;
+  title: string;
+  url: string;
+  created_at: string;
+  category?: string | null;
+  location?: string | null;
+  sort_order?: number | null;
+}
+
+/**
+ * 抓取 Notion 画廊照片列表
+ */
+export async function fetchGalleryFromNotion(): Promise<NotionPhotoItem[]> {
+  const galleryDbId = extractDatabaseId(process.env.NOTION_GALLERY_DB_ID);
+  if (!galleryDbId || !NOTION_API_KEY) return [];
+
+  const items: NotionPhotoItem[] = [];
+  let cursor: string | undefined = undefined;
+
+  try {
+    do {
+      const res: Response = await fetch(`https://api.notion.com/v1/databases/${galleryDbId}/query`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${NOTION_API_KEY}`,
+          'Notion-Version': NOTION_VERSION,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          page_size: 100,
+          start_cursor: cursor,
+        }),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        next: { revalidate: 60 },
+      });
+
+      if (!res.ok) {
+        console.warn('[Notion Gallery Warning] 查询失败:', res.statusText);
+        break;
+      }
+
+      const data: any = await res.json();
+
+      for (const page of data.results || []) {
+        const p = page.properties;
+
+        // 如果配置了公开勾选框，未勾选的直接跳过
+        if (findProp(p, 'Published', '公开', '发布') && !isPagePublished(p)) {
+          continue;
+        }
+
+        const imgUrl = getImageFromPage(page);
+        if (!imgUrl) continue;
+
+        const title = getText(findProp(p, 'Title', 'Name', '标题', '名称')) || '';
+        const category = getSelect(findProp(p, 'Category', '分类', '主题', 'Tag')) || null;
+        const location = getText(findProp(p, 'Location', '地点', '位置')) || null;
+        const rawDate = getDate(findProp(p, 'Date', '日期', '时间')) || page.created_time;
+        const sortOrder = getNumber(findProp(p, 'Order', '序号', '排序', 'No'));
+
+        items.push({
+          id: page.id,
+          title,
+          url: imgUrl,
+          created_at: new Date(rawDate).toISOString(),
+          category,
+          location,
+          sort_order: sortOrder,
+        });
+      }
+
+      cursor = data.has_more ? data.next_cursor : undefined;
+    } while (cursor);
+
+    // 优先按指定的数字序号从小到大排序；未指定的保持在 Notion 中的排列顺序
+    items.sort((a, b) => {
+      const orderA = a.sort_order ?? null;
+      const orderB = b.sort_order ?? null;
+      if (orderA !== null && orderB !== null) return orderA - orderB;
+      if (orderA !== null) return -1;
+      if (orderB !== null) return 1;
+      return 0;
+    });
+
+    return items;
+  } catch (error) {
+    console.warn('[Notion Gallery Warning] 抓取 Notion 画廊异常:', error);
     return [];
   }
 }

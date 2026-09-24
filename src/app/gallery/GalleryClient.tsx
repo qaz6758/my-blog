@@ -48,7 +48,27 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
 
     const refreshPhotos = async () => {
       try {
-        const fresh = await getGalleryImages();
+        let fresh: GalleryImage[] | null = null;
+
+        // 1. 优先尝试从 Notion Gateway Worker 实时拉取最新相册
+        try {
+          const workerUrl =
+            process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
+            "https://api.vinceou.site";
+          const res = await fetch(`${workerUrl}/api/photos`).catch(() => null);
+          if (res && res.ok) {
+            const json = await res.json().catch(() => null);
+            if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+              fresh = json.data;
+            }
+          }
+        } catch {}
+
+        // 2. 若 Worker 未就绪，回退至本地数据源
+        if (!fresh || fresh.length === 0) {
+          fresh = await getGalleryImages();
+        }
+
         if (isSubscribed && fresh) {
           const uniqueFresh = deduplicatePhotos(fresh);
           setPhotos((prev) => {

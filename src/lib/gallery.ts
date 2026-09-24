@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { GalleryImage } from "@/types/gallery";
 import { getProxyImageUrl } from "@/lib/image-proxy";
+import { fetchGalleryFromNotion } from "@/lib/notion";
 
 interface PhotoRow {
   id: string;
@@ -175,6 +176,32 @@ export async function getGalleryImages(
   }
 ): Promise<GalleryImage[]> {
   try {
+    // 1. 如果配置了 NOTION_GALLERY_DB_ID，优先使用 Notion 作为画廊数据源！
+    if (process.env.NOTION_GALLERY_DB_ID) {
+      const notionPhotos = await fetchGalleryFromNotion();
+      if (notionPhotos && notionPhotos.length > 0) {
+        let filtered = notionPhotos;
+        if (options?.category && options.category !== "全部") {
+          filtered = filtered.filter((p) => p.category === options.category);
+        }
+        if (options?.limit) {
+          filtered = filtered.slice(0, options.limit);
+        }
+
+        const seenUrls = new Set<string>();
+        const unique = filtered.filter((p) => {
+          if (!p.url) return false;
+          const cleanUrl = p.url.split("?")[0].trim();
+          if (seenUrls.has(cleanUrl)) return false;
+          seenUrls.add(cleanUrl);
+          return true;
+        });
+
+        return unique.map((p) => normalizeGalleryImage(p));
+      }
+    }
+
+    // 2. 否则 fallback 至 Supabase 数据源
     const limit = options?.limit ?? 100;
     let query = supabase
       .from("photos")
