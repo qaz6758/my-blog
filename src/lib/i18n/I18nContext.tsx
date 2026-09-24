@@ -15,9 +15,9 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("zh-CN");
+  const [locale, setLocaleState] = useState<Locale>("en");
 
-  // 初始化语言
+  // 初始化语言（全站默认英文，若用户手动切换过则读取保存设置）
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -25,6 +25,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       if (saved && SUPPORTED_LOCALES.some((l) => l.id === saved)) {
         setLocaleState(saved);
         document.documentElement.lang = saved;
+      } else {
+        document.documentElement.lang = "en";
       }
     } catch {
       // ignore
@@ -65,8 +67,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   // 字典取词
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {
-      const dict = DICTIONARIES[locale] || DICTIONARIES["zh-CN"];
-      let value: string = (dict as any)[key] || (DICTIONARIES["zh-CN"] as any)[key] || key;
+      const dict = DICTIONARIES[locale] || DICTIONARIES["en"];
+      let value: string = (dict as any)[key] || (DICTIONARIES["en"] as any)[key] || key;
 
       if (params) {
         Object.entries(params).forEach(([paramKey, paramVal]) => {
@@ -96,10 +98,10 @@ export function useI18n() {
   if (!ctx) {
     // 降级兜底，避免非 Provider 下报错
     return {
-      locale: "zh-CN" as Locale,
+      locale: "en" as Locale,
       setLocale: () => {},
       t: (key: TranslationKey, params?: Record<string, string | number>) => {
-        let val: string = (DICTIONARIES["zh-CN"] as any)[key] || key;
+        let val: string = (DICTIONARIES["en"] as any)[key] || key;
         if (params) {
           Object.entries(params).forEach(([pk, pv]) => {
             val = val.replace(new RegExp(`\\{${pk}\\}`, "g"), String(pv));

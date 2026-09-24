@@ -1,27 +1,33 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Mono, DM_Serif_Display, Bad_Script } from "next/font/google";
+import { Inter, DM_Mono, DM_Serif_Display, Bad_Script } from "next/font/google";
 import "@/app/globals.css";
 
-// Anthony Fu (antfu.me) 同款字体配置：正文 100% 走原生系统字体栈（0ms 秒开无 FOUT），仅特色功能采用精简字体
+// Anthony Fu (antfu.me) 同款字体全家桶配置：Inter 主力无衬线 + DM Mono 代码体 + DM Serif 衬线体 + Bad Script 手写体
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
 const dmMono = DM_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-dm-mono",
-  display: "optional",
+  display: "swap",
 });
 
 const dmSerifDisplay = DM_Serif_Display({
   weight: ["400"],
   subsets: ["latin"],
   variable: "--font-dm-serif",
-  display: "optional",
+  display: "swap",
 });
 
 const badScript = Bad_Script({
   weight: ["400"],
   subsets: ["latin"],
   variable: "--font-bad-script",
-  display: "optional",
+  display: "swap",
 });
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -58,7 +64,7 @@ export const metadata: Metadata = {
         alt: `${siteConfig.name}'s Blog Cover`,
       },
     ],
-    locale: "zh_CN",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
@@ -80,8 +86,8 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="zh-CN"
-      className={`${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable}`}
+      lang="en"
+      className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -155,13 +161,6 @@ export default function RootLayout({
               :root {
                 --page-bg: #ffffff;
                 --page-text: #222222;
-                --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-              }
-              html,
-              body {
-                font-family: var(--font-sans) !important;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
@@ -215,8 +214,6 @@ export default function RootLayout({
                   --enter-initial: 0s;
                   animation: 1s both slide-enter;
                   animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
-                  backface-visibility: hidden;
-                  -webkit-backface-visibility: hidden;
                 }
                 .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
                 .slide-enter-content > *:nth-child(2) { --enter-stage: 2 !important; }
