@@ -21,19 +21,19 @@ export function Footer() {
   const seasonTitle = SEASON_MAP[activeSeason] || "Silent First Snow";
 
   return (
-    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pt-4 pb-10 sm:pb-12 min-h-[220px] sm:min-h-[260px] flex flex-col justify-end">
+    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-10 sm:pb-12">
       {/* 浪客行水墨原画抠图背景（武藏立绘右下角伫立） */}
       <InkMountainBackground />
 
-      {/* 居中短横线分割线（紧凑留白，告别空旷断层） */}
+      {/* 居中短横线分割线：处于正文与页脚上下空间的绝对正中心 */}
       <div
-        className="relative z-10 w-12 sm:w-16 h-px bg-[#7d7d7d4d] mx-auto mb-6 sm:mb-8"
+        className="relative z-10 w-12 sm:w-16 h-px bg-[#7d7d7d4d] mx-auto mb-8 sm:mb-10"
         role="separator"
         aria-hidden="true"
       />
 
       {/* 核心内容层：容器 max-w-[620px] 与全站正文严格垂直左对齐 */}
-      <div className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left space-y-2 text-sm font-sans">
+      <div className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left space-y-2.5 text-sm font-sans">
         {/* 名言宣言（浪客行禅意衬线体，字距舒展，气度内敛） */}
         <div className="text-[15px] sm:text-[16px] font-medium text-neutral-900 dark:text-neutral-100 leading-relaxed font-serif tracking-widest select-text">
           “{t("footer.motto")}”

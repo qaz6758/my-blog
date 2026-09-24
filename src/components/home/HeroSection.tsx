@@ -96,10 +96,18 @@ export function HeroSection() {
           </p>
         </div>
 
-        {/* ===================== 4. 底部联络与社交 (与正文自然流转，告别冗余夹心双线) ===================== */}
+        {/* Anthony Fu 同款极简居中分隔短线 (处于正文与 Find me on 正中间) */}
         <div
-          className="mt-8 sm:mt-10 flex w-full flex-col items-start space-y-3 text-left select-none slide-enter"
+          className="my-7 sm:my-8 flex justify-center w-full select-none slide-enter"
           style={{ "--enter-stage": 6 } as React.CSSProperties}
+        >
+          <div className="w-12 h-px bg-[#7d7d7d4d]" />
+        </div>
+
+        {/* ===================== 4. 底部联络与社交 ===================== */}
+        <div
+          className="flex w-full flex-col items-start space-y-3 text-left select-none slide-enter"
+          style={{ "--enter-stage": 7 } as React.CSSProperties}
         >
           {/* 结构小标题 */}
           <p className="text-[14px] text-neutral-500 dark:text-neutral-400 font-sans">
