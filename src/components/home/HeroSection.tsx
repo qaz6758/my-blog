@@ -65,12 +65,12 @@ export function HeroSection() {
 
           {/* 心境与转折 (p2 + p3 + p4 融合) */}
           <p>
-            {t("hero.p2")}{space}{t("hero.p3")}{space}{t("hero.p4")}
+            {`${t("hero.p2")}${space}${t("hero.p3")}${space}${t("hero.p4")}`}
           </p>
 
           {/* 记录的意义与数字空间 (p5 + p6 融合) */}
           <p>
-            {t("hero.p5")}{space}{t("hero.p6")}
+            {`${t("hero.p5")}${space}${t("hero.p6")}`}
           </p>
 
           {/* 信条与探索导览 (p7 + p8 顺承) */}
@@ -79,8 +79,7 @@ export function HeroSection() {
             <span className="font-medium text-neutral-900 dark:text-neutral-100">
               {t("hero.p7_quote")}
             </span>
-            {t("hero.p7_post")}{space}
-            {t("hero.p8_1")}
+            {`${t("hero.p7_post")}${space}${t("hero.p8_1")}`}
             <TextLink href="/gallery">{t("hero.p8_gallery")}</TextLink>
             {t("hero.p8_2")}
             <TextLink href="/playlist">{t("hero.p8_playlist")}</TextLink>
@@ -93,7 +92,7 @@ export function HeroSection() {
 
           {/* 尾声 (p9 + p10 凝练收束) */}
           <p>
-            {t("hero.p9")}{space}{t("hero.p10")}
+            {`${t("hero.p9")}${space}${t("hero.p10")}`}
           </p>
         </div>
 

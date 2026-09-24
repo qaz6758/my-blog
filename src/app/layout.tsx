@@ -7,21 +7,21 @@ const dmMono = DM_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-dm-mono",
-  display: "swap",
+  display: "optional",
 });
 
 const dmSerifDisplay = DM_Serif_Display({
   weight: ["400"],
   subsets: ["latin"],
   variable: "--font-dm-serif",
-  display: "swap",
+  display: "optional",
 });
 
 const badScript = Bad_Script({
   weight: ["400"],
   subsets: ["latin"],
   variable: "--font-bad-script",
-  display: "swap",
+  display: "optional",
 });
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -155,6 +155,13 @@ export default function RootLayout({
               :root {
                 --page-bg: #ffffff;
                 --page-text: #222222;
+                --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+              }
+              html,
+              body {
+                font-family: var(--font-sans) !important;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
@@ -199,7 +206,7 @@ export default function RootLayout({
               /* 同步直出关键动画规则，杜绝 Frame 0 元素先满不透明度绘制后隐藏的跳闪 */
               @keyframes slide-enter {
                 0% { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: none; }
+                to { opacity: 1; transform: translateY(0); }
               }
               @media (prefers-reduced-motion: no-preference) {
                 :is(.slide-enter, .slide-enter-content > *) {
@@ -208,6 +215,8 @@ export default function RootLayout({
                   --enter-initial: 0s;
                   animation: 1s both slide-enter;
                   animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
+                  backface-visibility: hidden;
+                  -webkit-backface-visibility: hidden;
                 }
                 .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
                 .slide-enter-content > *:nth-child(2) { --enter-stage: 2 !important; }

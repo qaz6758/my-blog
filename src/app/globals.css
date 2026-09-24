@@ -338,7 +338,7 @@ html.dark .manga-panel {
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translateY(0);
   }
 }
 
@@ -348,6 +348,8 @@ html.dark .manga-panel {
   --enter-initial: 0s;
   animation: 1s both slide-enter;
   animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Anthony Fu 原版 slide-enter-content 阶梯式错落入场 (1:1 官方同款参数) */
@@ -358,6 +360,8 @@ html.dark .manga-panel {
     --enter-initial: 0s;
     animation: 1s both slide-enter;
     animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
