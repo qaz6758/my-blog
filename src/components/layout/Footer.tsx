@@ -21,28 +21,28 @@ export function Footer() {
   const seasonTitle = SEASON_MAP[activeSeason] || "Silent First Snow";
 
   return (
-    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pb-10">
-      {/* 浪客行水墨原画抠图背景 */}
+    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 min-h-[380px] sm:min-h-[440px] flex flex-col justify-between pt-16 sm:pt-28 pb-12 sm:pb-14">
+      {/* 浪客行水墨原画抠图背景（武藏立绘 450px 顶天立地，恢弘大气） */}
       <InkMountainBackground />
 
-      {/* Anthony Fu (antfu.me) 同款居中 50px 极简短横线分割线 */}
+      {/* 居中短横线分割线 */}
       <div
-        className="relative z-10 w-[50px] h-px bg-[#7d7d7d4d] mx-auto my-8"
+        className="relative z-10 w-16 sm:w-20 h-px bg-[#7d7d7d4d] mx-auto mb-10 sm:mb-14"
         role="separator"
         aria-hidden="true"
       />
 
       {/* 内容层：容器居中，尺寸与全站正文 max-w-[620px] 严格垂直对齐 */}
-      <div className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 text-sm font-sans">
+      <div className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 text-sm font-sans mt-auto">
         {/* 左侧：名言宣言 + 版权协议 + 技术构建栈 */}
-        <div className="flex flex-col items-start text-left space-y-2.5">
-          {/* 名言宣言（浪客行禅意衬线体，单行优雅） */}
-          <div className="text-[13px] sm:text-[13.5px] font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed font-serif tracking-wide select-text">
+        <div className="flex flex-col items-start text-left space-y-3">
+          {/* 名言宣言（浪客行禅意衬线体，大气磅礴） */}
+          <div className="text-[15px] sm:text-[17px] font-medium text-neutral-900 dark:text-neutral-100 leading-relaxed font-serif tracking-widest select-text">
             “{t("footer.motto")}”
           </div>
 
           {/* 许可协议与版权归属 */}
-          <div className="text-xs sm:text-[13px] opacity-60 font-sans flex items-center gap-1.5 flex-wrap">
+          <div className="text-xs sm:text-[13px] opacity-70 font-sans flex items-center gap-1.5 flex-wrap">
             <a
               target="_blank"
               rel="noopener noreferrer"
@@ -56,7 +56,7 @@ export function Footer() {
           </div>
 
           {/* 站点构建信息 */}
-          <div className="text-xs opacity-40 font-sans">
+          <div className="text-xs opacity-50 font-sans">
             <p>Powered by Next.js & React</p>
           </div>
         </div>

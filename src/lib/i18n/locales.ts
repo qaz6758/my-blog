@@ -139,7 +139,7 @@ export const DICTIONARIES = {
     "hero.find_me": "Find me on",
     "hero.or_mail": "Or mail me at",
 
-    "footer.motto": "破陣重組，內破而後循環，讓自己成為自己。",
+    "footer.motto": "天下無雙，何足掛齒",
     "footer.readers": "正被 {n} 人披覽",
     "footer.about": "關於",
     "footer.about_site": "關於本站",
@@ -235,7 +235,7 @@ export const DICTIONARIES = {
     "hero.find_me": "Find me on",
     "hero.or_mail": "Or mail me at",
 
-    "footer.motto": "Unrivaled, not worth mentioning.",
+    "footer.motto": "天下无双，何足挂齿",
     "footer.readers": "Read by {n} readers",
     "footer.about": "About",
     "footer.about_site": "About Site",
@@ -331,7 +331,7 @@ export const DICTIONARIES = {
     "hero.find_me": "Find me on",
     "hero.or_mail": "Or mail me at",
 
-    "footer.motto": "陣を破り再編成し、内を破り循環させ、自らを自らたらしめる。",
+    "footer.motto": "天下無双、何するものぞ",
     "footer.readers": "{n} 人が閲覧中",
     "footer.about": "について",
     "footer.about_site": "このサイトについて",
@@ -427,7 +427,7 @@ export const DICTIONARIES = {
     "hero.find_me": "Find me on",
     "hero.or_mail": "Or mail me at",
 
-    "footer.motto": "진형을 깨고 재구성하며, 내면을 깨뜨려 순환하고, 자신이 자신이 되도록 하라.",
+    "footer.motto": "천하무쌍, 괘념치 마라",
     "footer.readers": "{n} 명이 읽는 중",
     "footer.about": "정보",
     "footer.about_site": "이 사이트에 대해",
