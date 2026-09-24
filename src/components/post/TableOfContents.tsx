@@ -278,7 +278,11 @@ export function TableOfContents({
                 <a
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item.id)}
-                  className="inline-block leading-[1.5em] text-[#666] dark:text-[#888] hover:text-black dark:hover:text-white opacity-60 hover:opacity-100 transition-all duration-150 underline underline-offset-[5px] decoration-black/20 dark:decoration-white/20 hover:decoration-black/70 dark:hover:decoration-white/70 font-normal"
+                  className={`inline-block leading-[1.5em] transition-all duration-150 font-normal border-b pb-0.5 ${
+                    isActive
+                      ? "text-black dark:text-white opacity-100 border-black dark:border-white"
+                      : "text-neutral-600 dark:text-neutral-400 opacity-75 hover:opacity-100 hover:text-black dark:hover:text-white border-[#7d7d7d4d] hover:border-black dark:hover:border-white"
+                  }`}
                   title={titleText}
                 >
                   {titleText}
