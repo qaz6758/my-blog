@@ -19,56 +19,36 @@ const NAV_LINKS = [
   { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
 ];
 
-function BrandLogo({ className = "h-13 w-13 sm:h-16 sm:w-16" }: { className?: string }) {
-  const [isDrawing, setIsDrawing] = React.useState(false);
-
-  React.useEffect(() => {
-    // 首次进入 350ms 后画一次
-    const initialTimer = setTimeout(() => {
-      setIsDrawing(true);
-      setTimeout(() => setIsDrawing(false), 950);
-    }, 350);
-
-    // 每 10 秒自动周期性画出圆融微断环
-    const interval = setInterval(() => {
-      setIsDrawing(true);
-      setTimeout(() => setIsDrawing(false), 950);
-    }, 10000);
-
-    return () => {
-      clearTimeout(initialTimer);
-      clearInterval(interval);
-    };
-  }, []);
-
+function BrandLogo({ className = "h-9 w-9 sm:h-10 sm:w-10" }: { className?: string }) {
   return (
     <div className={`relative flex items-center justify-center select-none ${className}`}>
-      <svg
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full text-neutral-800 dark:text-[#f3f0ea] transition-all duration-300 transform group-hover:scale-105"
-        aria-label="Vince Ou (VO)"
-      >
-        <title>Vince Ou</title>
-        {/* 方案 2：外层呼吸感微断环 O（圆融微断口） */}
-        <path
-          d="M 28 20 A 38 38 0 1 0 86 42"
-          stroke="currentColor"
-          strokeWidth="4.6"
-          strokeLinecap="round"
-          className={`brand-ring ${isDrawing ? "is-drawing" : ""}`}
-        />
-        {/* 方案 2：内切利落先锋折线 V */}
-        <path
-          d="M 40 38 L 52 64 L 68 38"
-          stroke="currentColor"
-          strokeWidth="4.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`brand-v ${isDrawing ? "is-drawing" : ""}`}
-        />
-      </svg>
+      <div className="relative h-full w-full">
+        {/* Enso 墨圆：手绘不完美圆形，毛笔一笔画成 */}
+        <svg
+          viewBox="0 0 120 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="absolute inset-0 w-full h-full text-neutral-800 dark:text-neutral-200 transition-colors duration-300 pointer-events-none"
+          aria-hidden="true"
+        >
+          <path
+            d="M60 8 C28 6, 6 28, 8 60 C6 92, 28 114, 60 112 C92 114, 114 92, 112 60 C114 28, 92 6, 60 8 Z"
+            stroke="currentColor"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
+        {/* 头像图片：圆形裁切，内嵌于墨圆之中 */}
+        <div className="absolute inset-[3.2px] sm:inset-[3.8px] overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-900 shadow-xs">
+          <img
+            src="/avatar.jpg"
+            alt="Vince Ou"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -159,11 +139,11 @@ export function Navbar() {
       >
         {/* 顶部通透全延展容器 (对齐 Anthony Fu antfu.me 极客排版：最边缘留白 20px) */}
         <div className="relative mx-auto flex h-full w-full items-center justify-end px-5">
-          {/* ===================== 左侧：手写连笔 OW 艺术签名 Logo + 状态胶囊 (对齐 Antfu: absolute xl:fixed) ===================== */}
-          <div className="flex items-center gap-3 absolute xl:fixed left-4 sm:left-5 top-1.5 sm:top-1 z-50">
+          {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (对齐 Antfu: absolute xl:fixed) ===================== */}
+          <div className="flex items-center gap-3 absolute xl:fixed left-4 sm:left-5 top-3.5 sm:top-4 z-50">
             <Link
               href="/"
-              className="group flex items-center shrink-0 cursor-pointer select-none opacity-80 hover:opacity-100 transition-opacity duration-200"
+              className="group flex items-center shrink-0 cursor-pointer select-none transition-transform duration-300 ease-out hover:scale-105 active:scale-95"
               aria-label="回到首页"
               title="Vince Ou"
             >

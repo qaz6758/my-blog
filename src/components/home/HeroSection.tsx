@@ -49,38 +49,7 @@ export function HeroSection() {
   return (
     <div className="relative w-full overflow-hidden pt-20 sm:pt-24 pb-20 sm:pb-24 px-6 sm:px-8">
       <main className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left slide-enter-content">
-        {/* ===================== 1. 墨圆（Enso）头像 — 紧凑水墨灵魂 ===================== */}
-        <div className="mb-4 sm:mb-5 select-none cursor-pointer transition-transform duration-300 ease-out hover:scale-105 active:scale-95">
-          <div className="relative h-16 w-16 sm:h-20 sm:w-20">
-            {/* Enso 墨圆：手绘不完美圆形，毛笔一笔画成 */}
-            <svg
-              viewBox="0 0 120 120"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute inset-0 w-full h-full text-neutral-800 dark:text-neutral-200 transition-colors duration-300"
-              aria-hidden="true"
-            >
-              <path
-                d="M60 8 C28 6, 6 28, 8 60 C6 92, 28 114, 60 112 C92 114, 114 92, 112 60 C114 28, 92 6, 60 8 Z"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </svg>
-            {/* 头像图片：圆形裁切，内嵌于墨圆之中 */}
-            <div className="absolute inset-[4.5px] sm:inset-[5.5px] overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-900">
-              <img
-                src="/avatar.jpg"
-                alt={name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ===================== 2. 核心身份标题 ===================== */}
+        {/* ===================== 核心身份标题 ===================== */}
         <div className="text-left mb-5 sm:mb-6">
           <h1 className="text-[32px] sm:text-[38px] font-extrabold tracking-tight text-black dark:text-white select-none font-sans">
             {name}

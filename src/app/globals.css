@@ -523,52 +523,5 @@ html.hide-playlist-grid [data-playlist-grid] {
   display: none !important;
 }
 
-/*
- * ============================================================
- * 顶部导航栏 BrandLogo（方案 2 放大版：圆融微断环 + V 笔画书写动效）
- * ============================================================
- */
-@keyframes drawRingScheme2 {
-  0% {
-    stroke-dashoffset: 200;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
 
-@keyframes drawVScheme2 {
-  0% {
-    stroke-dashoffset: 70;
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-}
-
-.brand-ring {
-  stroke-dasharray: 200;
-  stroke-dashoffset: 0;
-}
-
-.brand-v {
-  stroke-dasharray: 70;
-  stroke-dashoffset: 0;
-}
-
-/* 鼠标悬停 (hover) 或每10秒周期 (is-drawing) 触发一笔书写圆融微断环动效 */
-.brand-ring.is-drawing,
-.group:hover .brand-ring {
-  animation: drawRingScheme2 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.brand-v.is-drawing,
-.group:hover .brand-v {
-  animation: drawVScheme2 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
-}
 
