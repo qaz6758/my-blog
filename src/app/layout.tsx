@@ -204,16 +204,15 @@ export default function RootLayout({
               }
               /* 同步直出关键动画规则，杜绝 Frame 0 元素先满不透明度绘制后隐藏的跳闪 */
               @keyframes slide-enter {
-                0% { opacity: 0; transform: translateY(4px); }
-                to { opacity: 1; transform: translateY(0); }
+                0% { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: none; }
               }
               @media (prefers-reduced-motion: no-preference) {
-                .slide-enter,
-                .slide-enter-content > * {
+                :is(.slide-enter, .slide-enter-content > *) {
                   --enter-stage: 0;
-                  --enter-step: 70ms;
-                  --enter-initial: 0ms;
-                  animation: slide-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both 1;
+                  --enter-step: 90ms;
+                  --enter-initial: 0s;
+                  animation: 1s both slide-enter;
                   animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
                 }
                 .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
@@ -226,6 +225,16 @@ export default function RootLayout({
                 .slide-enter-content > *:nth-child(8) { --enter-stage: 8 !important; }
                 .slide-enter-content > *:nth-child(9) { --enter-stage: 9 !important; }
                 .slide-enter-content > *:nth-child(10) { --enter-stage: 10 !important; }
+                .slide-enter-content > *:nth-child(11) { --enter-stage: 11 !important; }
+                .slide-enter-content > *:nth-child(12) { --enter-stage: 12 !important; }
+                .slide-enter-content > *:nth-child(13) { --enter-stage: 13 !important; }
+                .slide-enter-content > *:nth-child(14) { --enter-stage: 14 !important; }
+                .slide-enter-content > *:nth-child(15) { --enter-stage: 15 !important; }
+                .slide-enter-content > *:nth-child(16) { --enter-stage: 16 !important; }
+                .slide-enter-content > *:nth-child(17) { --enter-stage: 17 !important; }
+                .slide-enter-content > *:nth-child(18) { --enter-stage: 18 !important; }
+                .slide-enter-content > *:nth-child(19) { --enter-stage: 19 !important; }
+                .slide-enter-content > *:nth-child(20) { --enter-stage: 20 !important; }
               }
             `,
           }}

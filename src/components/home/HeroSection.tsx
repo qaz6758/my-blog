@@ -48,16 +48,16 @@ export function HeroSection() {
 
   return (
     <div className="relative w-full overflow-hidden min-h-[100dvh] flex flex-col justify-start pt-28 sm:pt-32 pb-16 sm:pb-20 px-6 sm:px-8">
-      <main className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left slide-enter-content">
-        {/* ===================== 核心身份标题 ===================== */}
-        <div className="text-left mb-5 sm:mb-6">
-          <h1 className="text-[32px] sm:text-[38px] font-extrabold tracking-tight text-black dark:text-white select-none font-sans">
+      <main className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left">
+        {/* ===================== 核心身份标题 (静态物理锚点，不参与 slide-enter 位移) ===================== */}
+        <div className="text-left mb-5 sm:mb-6 select-none">
+          <h1 className="text-[32px] sm:text-[38px] font-extrabold tracking-tight text-black dark:text-white font-sans">
             {name}
           </h1>
         </div>
 
-        {/* ===================== 3. 现代纯粹正文 (Anthony Fu 紧凑聚合 · 舒适呼吸感) ===================== */}
-        <div className="w-full space-y-4.5 sm:space-y-5 text-[15px] sm:text-[16px] leading-[1.8] sm:leading-[1.85] text-neutral-700 dark:text-neutral-300 font-sans">
+        {/* ===================== 3. 现代纯粹正文 (Anthony Fu 阶梯错落流式入场) ===================== */}
+        <div className="w-full space-y-4.5 sm:space-y-5 text-[15px] sm:text-[16px] leading-[1.8] sm:leading-[1.85] text-neutral-700 dark:text-neutral-300 font-sans slide-enter-content">
           {/* 开篇 Lead */}
           <p>
             {t("hero.p1", { name })}
@@ -97,13 +97,19 @@ export function HeroSection() {
           </p>
         </div>
 
-        {/* Anthony Fu 极简居中分隔短线 */}
-        <div className="my-8 sm:my-9 flex justify-center w-full select-none">
+        {/* Anthony Fu 极简居中分隔短线 (随瀑布顺延入场) */}
+        <div
+          className="my-8 sm:my-9 flex justify-center w-full select-none slide-enter"
+          style={{ "--enter-stage": 6 } as React.CSSProperties}
+        >
           <div className="w-10 sm:w-12 h-[1px] bg-neutral-200 dark:bg-neutral-800" />
         </div>
 
         {/* ===================== 4. 底部联络与社交 (Anthony Fu 风格复刻：品牌图标 + 下划线 + 纯净极客排版) ===================== */}
-        <div className="flex w-full flex-col items-start space-y-3 text-left select-none">
+        <div
+          className="flex w-full flex-col items-start space-y-3 text-left select-none slide-enter"
+          style={{ "--enter-stage": 7 } as React.CSSProperties}
+        >
           {/* 结构小标题 */}
           <p className="text-[14px] text-neutral-500 dark:text-neutral-400 font-sans">
             {t("hero.find_me")}
