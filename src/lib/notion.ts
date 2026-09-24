@@ -223,7 +223,7 @@ async function fetchBlockChildren(blockId: string): Promise<any[]> {
           'Notion-Version': NOTION_VERSION,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        next: { revalidate: 60 },
+        next: { revalidate: 10 },
       });
 
       if (!res.ok) break;
@@ -332,7 +332,7 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
           start_cursor: cursor,
         }),
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        next: { revalidate: 60 },
+        next: { revalidate: 10 },
       });
 
       if (!res.ok) {
@@ -435,7 +435,7 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
           'Notion-Version': NOTION_VERSION,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        next: { revalidate: 60 },
+        next: { revalidate: 10 },
       }),
       fetchBlockChildren(targetPageId),
     ]);

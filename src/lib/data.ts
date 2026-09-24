@@ -4,6 +4,7 @@ import {
   fetchPostsFromNotion as fetchNotionPosts,
   fetchPostDetailFromNotion as fetchNotionPostDetail,
   fetchThoughtsFromNotion as fetchNotionThoughts,
+  extractDatabaseId,
   NotionPostItem,
   NotionThoughtItem,
 } from '@/lib/notion';
@@ -307,18 +308,77 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
 export async function fetchPosts(limit?: number): Promise<NotionPostItem[]> {
   try {
     const posts = await fetchNotionPosts();
-    if (limit && limit > 0) {
-      return posts.slice(0, limit);
+    if (posts && posts.length > 0) {
+      return limit && limit > 0 ? posts.slice(0, limit) : posts;
     }
-    return posts;
   } catch (err) {
     console.warn('[Fetch Posts Error]:', err);
-    return [];
   }
+
+  // 降级/加速通道：通过 Cloudflare Worker (Notion Gateway) 获取实时博客列表
+  try {
+    const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
+    const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/posts`, {
+      next: { revalidate: 10 },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+        const list = json.data as NotionPostItem[];
+        return limit && limit > 0 ? list.slice(0, limit) : list;
+      }
+    }
+  } catch (workerErr) {
+    console.warn('[Fetch Posts Worker Fallback]:', workerErr);
+  }
+
+  return [];
 }
 
 export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem | null> {
-  return await fetchNotionPostDetail(slugOrId);
+  const direct = await fetchNotionPostDetail(slugOrId);
+  if (direct) return direct;
+
+  // 降级/加速通道：通过 Cloudflare Worker (Notion Gateway) 获取最新实时文章详情
+  try {
+    const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
+    const cleanTarget = extractDatabaseId(slugOrId);
+    let targetId = cleanTarget;
+
+    // 若不是 32 位标准 ID，先根据 slug 在列表中匹配对应 ID
+    if (!targetId || targetId.length < 32) {
+      const allPosts = await fetchPosts();
+      const matched = allPosts.find(
+        (p) =>
+          p.slug === slugOrId ||
+          p.id === slugOrId ||
+          p.source_url === slugOrId ||
+          p.source_url === `/posts/${slugOrId}` ||
+          p.id?.replace(/-/g, '') === slugOrId.replace(/-/g, '')
+      );
+      if (matched) {
+        targetId = extractDatabaseId(matched.id) || matched.id;
+      }
+    }
+
+    if (targetId) {
+      const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/posts/${targetId}`, {
+        next: { revalidate: 10 },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.success && json.data) {
+          return json.data as NotionPostItem;
+        }
+      }
+    }
+  } catch (workerErr) {
+    console.warn('[Fetch Post Detail Worker Fallback]:', workerErr);
+  }
+
+  return null;
 }
 
 // ================= 向下兼容别名 (防止旧组件报错) =================

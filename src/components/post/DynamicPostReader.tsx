@@ -155,18 +155,7 @@ export function DynamicPostReader({
 
     // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
     if (initialPost) {
-      let initialData = initialPost;
-      try {
-        const cached = sessionStorage.getItem(`ow_post_detail_${initialPost.id}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed && parsed.title) {
-            initialData = { ...initialPost, ...parsed };
-          }
-        }
-      } catch {}
-
-      setPost(initialData);
+      setPost(initialPost);
       setMode("post");
       setLoading(false);
 
@@ -206,9 +195,6 @@ export function DynamicPostReader({
                   JSON.stringify(latest.tags) !== JSON.stringify(current.tags);
 
                 if (isChanged) {
-                  try {
-                    sessionStorage.setItem(`ow_post_detail_${targetId}`, JSON.stringify(latest));
-                  } catch {}
                   return {
                     ...current,
                     ...latest,
