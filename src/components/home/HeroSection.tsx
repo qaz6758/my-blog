@@ -47,7 +47,7 @@ export function HeroSection() {
   const space = locale === "en" ? " " : "";
 
   return (
-    <div className="relative w-full overflow-hidden min-h-[100dvh] flex flex-col justify-start pt-28 sm:pt-32 pb-16 sm:pb-20 px-6 sm:px-8">
+    <div className="relative w-full overflow-hidden flex flex-col justify-start pt-28 sm:pt-32 pb-16 sm:pb-20 px-6 sm:px-8">
       <main className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left">
         {/* ===================== 核心身份标题 (静态物理锚点，不参与 slide-enter 位移) ===================== */}
         <div className="text-left mb-5 sm:mb-6 select-none">

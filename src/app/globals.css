@@ -528,5 +528,19 @@ html.hide-playlist-grid [data-playlist-grid] {
   display: none !important;
 }
 
+/*
+ * ============================================================
+ * Anthony Fu (antfu.me) 同款短横线分割线 (.prose hr, hr.divider)
+ * ============================================================
+ */
+.prose hr,
+hr.divider {
+  width: 50px;
+  margin: 2em auto;
+  border: none;
+  border-top: 1px solid #7d7d7d4d;
+}
+
+
 
 
