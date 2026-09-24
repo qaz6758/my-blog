@@ -5,16 +5,16 @@ import React from "react";
 
 export function InkMountainBackground() {
   return (
-<div
-  aria-hidden="true"
-  className="hidden sm:block pointer-events-none select-none absolute inset-0 w-full h-full overflow-hidden z-0"
->
-      {/* 浪客行（Vagabond）原画抠图真迹：武藏持刀伫立，赤墨牡丹绽放，完整展现无任何裁切 */}
-      <div className="absolute right-0 bottom-0 h-full flex items-end justify-end pointer-events-none z-10 pr-0">
+    <div
+      aria-hidden="true"
+      className="hidden sm:block pointer-events-none select-none absolute right-0 bottom-0 z-0"
+    >
+      {/* 浪客行（Vagabond）原画立绘：独立于页脚层级，局部放大呈现深邃武侠与水墨氛围 */}
+      <div className="relative flex items-end justify-end">
         <img
           src="/images/musashi-peony-cutout.webp"
           alt="Miyamoto Musashi with Peonies"
-          className="h-full max-h-full w-auto object-contain object-bottom object-right drop-shadow-[0_8px_24px_rgba(0,0,0,0.10)] dark:drop-shadow-[0_12px_30px_rgba(0,0,0,0.9)] transition-all duration-300"
+          className="w-auto h-[360px] sm:h-[400px] md:h-[450px] lg:h-[490px] max-h-[520px] object-contain object-bottom object-right drop-shadow-[0_12px_36px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_16px_40px_rgba(0,0,0,0.95)] opacity-90 dark:opacity-95 transition-all duration-300 transform origin-bottom-right"
         />
       </div>
     </div>

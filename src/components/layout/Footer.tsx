@@ -5,8 +5,6 @@ import React from "react";
 import { siteConfig } from "@/config/site";
 import { useSeasonalEffect } from "@/hooks/useSeasonalEffect";
 import { useI18n } from "@/lib/i18n/I18nContext";
-import { InkMountainBackground } from "./InkMountainBackground";
-
 export function Footer() {
   const { mounted, enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
   const { t } = useI18n();
@@ -21,9 +19,7 @@ export function Footer() {
   const seasonTitle = SEASON_MAP[activeSeason] || "Silent First Snow";
 
   return (
-    <footer className="relative w-full select-none overflow-hidden bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-10 sm:pb-12">
-      {/* 浪客行水墨原画抠图背景（武藏立绘右下角伫立） */}
-      <InkMountainBackground />
+    <footer className="relative w-full select-none bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-10 sm:pb-12">
 
       {/* 居中短横线分割线：处于正文与页脚上下空间的绝对正中心，与全站 max-w-[620px] 严格同心对齐 (50px 黄金规格) */}
       <div className="relative z-10 mx-auto w-full max-w-[620px] flex justify-center mb-8 sm:mb-10">
