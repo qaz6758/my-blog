@@ -25,12 +25,14 @@ export function Footer() {
       {/* 浪客行水墨原画抠图背景（武藏立绘右下角伫立） */}
       <InkMountainBackground />
 
-      {/* 居中短横线分割线：处于正文与页脚上下空间的绝对正中心 */}
-      <div
-        className="relative z-10 w-12 sm:w-16 h-px bg-[#7d7d7d4d] mx-auto mb-8 sm:mb-10"
-        role="separator"
-        aria-hidden="true"
-      />
+      {/* 居中短横线分割线：处于正文与页脚上下空间的绝对正中心，与全站 max-w-[620px] 严格同心对齐 (50px 黄金规格) */}
+      <div className="relative z-10 mx-auto w-full max-w-[620px] flex justify-center mb-8 sm:mb-10">
+        <div
+          className="w-[50px] h-px bg-[#7d7d7d4d]"
+          role="separator"
+          aria-hidden="true"
+        />
+      </div>
 
       {/* 核心内容层：容器 max-w-[620px] 与全站正文严格垂直左对齐 */}
       <div className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left space-y-2.5 text-sm font-sans">

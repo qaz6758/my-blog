@@ -96,12 +96,12 @@ export function HeroSection() {
           </p>
         </div>
 
-        {/* Anthony Fu 同款极简居中分隔短线 (处于正文与 Find me on 正中间) */}
+        {/* Anthony Fu 同款极简居中分隔短线 (处于正文与 Find me on 正中间，50px 黄金规格) */}
         <div
           className="my-7 sm:my-8 flex justify-center w-full select-none slide-enter"
           style={{ "--enter-stage": 6 } as React.CSSProperties}
         >
-          <div className="w-12 h-px bg-[#7d7d7d4d]" />
+          <div className="w-[50px] h-px bg-[#7d7d7d4d]" />
         </div>
 
         {/* ===================== 4. 底部联络与社交 ===================== */}
