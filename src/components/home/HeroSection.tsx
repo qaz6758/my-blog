@@ -21,7 +21,7 @@ export function TextLink({ href, children, external, className = "" }: TextLinkP
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={`group inline-flex items-center gap-0.5 font-medium text-neutral-900 dark:text-neutral-100 hover:text-black dark:hover:text-white underline underline-offset-4 decoration-black/25 dark:decoration-white/25 hover:decoration-black dark:hover:decoration-white transition-colors ${className}`}
+        className={`group inline-flex items-center gap-0.5 font-normal text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white border-b border-black/20 dark:border-white/25 hover:border-black dark:hover:border-white pb-px transition-colors ${className}`}
       >
         <span>{children}</span>
         <span className="text-[10px] opacity-60 font-mono group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">
@@ -34,7 +34,7 @@ export function TextLink({ href, children, external, className = "" }: TextLinkP
   return (
     <Link
       href={href}
-      className={`font-medium text-neutral-900 dark:text-neutral-100 hover:text-black dark:hover:text-white underline underline-offset-4 decoration-black/25 dark:decoration-white/25 hover:decoration-black dark:hover:decoration-white transition-colors ${className}`}
+      className={`font-normal text-neutral-800 dark:text-neutral-200 hover:text-black dark:hover:text-white border-b border-black/20 dark:border-white/25 hover:border-black dark:hover:border-white pb-px transition-colors ${className}`}
     >
       {children}
     </Link>
@@ -57,7 +57,7 @@ export function HeroSection() {
         </div>
 
         {/* ===================== 3. 现代纯粹正文 (Anthony Fu 紧凑聚合 · 舒适呼吸感) ===================== */}
-        <div className="w-full space-y-4 sm:space-y-4.5 text-[15px] sm:text-[16px] leading-[1.75] text-neutral-700 dark:text-neutral-300 font-sans">
+        <div className="w-full space-y-4.5 sm:space-y-5 text-[15px] sm:text-[16px] leading-[1.8] sm:leading-[1.85] text-neutral-700 dark:text-neutral-300 font-sans">
           {/* 开篇 Lead */}
           <p>
             {t("hero.p1", { name })}
@@ -76,7 +76,7 @@ export function HeroSection() {
           {/* 信条与探索导览 (p7 + p8 顺承) */}
           <p>
             {t("hero.p7_pre")}
-            <span className="font-semibold text-neutral-900 dark:text-white">
+            <span className="font-medium text-neutral-900 dark:text-neutral-100">
               {t("hero.p7_quote")}
             </span>
             {t("hero.p7_post")}{space}

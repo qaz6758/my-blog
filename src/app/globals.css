@@ -151,39 +151,36 @@ body {
 
 /*
  * ============================================================
- * 纯净微光选区高亮 (纯粹黑白高反差)
+ * 沉浸式选中文本系统 (Selection) - Anthony Fu 同款风格 (#8884)
+ * 柔和半透明中性灰，绝不反色，自然透出文字与链接细线
  * ============================================================
  */
 
 ::selection {
-  background: #000000;
-  color: #ffffff;
+  background: #8884;
 }
 
 .dark ::selection,
 html.dark ::selection {
-  background: #ffffff;
-  color: #000000;
+  background: #8884;
 }
 
 /*
  * ============================================================
- * 双界文本链接系统 (Prose Link)
- * 昼行：纯粹石墨黑，Hover 加深纯黑下划线
- * 夜行：澄澈中性灰，Hover 升华纯白留白
+ * 双界文本链接系统 (Prose Link) - Anthony Fu 风格 1px 细线
+ * 继承正文字重，克制自然，避免色块与字形突兀
  * ============================================================
  */
 
 .prose-link {
-  font-weight: 600;
-  color: #171717;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  font-weight: inherit;
+  color: inherit;
+  border-bottom: 1px solid rgba(125, 125, 125, 0.3);
   padding-bottom: 1px;
   text-decoration: none !important;
   cursor: pointer;
   transition: color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
-              border-color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1)),
-              opacity 0.2s ease;
+              border-color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
 /* 昼行悬停：利落纯黑，加深下划线 */
@@ -192,9 +189,9 @@ html.dark ::selection {
   border-bottom-color: #000000 !important;
 }
 
-/* 夜行常态：中性淡冷灰 */
+/* 夜行常态：中性半透明浅灰底线 */
 .dark .prose-link {
-  color: #d4d4d4;
+  color: inherit;
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
 }
 

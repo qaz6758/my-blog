@@ -233,7 +233,7 @@ export default function RootLayout({
         {/* Anthony Fu (antfu.me) 同款字体（由 Next.js 本地零延迟自托管，零运行时请求） */}
       </head>
 
-      <body className="min-h-screen w-full font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-950 overflow-x-hidden antialiased">
+      <body className="min-h-screen w-full font-sans overflow-x-hidden antialiased">
         <script
           dangerouslySetInnerHTML={{
             __html: `
