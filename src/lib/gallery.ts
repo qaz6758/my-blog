@@ -194,8 +194,19 @@ export async function getGalleryImages(
     }
 
     const rows = (data as PhotoRow[]) ?? [];
-    // 优先按序号从小到大升序排序 (1, 2, 3...)，未指定序号的按上传时间由新到旧排列
-    rows.sort((a, b) => {
+
+    // 1. 严格按 URL 去重，杜绝数据库中偶发的重复记录导致前端重复渲染
+    const seenUrls = new Set<string>();
+    const uniqueRows = rows.filter((row) => {
+      if (!row.url) return false;
+      const cleanUrl = row.url.split("?")[0].trim();
+      if (seenUrls.has(cleanUrl)) return false;
+      seenUrls.add(cleanUrl);
+      return true;
+    });
+
+    // 2. 优先按序号从小到大升序排序 (1, 2, 3...)，未指定序号的按上传时间由新到旧排列
+    uniqueRows.sort((a, b) => {
       const orderA = a.sort_order ?? a.order ?? null;
       const orderB = b.sort_order ?? b.order ?? null;
       if (orderA !== null && orderB !== null) return orderA - orderB;
@@ -203,7 +214,7 @@ export async function getGalleryImages(
       if (orderB !== null) return 1;
       return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
-    return rows.map((row) => normalizeGalleryImage(row));
+    return uniqueRows.map((row) => normalizeGalleryImage(row));
   } catch (err) {
     console.error("[Gallery] 查询 Supabase photos 失败:", err);
     return [];

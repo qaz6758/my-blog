@@ -8,20 +8,31 @@ import type { GalleryImage } from "@/types/gallery";
 import { getGalleryImages } from "@/lib/gallery";
 import { supabase } from "@/lib/supabase";
 
+function deduplicatePhotos(list: GalleryImage[]): GalleryImage[] {
+  const seen = new Set<string>();
+  return list.filter((p) => {
+    const clean = p.url?.split("?")[0].trim();
+    if (!clean || seen.has(clean)) return false;
+    seen.add(clean);
+    return true;
+  });
+}
+
 export default function GalleryClient({ photos: initialPhotos = [] }: { photos: GalleryImage[] }) {
   const [photos, setPhotos] = useState<GalleryImage[]>(() => {
+    let source = initialPhotos;
     if (typeof window !== "undefined") {
       try {
         const cached = sessionStorage.getItem("ow_gallery_photos_v1");
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+            source = parsed;
           }
         }
       } catch {}
     }
-    return initialPhotos;
+    return deduplicatePhotos(source);
   });
   const [isGrid, setIsGrid] = useState(true);
   const [activePhoto, setActivePhoto] = useState<GalleryImage | null>(null);
@@ -39,23 +50,24 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
       try {
         const fresh = await getGalleryImages();
         if (isSubscribed && fresh) {
+          const uniqueFresh = deduplicatePhotos(fresh);
           setPhotos((prev) => {
             if (
-              prev.length === fresh.length &&
+              prev.length === uniqueFresh.length &&
               prev.every(
                 (p, idx) =>
-                  p.id === fresh[idx]?.id &&
-                  p.url === fresh[idx]?.url &&
-                  p.title === fresh[idx]?.title &&
-                  p.sortOrder === fresh[idx]?.sortOrder
+                  p.id === uniqueFresh[idx]?.id &&
+                  p.url === uniqueFresh[idx]?.url &&
+                  p.title === uniqueFresh[idx]?.title &&
+                  p.sortOrder === uniqueFresh[idx]?.sortOrder
               )
             ) {
               return prev;
             }
             try {
-              sessionStorage.setItem("ow_gallery_photos_v1", JSON.stringify(fresh));
+              sessionStorage.setItem("ow_gallery_photos_v1", JSON.stringify(uniqueFresh));
             } catch {}
-            return fresh;
+            return uniqueFresh;
           });
         }
       } catch (err) {
