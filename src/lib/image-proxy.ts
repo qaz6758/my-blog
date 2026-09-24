@@ -11,12 +11,14 @@ export function getProxyImageUrl(url?: string | null): string {
   if (trimmed.startsWith('data:')) return trimmed;
   if (trimmed.includes('/img/?url=')) return trimmed;
 
+  const normalized = trimmed.replace(/&amp;/g, '&');
+
   // 网易云音乐直连常常会因客户端防盗链或网络 TLS 握手重置导致 net::ERR_CONNECTION_CLOSED
   // 通过全球 CDN wsrv.nl (Cloudflare 边缘缓存节点) 自动剥离 Referer 并分发，彻底消除连接被关闭报错
-  if (trimmed.includes('126.net') || trimmed.includes('163.com')) {
-    if (trimmed.includes('wsrv.nl') || trimmed.includes('weserv.nl')) return trimmed;
-    return `https://wsrv.nl/?url=${encodeURIComponent(trimmed)}&af`;
+  if (normalized.includes('126.net') || normalized.includes('163.com')) {
+    if (normalized.includes('wsrv.nl') || normalized.includes('weserv.nl')) return normalized;
+    return `https://wsrv.nl/?url=${encodeURIComponent(normalized)}&af`;
   }
 
-  return `https://cdn.vinceou.site/img/?url=${encodeURIComponent(trimmed)}`;
+  return `https://cdn.vinceou.site/img/?url=${encodeURIComponent(normalized)}`;
 }

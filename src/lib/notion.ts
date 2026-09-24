@@ -1,4 +1,5 @@
 // src/lib/notion.ts
+import { getProxyImageUrl } from '@/lib/image-proxy';
 
 const NOTION_API_KEY = process.env.NOTION_API_KEY?.trim();
 const NOTION_VERSION = '2022-06-28';
@@ -120,9 +121,10 @@ function getCheckbox(prop: any): boolean {
 
 function getCover(page: any): string {
   if (!page) return '';
-  if (page.cover?.type === 'external') return page.cover.external.url || '';
-  if (page.cover?.type === 'file') return page.cover.file.url || '';
-  return '';
+  let url = '';
+  if (page.cover?.type === 'external') url = page.cover.external.url || '';
+  if (page.cover?.type === 'file') url = page.cover.file.url || '';
+  return url ? getProxyImageUrl(url) : '';
 }
 
 function getNumber(prop: any): number | null {
@@ -139,10 +141,11 @@ function getImageFromPage(page: any): string {
     if (fileProp) {
       if (fileProp.type === 'files' && Array.isArray(fileProp.files) && fileProp.files.length > 0) {
         const f = fileProp.files[0];
-        return f?.file?.url || f?.external?.url || '';
+        const raw = f?.file?.url || f?.external?.url || '';
+        return raw ? getProxyImageUrl(raw) : '';
       }
       if (fileProp.type === 'url') {
-        return fileProp.url || '';
+        return fileProp.url ? getProxyImageUrl(fileProp.url) : '';
       }
     }
   }
@@ -292,7 +295,10 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
       case 'image':
         const imgUrl = data?.file?.url || data?.external?.url || '';
         const caption = (data?.caption || []).map((t: any) => t.plain_text).join('') || '配图';
-        if (imgUrl) lines.push(`\n![${caption}](${imgUrl})\n`);
+        if (imgUrl) {
+          const proxiedUrl = getProxyImageUrl(imgUrl);
+          lines.push(`\n![${caption}](${proxiedUrl})\n`);
+        }
         break;
       case 'bookmark':
       case 'link_preview':

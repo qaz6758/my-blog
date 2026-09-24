@@ -5,7 +5,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  X,
   Copy,
   Check,
   Info,
@@ -96,10 +95,11 @@ function processAndOptimizeHtml(rawHtml: string): string {
       rawSrc.includes("notion.so") ||
       rawSrc.includes("notion-static.com");
 
-    if (
+    if (isNotionOrAws) {
+      optimizedSrc = getProxyImageUrl(rawSrc);
+    } else if (
       (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
-      !rawSrc.includes("wsrv.nl") &&
-      !isNotionOrAws
+      !rawSrc.includes("wsrv.nl")
     ) {
       optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
     }
@@ -108,7 +108,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
       .replace(/\b(src|data-src|srcset|sizes|loading|decoding|referrerpolicy)=["'][^"']*["']/gi, "")
       .trim();
 
-    return `<img ${cleanAttrs} src="${optimizedSrc}" data-original-src="${rawSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+    return `<img ${cleanAttrs} src="${optimizedSrc}" data-original-src="${isNotionOrAws ? optimizedSrc : rawSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   });
 
   // 5. 将原生 <pre> 代码块转为现代极简代码块 (纯净无顶栏、无红黄绿圆点、无多余横线)
@@ -543,7 +543,12 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
       e.preventDefault();
       e.stopPropagation();
       const img = target as HTMLImageElement;
-      const originalSrc = img.getAttribute("data-original-src") || img.src;
+      const rawOriginal = img.getAttribute("data-original-src") || img.src;
+      const isNotionOrAws =
+        rawOriginal.includes("amazonaws.com") ||
+        rawOriginal.includes("notion.so") ||
+        rawOriginal.includes("notion-static.com");
+      const originalSrc = isNotionOrAws ? (img.currentSrc || img.src) : rawOriginal;
       setActiveImg({
         src: originalSrc,
         alt: img.alt || "文章配图",
@@ -733,10 +738,11 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                   rawSrc.includes("notion.so") ||
                   rawSrc.includes("notion-static.com");
 
-                if (
+                if (isNotionOrAws) {
+                  optimizedSrc = getProxyImageUrl(rawSrc);
+                } else if (
                   (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
-                  !rawSrc.includes("wsrv.nl") &&
-                  !isNotionOrAws
+                  !rawSrc.includes("wsrv.nl")
                 ) {
                   optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
                 }
@@ -744,7 +750,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                   <img
                     src={optimizedSrc}
                     alt={alt || "文章配图"}
-                    data-original-src={rawSrc}
+                    data-original-src={isNotionOrAws ? optimizedSrc : rawSrc}
                     loading="lazy"
                     decoding="async"
                     referrerPolicy="no-referrer"
@@ -787,36 +793,23 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 onClick={closeLightbox}
-                className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center bg-black/90 p-4 sm:p-8"
+                className="fixed inset-0 z-[9999] flex h-screen w-screen cursor-zoom-out items-center justify-center bg-black/90 p-4 sm:p-8"
               >
                 <motion.div
                   initial={{ scale: 0.94, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.94, opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="relative flex h-full w-full items-center justify-center"
+                  className="relative flex items-center justify-center cursor-default"
                 >
-                  <button
-                    type="button"
-                    onClick={closeLightbox}
-                    aria-label="关闭预览"
-                    className="absolute right-0 top-0 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition hover:scale-105 hover:bg-white/20 sm:right-2 sm:top-2"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-
                   <img
-                    src={activeImg.src}
+                    src={getProxyImageUrl(activeImg.src)}
                     alt={activeImg.alt}
+                    onClick={(e) => e.stopPropagation()}
                     referrerPolicy="no-referrer"
-                    className="max-h-[90vh] max-w-[92vw] rounded-lg object-contain shadow-2xl shadow-black/60"
+                    className="max-h-[90vh] max-w-[92vw] select-none rounded-lg object-contain shadow-2xl shadow-black/60"
                   />
                 </motion.div>
-
-                <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] text-white/60 backdrop-blur-md">
-                  点击空白处关闭 · ESC
-                </div>
               </motion.div>
             )}
           </AnimatePresence>,
