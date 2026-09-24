@@ -5,8 +5,11 @@ import Image from "next/image";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GalleryImage } from "@/types/gallery";
+import { getGalleryImages } from "@/lib/gallery";
+import { supabase } from "@/lib/supabase";
 
-export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
+export default function GalleryClient({ photos: initialPhotos = [] }: { photos: GalleryImage[] }) {
+  const [photos, setPhotos] = useState<GalleryImage[]>(initialPhotos);
   const [isGrid, setIsGrid] = useState(true);
   const [activePhoto, setActivePhoto] = useState<GalleryImage | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -14,6 +17,69 @@ export default function GalleryClient({ photos }: { photos: GalleryImage[] }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 后台静默实时同步 Supabase 最新画廊照片 (免构建部署，即时响应增删改)
+  useEffect(() => {
+    let isSubscribed = true;
+
+    const refreshPhotos = async () => {
+      try {
+        const fresh = await getGalleryImages();
+        if (isSubscribed && fresh) {
+          setPhotos((prev) => {
+            if (
+              prev.length === fresh.length &&
+              prev.every(
+                (p, idx) =>
+                  p.id === fresh[idx]?.id &&
+                  p.url === fresh[idx]?.url &&
+                  p.title === fresh[idx]?.title
+              )
+            ) {
+              return prev;
+            }
+            return fresh;
+          });
+        }
+      } catch (err) {
+        console.warn("[Gallery] 客户端后台静默同步照片失败:", err);
+      }
+    };
+
+    // 1. 进入画廊即刻在后台静默抓取最新数据
+    refreshPhotos();
+
+    // 2. 订阅 Supabase Postgres 实时推送 (在 Supabase 控制台增删改时无需刷新网页即刻同步)
+    let channel: any = null;
+    try {
+      channel = supabase
+        .channel("realtime_photos_changes")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "photos" },
+          () => {
+            refreshPhotos();
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn("[Gallery] 实时频道订阅异常:", e);
+    }
+
+    return () => {
+      isSubscribed = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, []);
+
+  // 若弹窗中的照片在后台已被删除，则自动关闭弹窗
+  useEffect(() => {
+    if (activePhoto && !photos.some((p) => p.id === activePhoto.id)) {
+      setActivePhoto(null);
+    }
+  }, [photos, activePhoto]);
 
   // 键盘快捷键监听 (ESC 退出)
   useEffect(() => {
