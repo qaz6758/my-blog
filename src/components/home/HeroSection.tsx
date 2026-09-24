@@ -47,7 +47,7 @@ export function HeroSection() {
   const space = locale === "en" ? " " : "";
 
   return (
-    <div className="relative w-full overflow-hidden flex flex-col justify-start pt-28 sm:pt-32 pb-16 sm:pb-20 px-6 sm:px-8">
+    <div className="relative w-full overflow-hidden flex flex-col justify-start pt-28 sm:pt-32 pb-4 sm:pb-6 px-6 sm:px-8">
       <main className="relative z-10 mx-auto w-full max-w-[620px] flex flex-col items-start text-left">
         {/* ===================== 核心身份标题 (静态物理锚点，不参与 slide-enter 位移) ===================== */}
         <div className="text-left mb-5 sm:mb-6 select-none">
@@ -96,18 +96,10 @@ export function HeroSection() {
           </p>
         </div>
 
-        {/* Anthony Fu 极简居中分隔短线 (随瀑布顺延入场) */}
+        {/* ===================== 4. 底部联络与社交 (与正文自然流转，告别冗余夹心双线) ===================== */}
         <div
-          className="my-8 sm:my-9 flex justify-center w-full select-none slide-enter"
+          className="mt-8 sm:mt-10 flex w-full flex-col items-start space-y-3 text-left select-none slide-enter"
           style={{ "--enter-stage": 6 } as React.CSSProperties}
-        >
-          <div className="w-10 sm:w-12 h-[1px] bg-neutral-200 dark:bg-neutral-800" />
-        </div>
-
-        {/* ===================== 4. 底部联络与社交 (Anthony Fu 风格复刻：品牌图标 + 下划线 + 纯净极客排版) ===================== */}
-        <div
-          className="flex w-full flex-col items-start space-y-3 text-left select-none slide-enter"
-          style={{ "--enter-stage": 7 } as React.CSSProperties}
         >
           {/* 结构小标题 */}
           <p className="text-[14px] text-neutral-500 dark:text-neutral-400 font-sans">

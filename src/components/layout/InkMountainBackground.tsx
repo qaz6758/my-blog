@@ -14,7 +14,7 @@ export function InkMountainBackground() {
         <img
           src="/images/musashi-peony-cutout.webp"
           alt="Miyamoto Musashi with Peonies"
-          className="h-[340px] sm:h-[400px] md:h-[450px] max-h-[480px] w-auto object-contain object-bottom drop-shadow-[0_8px_24px_rgba(0,0,0,0.10)] dark:drop-shadow-[0_12px_30px_rgba(0,0,0,0.9)] transition-all duration-300"
+          className="h-[230px] sm:h-[260px] md:h-[290px] max-h-[300px] w-auto object-contain object-bottom drop-shadow-[0_8px_24px_rgba(0,0,0,0.10)] dark:drop-shadow-[0_12px_30px_rgba(0,0,0,0.9)] transition-all duration-300"
         />
       </div>
     </div>
