@@ -151,10 +151,10 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       prefetch={true}
                       className="group relative flex flex-wrap items-baseline gap-2.5 px-3 sm:px-4 py-2 -mx-3 sm:-mx-4 text-left rounded-lg transition-colors duration-150 hover:bg-black/[0.035] dark:hover:bg-transparent"
                     >
-                      <span className="text-[16px] sm:text-[17px] font-sans font-normal leading-relaxed text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
+                      <span className="text-[18px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
                         {post.title}
                       </span>
-                      <span className="shrink-0 font-sans text-[13px] text-neutral-400 dark:text-neutral-500 whitespace-nowrap">
+                      <span className="shrink-0 font-sans text-[12px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 opacity-60 dark:opacity-50 whitespace-nowrap">
                         {formattedDate}
                         {readTime ? <span> · {readTime}{isEn ? "min" : "分钟"}</span> : ""}
                       </span>
