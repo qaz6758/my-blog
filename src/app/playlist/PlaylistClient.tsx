@@ -80,7 +80,7 @@ export default function PlaylistClient({
     try {
       const workerUrl =
         process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-        "https://notion-api.dedeboki123.workers.dev";
+        "https://api.vinceou.site";
       const targetUrl = `${workerUrl.replace(/\/$/, "")}/api/playlists`;
 
       let res = await fetch(targetUrl, { cache: "no-store" }).catch(() => null);

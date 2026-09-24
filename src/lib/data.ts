@@ -351,7 +351,7 @@ export async function fetchPlaylists(): Promise<PlaylistCategoryItem[]> {
   try {
     const workerUrl =
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-      "https://notion-api.dedeboki123.workers.dev";
+      "https://api.vinceou.site";
     const res = await fetch(`${workerUrl.replace(/\/$/, "")}/api/playlists`, {
       next: { revalidate: 60 },
       signal: AbortSignal.timeout(6000),

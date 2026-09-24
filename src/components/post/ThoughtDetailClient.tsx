@@ -34,7 +34,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   useEffect(() => {
     const workerUrl =
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-      "https://notion-api.dedeboki123.workers.dev";
+      "https://api.vinceou.site";
     fetch(`${workerUrl}/api/thoughts/${item.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Fetch failed");

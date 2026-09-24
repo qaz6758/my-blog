@@ -151,7 +151,7 @@ export function DynamicPostReader({
   useEffect(() => {
     const workerUrl =
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
-      "https://notion-api.dedeboki123.workers.dev";
+      "https://api.vinceou.site";
 
     // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
     if (initialPost) {
