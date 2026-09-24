@@ -10,7 +10,7 @@ import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
 import { useI18n } from "@/lib/i18n/I18nContext";
-import { calculateReadTime } from "@/lib/utils";
+import { calculateReadTime, formatDate } from "@/lib/utils";
 
 // ─── 动态按需加载模块（内联声明，无需额外包装文件） ──────────────
 const PostContentWrapper = dynamic(
@@ -392,23 +392,17 @@ export function DynamicPostReader({
                   {displayTitle}
                 </h1>
                 
-                <div className="mt-3 flex items-center justify-between text-[13px] text-neutral-500 dark:text-neutral-400 font-sans opacity-60">
-                  <div className="flex items-center gap-2">
-                    {(post.published_at || post.created_at) && (
-                      <span>
-                        {new Date(post.published_at || post.created_at || "").toLocaleDateString(
-                          globalLocale === "zh-TW" ? "zh-TW" : globalLocale === "en" ? "en-US" : globalLocale === "ja" ? "ja-JP" : globalLocale === "ko" ? "ko-KR" : "zh-CN",
-                          { month: "long", day: "numeric", year: "numeric" }
-                        )}
-                      </span>
-                    )}
-                    {readTime && (
-                      <span className="opacity-75">
-                        · {readTime} {globalLocale === "en" ? "min" : "分钟"}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <p className="mt-2.5 text-[13px] sm:text-[13.5px] text-neutral-500 dark:text-neutral-400 font-sans opacity-50 select-none">
+                  {(post.published_at || post.created_at) && (
+                    <span>{formatDate(post.published_at || post.created_at)}</span>
+                  )}
+                  {readTime && (
+                    <span>
+                      {(post.published_at || post.created_at) ? " · " : ""}
+                      {readTime}min
+                    </span>
+                  )}
+                </p>
               </header>
 
               {/* 正文渲染区 (标准语义 lang 属性，助力 Chrome/Safari/Edge 浏览器原生秒翻) */}

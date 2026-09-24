@@ -21,11 +21,11 @@ interface TableOfContentsProps {
   locale?: string;
 }
 
-// Anthony Fu 原版目录图标（Remix Icon: i-ri-menu-2-fill，中线偏短）
-export function TocIcon({ className = "w-4 h-4" }: { className?: string }) {
+// Anthony Fu 原版目录图标（精准裁切左侧空白，严格对齐文字首字 x=0 垂直轴）
+export function TocIcon({ className = "w-[18px] h-[16px]" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="3 4 18 16"
       fill="currentColor"
       className={className}
       aria-hidden="true"
@@ -239,7 +239,7 @@ export function TableOfContents({
       className={`select-none w-full ${className}`}
     >
       <div className="mb-6 flex flex-col items-start">
-        {/* 顶部 ≡ 图标（彻底去除任何方框底色与圆角按钮，极简纯净） */}
+        {/* 顶部 ≡ 图标（彻底去除任何方框底色与外边距偏移，严格与文字起始线同轴） */}
         <div
           className={`mb-3.5 flex items-center justify-start transition-colors duration-300 ${
             isVisible
@@ -247,12 +247,12 @@ export function TableOfContents({
               : "text-neutral-400/70 dark:text-neutral-500/70"
           }`}
         >
-          <TocIcon className="w-[18px] h-[18px]" />
+          <TocIcon className="w-[18px] h-[16px]" />
         </div>
         
         {/* 目录列表：仅在鼠标进入正文范围或进入左侧时 700ms 平滑浮现，移出时 700ms 淡出 */}
         <ul
-          className={`w-full space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             isVisible
               ? "opacity-75 pointer-events-auto"
               : "opacity-0 pointer-events-none"
@@ -272,7 +272,7 @@ export function TableOfContents({
               <li
                 key={item.id}
                 className={`relative flex items-start ${
-                  isH4 ? "pl-5 text-[12px]" : isH3 ? "pl-2.5 text-[12.5px]" : "pl-0 text-[13px]"
+                  isH4 ? "pl-[1.7rem]" : isH3 ? "pl-[0.85rem]" : "pl-0"
                 } ${hasSectionMargin ? "mt-2.5" : "mt-1"}`}
               >
                 <a
