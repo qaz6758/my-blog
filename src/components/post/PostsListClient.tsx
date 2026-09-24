@@ -53,6 +53,22 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
   const isEn = locale === "en";
 
   React.useEffect(() => {
+    // 1. 本地会话缓存对齐：若之前已获取过最新文章列表，立即在首帧恢复，杜绝按 F5 刷新时出现旧静态标题闪现
+    try {
+      const cached = sessionStorage.getItem("ow_posts_cache_v1");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPosts((prev) => {
+            if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
+              return parsed;
+            }
+            return prev;
+          });
+        }
+      }
+    } catch {}
+
     const workerUrl =
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
       "https://api.vinceou.site";
@@ -72,7 +88,15 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
               slug: p.slug || p.source_url || p.id,
             }));
           if (published.length > 0) {
-            setPosts(published);
+            setPosts((prev) => {
+              if (JSON.stringify(prev) === JSON.stringify(published)) {
+                return prev;
+              }
+              return published;
+            });
+            try {
+              sessionStorage.setItem("ow_posts_cache_v1", JSON.stringify(published));
+            } catch {}
           }
         }
       })
