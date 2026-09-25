@@ -243,19 +243,19 @@ export function TableOfContents({
         <div
           className={`mb-3.5 flex items-center justify-start transition-colors duration-300 ${
             isVisible
-              ? "text-neutral-900 dark:text-neutral-100"
-              : "text-neutral-400/70 dark:text-neutral-500/70"
+              ? "text-neutral-900 dark:text-neutral-100 opacity-90"
+              : "text-neutral-400 dark:text-neutral-500 opacity-60 hover:opacity-90"
           }`}
         >
           <TocIcon className="w-[18px] h-[16px]" />
         </div>
         
-        {/* 目录列表：仅在鼠标进入正文范围或进入左侧时 700ms 平滑浮现，移出时 700ms 淡出 */}
+        {/* 目录列表：默认以微透明度常驻呈现（平衡版面重心），鼠标悬停或阅读时高亮透出 */}
         <ul
-          className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             isVisible
-              ? "opacity-75 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
+              ? "opacity-80 pointer-events-auto"
+              : "opacity-35 hover:opacity-80 pointer-events-auto"
           }`}
         >
           {list.map((item, idx) => {

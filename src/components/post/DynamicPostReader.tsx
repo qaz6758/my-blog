@@ -383,12 +383,12 @@ export function DynamicPostReader({
             >
               
               {/* 标题头部保持静止不动（消除位移动画），正文段落优雅递进滑入 */}
-              <header className="mb-6 relative">
-                <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold tracking-tight text-black dark:text-white leading-[1.15] font-sans relative inline-block">
+              <header className="mb-5 sm:mb-6 relative">
+                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight text-black dark:text-white leading-[1.2] font-sans relative inline-block">
                   {displayTitle}
                 </h1>
                 
-                <p className="mt-2.5 text-[13px] sm:text-[13.5px] text-neutral-500 dark:text-neutral-400 font-sans opacity-50 select-none">
+                <p className="mt-1.5 sm:mt-2 text-[13px] sm:text-[13.5px] text-neutral-500 dark:text-neutral-400 font-sans opacity-50 select-none">
                   {(post.published_at || post.created_at) && (
                     <span>{formatDate(post.published_at || post.created_at)}</span>
                   )}
@@ -402,7 +402,7 @@ export function DynamicPostReader({
 
                 {/* 创意和灵感来源专属标识 */}
                 {post.inspiration && (
-                  <div className="mt-4 border-l-[3px] border-amber-500/80 dark:border-amber-400/80 pl-3.5 py-0.5 select-text">
+                  <div className="mt-4 border-l-[2.5px] border-amber-500/80 dark:border-amber-400/80 pl-3.5 py-0.5 select-text">
                     <div className="flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400 mb-0.5 select-none" suppressHydrationWarning>
                       <Lightbulb className="h-3.5 w-3.5 shrink-0 stroke-[2.2]" />
                       <span>{globalLocale === "en" ? "Inspiration & Source" : "创意和灵感来源"}</span>

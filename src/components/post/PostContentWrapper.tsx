@@ -174,7 +174,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
     let cleanedInner = inner;
 
     if (!alertMatch) {
-      return `<blockquote ${attrs} class="my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans"><div class="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
+      return `<blockquote ${attrs} class="my-4 sm:my-5 first:mt-0 border-l-[2.5px] border-neutral-300 dark:border-neutral-700 pl-3.5 sm:pl-4 py-0.5 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans"><div class="text-[14.5px] sm:text-[15px] leading-[1.7] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">${inner}</div></blockquote>`;
     }
 
     const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
@@ -187,12 +187,12 @@ function processAndOptimizeHtml(rawHtml: string): string {
 
     const c = configMap[typeKey] || configMap.note;
 
-    return `<div class="my-4 border-l-[3.5px] ${c.border} pl-4 py-1 bg-transparent not-italic select-text">
+    return `<div class="my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${c.border} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text">
   <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-1 select-none">
     ${c.svg}
     <span>${c.title}</span>
   </div>
-  <div class="text-[14.5px] sm:text-[15px] leading-[1.75] text-neutral-700 dark:text-[#c9d1d9] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+  <div class="text-[14.5px] sm:text-[15px] leading-[1.7] text-neutral-700 dark:text-neutral-300 font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
     ${cleanedInner}
   </div>
 </div>`;
@@ -576,23 +576,24 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[15.5px] sm:text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
-    [&_p]:mb-[1.05rem]
-    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[32px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-14 [&_h1]:mb-6 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.15] [&_h1]:tracking-tight
-    [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[26px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-16 [&_h2]:mb-6 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
-    [&_h3]:scroll-mt-24 [&_h3]:text-[20px] sm:[&_h3]:text-[23px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-14 [&_h3]:mb-5 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
-    [&_h4]:scroll-mt-24 [&_h4]:text-[17px] sm:[&_h4]:text-[18px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-10 [&_h4]:mb-4 [&_h4]:text-[#222] dark:[&_h4]:text-[#ddd] [&_h4]:leading-[1.4]
-    [&_strong]:font-semibold [&_strong]:text-[#222] dark:[&_strong]:text-white
-    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-[1.3rem] [&_ul]:space-y-2
-    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-[1.3rem] [&_ol]:space-y-2
+    text-[15.5px] sm:text-[16px] leading-[1.75] text-neutral-700 dark:text-neutral-200 font-sans tracking-normal
+    [&>*:first-child]:mt-0
+    [&_p]:mb-4
+    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[30px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-12 sm:[&_h1]:mt-14 [&_h1]:mb-4 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.2] [&_h1]:tracking-tight
+    [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[25px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-12 sm:[&_h2]:mt-14 [&_h2]:mb-3.5 sm:[&_h2]:mb-4 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
+    [&_h3]:scroll-mt-24 [&_h3]:text-[19px] sm:[&_h3]:text-[21px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-10 sm:[&_h3]:mt-12 [&_h3]:mb-3 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
+    [&_h4]:scroll-mt-24 [&_h4]:text-[16.5px] sm:[&_h4]:text-[17.5px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-8 [&_h4]:mb-2.5 [&_h4]:text-black dark:[&_h4]:text-white [&_h4]:leading-[1.4]
+    [&_strong]:font-semibold [&_strong]:text-black dark:[&_strong]:text-white
+    [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5
+    [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5
     [&_li]:leading-[1.75]
-    [&_img]:rounded-md [&_img]:mx-auto [&_img]:my-10 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
+    [&_img]:rounded-md [&_img]:mx-auto [&_img]:my-8 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
     [&_a]:prose-link
-    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-8
-    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-3 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-[#222] dark:[&_th]:text-[#ddd] [&_th]:text-left
-    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-3 [&_td]:text-[#555] dark:[&_td]:text-[#bbb]
+    [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-6
+    [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2.5 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
+    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2.5 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
     [&_tr:nth-child(even)]:bg-transparent
-    [&_hr]:my-12 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
+    [&_hr]:my-8 sm:[&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
 
   return (
@@ -645,8 +646,8 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                 // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净左竖线 + 无 Note 图标与大标题）
                 if (!alertConfig) {
                   return (
-                    <blockquote className="my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans">
-                      <div className="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                    <blockquote className="my-4 sm:my-5 first:mt-0 border-l-[2.5px] border-neutral-300 dark:border-neutral-700 pl-3.5 sm:pl-4 py-0.5 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans">
+                      <div className="text-[14.5px] sm:text-[15px] leading-[1.7] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
                         {children}
                       </div>
                     </blockquote>
@@ -662,13 +663,13 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
 
                 return (
                   <div
-                    className={`my-4 border-l-[3.5px] ${alertConfig.borderColor} pl-4 py-1 bg-transparent not-italic select-text transition-colors`}
+                    className={`my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${alertConfig.borderColor} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text transition-colors`}
                   >
                     <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-1 select-none`}>
                       <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
                       <span>{alertTitle}</span>
                     </div>
-                    <div className="text-[14.5px] sm:text-[15px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                    <div className="text-[14.5px] sm:text-[15px] leading-[1.7] text-neutral-700 dark:text-neutral-300 font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
                       {cleanChildren}
                     </div>
                   </div>
@@ -677,7 +678,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
               h1: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h2 id={id} className="text-[22px] sm:text-[26px] font-bold mt-16 mb-6 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
+                  <h2 id={id} className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
                     {children}
                   </h2>
                 );
@@ -685,7 +686,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
               h2: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h2 id={id} className="text-[22px] sm:text-[26px] font-bold mt-16 mb-6 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
+                  <h2 id={id} className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
                     {children}
                   </h2>
                 );
@@ -693,7 +694,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
               h3: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h3 id={id} className="text-[20px] sm:text-[23px] font-bold mt-14 mb-5 text-black dark:text-white font-sans tracking-tight leading-[1.33]" {...props}>
+                  <h3 id={id} className="text-[19px] sm:text-[21px] font-bold mt-10 sm:mt-12 mb-3 text-black dark:text-white font-sans tracking-tight leading-[1.33]" {...props}>
                     {children}
                   </h3>
                 );
@@ -701,7 +702,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
               h4: ({ children, node, ...props }) => {
                 const id = slugifyHeading(getNodeText(children));
                 return (
-                  <h4 id={id} className="text-[17px] sm:text-[18px] font-bold mt-10 mb-4 text-[#222] dark:text-[#ddd] font-sans tracking-tight leading-[1.4]" {...props}>
+                  <h4 id={id} className="text-[16.5px] sm:text-[17.5px] font-bold mt-8 mb-2.5 text-black dark:text-white font-sans tracking-tight leading-[1.4]" {...props}>
                     {children}
                   </h4>
                 );
