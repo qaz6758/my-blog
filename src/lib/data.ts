@@ -364,7 +364,7 @@ export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem 
 
     if (targetId) {
       const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/posts/${targetId}`, {
-        cache: 'no-store',
+        next: { revalidate: 10 },
         signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {

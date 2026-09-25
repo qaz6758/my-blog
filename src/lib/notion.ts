@@ -228,7 +228,7 @@ async function fetchBlockChildren(blockId: string): Promise<any[]> {
           'Notion-Version': NOTION_VERSION,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        cache: 'no-store',
+        next: { revalidate: 10 },
       });
 
       if (!res.ok) break;
@@ -446,7 +446,7 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
           'Notion-Version': NOTION_VERSION,
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        cache: 'no-store',
+        next: { revalidate: 10 },
       }),
       fetchBlockChildren(targetPageId),
     ]);
