@@ -165,7 +165,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
     let cleanedInner = inner;
 
     if (!alertMatch) {
-      return `<blockquote ${attrs} class="my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans"><div class="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
+      return `<blockquote ${attrs} class="no-slide-enter my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans [animation:none!important] [opacity:1!important] [transform:none!important]"><div class="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
     }
 
     const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
@@ -178,7 +178,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
 
     const c = configMap[typeKey] || configMap.note;
 
-    return `<div class="my-4 border-l-[3.5px] ${c.border} pl-4 py-1 bg-transparent not-italic select-text">
+    return `<div class="no-slide-enter my-4 border-l-[3.5px] ${c.border} pl-4 py-1 bg-transparent not-italic select-text [animation:none!important] [opacity:1!important] [transform:none!important]">
   <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-1 select-none">
     ${c.svg}
     <span>${c.title}</span>
@@ -458,15 +458,6 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
-
-  useEffect(() => {
-    // 动画仅在初次进入时执行 2 秒，随后永久移除动画类，彻底杜绝悬浮、二次渲染引发的重播与反复跳闪
-    const timer = setTimeout(() => {
-      setHasEntered(true);
-    }, 2200);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -624,7 +615,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
+          className={proseClassName}
           dangerouslySetInnerHTML={{ __html: cleanHtmlContent }}
         />
       ) : (
@@ -632,20 +623,20 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
+          className={proseClassName}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // 引用块渲染：普通引用（如名人名言、对话）渲染为极简高雅引用；只有显式带 [!NOTE]/[!TIP] 标识时才渲染为 Note/Tip 提示卡片
+              // 引用块渲染：普通引用（如名人名言、对话、副标题导言）渲染为极简高雅引用，免除任何动画打断重播；显式带 [!NOTE]/[!TIP] 标识时渲染为 Note/Tip 提示卡片
               blockquote: ({ children, node, ...props }) => {
                 const text = getNodeText(children).trim();
                 const alertConfig = getAlertConfig(text);
 
-                // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净左竖线 + 无 Note 图标与大标题）
+                // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净左竖线 + 无 Note 图标与大标题），首屏绝对静态立显
                 if (!alertConfig) {
                   return (
-                    <blockquote className="my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans">
+                    <blockquote className="no-slide-enter my-4 border-l-[3.5px] border-neutral-300 dark:border-neutral-700 pl-4 py-1 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans [animation:none!important] [opacity:1!important] [transform:none!important]">
                       <div className="text-[14.5px] sm:text-[15px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                         {children}
                       </div>
@@ -662,7 +653,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
 
                 return (
                   <div
-                    className={`my-4 border-l-[3.5px] ${alertConfig.borderColor} pl-4 py-1 bg-transparent not-italic select-text transition-colors`}
+                    className={`no-slide-enter my-4 border-l-[3.5px] ${alertConfig.borderColor} pl-4 py-1 bg-transparent not-italic select-text transition-colors [animation:none!important] [opacity:1!important] [transform:none!important]`}
                   >
                     <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-1 select-none`}>
                       <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />

@@ -235,6 +235,15 @@ export default function RootLayout({
                 .slide-enter-content > *:nth-child(18) { --enter-stage: 18 !important; }
                 .slide-enter-content > *:nth-child(19) { --enter-stage: 19 !important; }
                 .slide-enter-content > *:nth-child(20) { --enter-stage: 20 !important; }
+
+                /* 彻底豁免首屏引言、副标题、提示卡片与来源标识，杜绝移动端水合时打断重播 */
+                .slide-enter-content > blockquote,
+                .slide-enter-content > .no-slide-enter,
+                .no-slide-enter {
+                  animation: none !important;
+                  opacity: 1 !important;
+                  transform: none !important;
+                }
               }
             `,
           }}

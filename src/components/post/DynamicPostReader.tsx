@@ -364,8 +364,8 @@ export function DynamicPostReader({
 
                 {/* 创意和灵感来源专属标识 */}
                 {post.inspiration && (
-                  <div className="mt-4 border-l-[3px] border-amber-500/80 dark:border-amber-400/80 pl-3.5 py-0.5 select-text">
-                    <div className="flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400 mb-0.5 select-none">
+                  <div className="no-slide-enter mt-4 border-l-[3px] border-amber-500/80 dark:border-amber-400/80 pl-3.5 py-0.5 select-text [animation:none!important] [opacity:1!important] [transform:none!important]">
+                    <div className="flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400 mb-0.5 select-none" suppressHydrationWarning>
                       <Lightbulb className="h-3.5 w-3.5 shrink-0 stroke-[2.2]" />
                       <span>{globalLocale === "en" ? "Inspiration & Source" : "创意和灵感来源"}</span>
                     </div>
