@@ -158,9 +158,9 @@ export function DynamicPostReader({
 
   // 估算文章阅读耗时
   const readTime = useMemo(() => {
-    if (!displayContent) return null;
+    if (!displayContent) return (post as any)?.read_time || null;
     return calculateReadTime(displayContent);
-  }, [displayContent]);
+  }, [displayContent, post]);
 
   // 智能检测文章内容是否为 HTML 富文本 (自适应支持 RSS 抓取的文章与原生 Markdown)
   const isHtmlContent = React.useMemo(() => {

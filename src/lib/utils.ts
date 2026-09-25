@@ -182,10 +182,18 @@ export function normalizeTags(tags?: string[] | string | null): string[] {
  */
 export function calculateReadTime(content?: string | null): number {
   if (!content) return 1;
-  const plainLength = content
-    .replace(/<[^>]*>|[#>*_`~()[\]\\]/g, "")
+  const plainText = content
+    // 剥离 Markdown 图片与超长签名 URL: ![caption](url)
+    .replace(/!\[.*?\]\(.*?\)/g, "")
+    // 剥离 Markdown 链接中的 URL，仅保留链接文字: [text](url) -> text
+    .replace(/\[([^\]]*)\]\(.*?\)/g, "$1")
+    // 剥离 HTML 标签: <img ...>, <div> 等
+    .replace(/<[^>]*>/g, "")
+    // 剥离 Markdown 标记字符
+    .replace(/[#>*_`~[\]\\]/g, "")
     .replace(/\s+/g, " ")
-    .trim().length;
-  if (!plainLength) return 1;
-  return Math.max(1, Math.ceil(plainLength / 350));
+    .trim();
+  if (!plainText.length) return 1;
+  // 中文/英文混合阅读速度按每分钟 350 字计算
+  return Math.max(1, Math.ceil(plainText.length / 350));
 }

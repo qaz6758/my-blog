@@ -23,6 +23,7 @@ export interface NotionPostItem {
   content?: string;
   inspiration?: string;
   inspiration_url?: string;
+  read_time?: number;
 }
 
 export interface NotionThoughtItem {
@@ -442,6 +443,27 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
       if (!a.is_pinned && b.is_pinned) return 1;
       return new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime();
     });
+
+    // 并行计算每篇文章的实际正文阅读时长 (read_time)
+    await Promise.all(
+      items.map(async (item) => {
+        try {
+          const blocks = await fetchBlockChildren(item.id);
+          let chars = 0;
+          for (const block of blocks) {
+            const textArr = block[block.type]?.rich_text;
+            if (Array.isArray(textArr)) {
+              for (const t of textArr) {
+                chars += (t.plain_text || '').length;
+              }
+            }
+          }
+          item.read_time = Math.max(1, Math.ceil(chars / 350));
+        } catch {
+          item.read_time = 1;
+        }
+      })
+    );
 
     return items;
   } catch (error) {

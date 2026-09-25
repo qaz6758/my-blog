@@ -73,6 +73,56 @@ export default {
 /* 路由处理器                                                                */
 /* ========================================================================= */
 
+// 全局阅读时长与字符数内存缓存，避免重复拉取 blocks
+const POSTS_READ_TIME_CACHE = new Map();
+
+async function getOrComputePostReadTime(cleanId, apiKey) {
+  const cached = POSTS_READ_TIME_CACHE.get(cleanId);
+  const now = Date.now();
+  if (cached && now - cached.timestamp < 30 * 60 * 1000) {
+    return cached.readTime;
+  }
+
+  try {
+    let chars = 0;
+    let cursor = undefined;
+    let hasMore = true;
+    let pages = 0;
+    while (hasMore && pages < 5) {
+      pages++;
+      const url = new URL(`https://api.notion.com/v1/blocks/${cleanId}/children`);
+      url.searchParams.set("page_size", "100");
+      if (cursor) url.searchParams.set("start_cursor", cursor);
+
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Notion-Version": NOTION_VERSION,
+        },
+      });
+      if (!res.ok) break;
+      const data = await res.json();
+      for (const block of data.results || []) {
+        const textArr = block[block.type]?.rich_text;
+        if (Array.isArray(textArr)) {
+          for (const item of textArr) {
+            chars += (item.plain_text || "").length;
+          }
+        }
+      }
+      hasMore = !!data.has_more;
+      cursor = data.next_cursor || undefined;
+    }
+
+    const readTime = Math.max(1, Math.ceil(chars / 350));
+    POSTS_READ_TIME_CACHE.set(cleanId, { readTime, timestamp: now });
+    return readTime;
+  } catch {
+    return 1;
+  }
+}
+
 async function handleGetPosts(env) {
   const postsDbId = env.NOTION_POSTS_DB_ID || "958002305c948374b96f0187a87dafcf";
   const apiKey = env.NOTION_API_KEY;
@@ -140,6 +190,14 @@ async function handleGetPosts(env) {
       status: status || "已发布",
     });
   }
+
+  // 并行获取/计算已发布文章的真实阅读时长 (read_time)
+  await Promise.all(
+    items.map(async (item) => {
+      const cleanId = String(item.id).replace(/-/g, "").trim();
+      item.read_time = await getOrComputePostReadTime(cleanId, apiKey);
+    })
+  );
 
   // 边缘缓存 20 秒，平滑刷新 60 秒
   return jsonResponse({ success: true, data: items }, 200, {
@@ -232,6 +290,16 @@ async function handleGetPostDetail(pageId, env) {
     } catch {}
   }
 
+  const cleanChars = markdownContent
+    .replace(/!\[.*?\]\(.*?\)/g, "")
+    .replace(/\[([^\]]*)\]\(.*?\)/g, "$1")
+    .replace(/<[^>]*>/g, "")
+    .replace(/[#>*_`~[\]\\]/g, "")
+    .replace(/\s+/g, " ")
+    .trim().length;
+  const detailReadTime = Math.max(1, Math.ceil(cleanChars / 350));
+  POSTS_READ_TIME_CACHE.set(cleanId, { readTime: detailReadTime, timestamp: Date.now() });
+
   const postDetail = {
     id: page.id,
     title,
@@ -245,6 +313,7 @@ async function handleGetPostDetail(pageId, env) {
     post_type: "original",
     status: status || "已发布",
     content: markdownContent,
+    read_time: detailReadTime,
     inspiration,
     inspiration_url: inspirationUrl,
   };

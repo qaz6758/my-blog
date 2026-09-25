@@ -17,6 +17,7 @@ export interface PostItem {
   category?: string | null;
   tags?: string[] | string | null;
   is_pinned?: boolean | null;
+  read_time?: number | null;
 }
 
 interface PostsListClientProps {
@@ -31,11 +32,13 @@ function getYear(dateString: string) {
 }
 
 function getReadTime(post: PostItem): number | null {
-  const raw = post.content || post.summary || "";
-  if (!raw.trim()) {
-    return null;
+  if (typeof post.read_time === "number" && post.read_time > 0) {
+    return post.read_time;
   }
-  return calculateReadTime(raw);
+  if (post.content && post.content.trim()) {
+    return calculateReadTime(post.content);
+  }
+  return null;
 }
 
 function formatPostDate(dateString: string, isEn: boolean) {
@@ -100,14 +103,15 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                 slug: cleanSlug || p.slug || p.source_url || p.id,
                 // 核心关键：外部 Worker 缺失 is_pinned 时，100% 继承服务端权威真实的置顶状态
                 is_pinned: (p.is_pinned !== undefined ? p.is_pinned : existing?.is_pinned) ?? false,
+                read_time: p.read_time ?? existing?.read_time ?? null,
               };
             });
 
           if (published.length > 0) {
             setPosts((prev) => {
               // 若核心字段与排序均一致，绝不触发不必要的重新渲染
-              const prevSign = prev.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}`).join("|");
-              const nextSign = published.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}`).join("|");
+              const prevSign = prev.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}_${p.read_time}`).join("|");
+              const nextSign = published.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}_${p.read_time}`).join("|");
               if (prevSign === nextSign) {
                 return prev;
               }
