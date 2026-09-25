@@ -24,9 +24,9 @@ enabled: boolean;
 mode: SeasonMode;
 }
 
-// 模块级全局共享状态
+// 模块级全局共享状态（默认关闭，用户手动开启后 localStorage 持久化）
 let storeState: SeasonalStoreState = {
-enabled: true,
+enabled: false,
 mode: "auto",
 };
 
@@ -70,7 +70,7 @@ return storeState;
 }
 
 const serverSnapshot: SeasonalStoreState = {
-enabled: true,
+enabled: false,
 mode: "auto",
 };
 
