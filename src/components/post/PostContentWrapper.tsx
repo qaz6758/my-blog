@@ -104,11 +104,20 @@ function processAndOptimizeHtml(rawHtml: string): string {
       optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
     }
 
+    const isCutout =
+      rawSrc.toLowerCase().includes("cutout") ||
+      rawSrc.toLowerCase().includes("head") ||
+      rawSrc.toLowerCase().includes("avatar");
+
+    const customClass = isCutout
+      ? 'class="!ml-0 !mr-auto block my-6 w-auto max-w-[240px] sm:max-w-[280px] max-h-[380px] object-contain rounded-lg"'
+      : 'class="mx-auto my-6 max-w-full max-h-[580px] object-contain rounded-lg sm:rounded-xl"';
+
     const cleanAttrs = attrs
-      .replace(/\b(src|data-src|srcset|sizes|loading|decoding|referrerpolicy)=["'][^"']*["']/gi, "")
+      .replace(/\b(class|src|data-src|srcset|sizes|loading|decoding|referrerpolicy)=["'][^"']*["']/gi, "")
       .trim();
 
-    return `<img ${cleanAttrs} src="${optimizedSrc}" data-original-src="${isNotionOrAws ? optimizedSrc : rawSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
+    return `<img ${cleanAttrs} ${customClass} src="${optimizedSrc}" data-original-src="${isNotionOrAws ? optimizedSrc : rawSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />`;
   });
 
   // 5. 将原生 <pre> 代码块转为现代极简代码块 (纯净无顶栏、无红黄绿圆点、无多余横线)
@@ -744,7 +753,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                   (typeof alt === "string" && /人物|头部|头像|抠图|太夫|吉野|阿乙|武藏|小图|插画|portrait|cutout/i.test(alt));
 
                 const imgClass = isCutout
-                  ? "mx-auto my-6 w-auto max-w-[240px] sm:max-w-[280px] max-h-[380px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01]"
+                  ? "!ml-0 !mr-auto block my-6 w-auto max-w-[240px] sm:max-w-[280px] max-h-[380px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01]"
                   : "mx-auto my-6 max-w-full max-h-[580px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01] sm:rounded-xl";
 
                 return (
