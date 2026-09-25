@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
   // 3. Gzip / Brotli 传输压缩
   compress: true,
 
+  // 4. 优化客户端路由缓存时间（默认 300 秒死缓存会导致 Notion 修改后页面切换不更新）
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+      static: 30,
+    },
+  },
+
   // 4. 图片加载与 CDN 优化策略
   images: {
     unoptimized: true,

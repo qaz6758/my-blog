@@ -38,6 +38,7 @@ export interface PostDetail {
   post_type?: string;
   cover_image?: string;
   status?: string;
+  is_pinned?: boolean | null;
   inspiration?: string;
   inspiration_url?: string;
 }
@@ -174,12 +175,49 @@ export function DynamicPostReader({
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
       "https://api.vinceou.site";
 
-    // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏，杜绝多次重复重载与动画重播）
+    // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
     if (initialPost) {
       if (post?.id !== initialPost.id) {
         setPost(initialPost);
         setMode("post");
         setLoading(false);
+      }
+      
+      // 开启 SWR 后台静默校验：向 Worker 获取 Notion 实时数据，如果用户刚刚在 Notion 进行了更新，静默热替换
+      const rawId = String(initialPost.id || "").replace(/-/g, "");
+      const cleanTargetId = rawId.length === 32 ? rawId : undefined;
+      if (cleanTargetId) {
+        fetch(`${workerUrl}/api/posts/${cleanTargetId}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Worker fetch failed");
+            return res.json();
+          })
+          .then((detailData) => {
+            if (detailData?.success && detailData.data && detailData.data.content) {
+              const fresh = detailData.data as PostDetail;
+              setPost((prev) => {
+                if (!prev) return fresh;
+                const prevContent = (prev.content || "").trim();
+                const freshContent = (fresh.content || "").trim();
+                const prevTitle = (prev.title || "").trim();
+                const freshTitle = (fresh.title || "").trim();
+
+                // 仅当正文或标题发生实质性变化时触发静默更新（杜绝无谓 re-render）
+                if (prevContent !== freshContent || prevTitle !== freshTitle) {
+                  return {
+                    ...prev,
+                    ...fresh,
+                    // 继承已有权威字段
+                    is_pinned: prev.is_pinned ?? fresh.is_pinned,
+                    inspiration: fresh.inspiration || prev.inspiration,
+                    inspiration_url: fresh.inspiration_url || prev.inspiration_url,
+                  };
+                }
+                return prev;
+              });
+            }
+          })
+          .catch(() => {});
       }
       return;
     }
