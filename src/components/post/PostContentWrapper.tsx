@@ -737,6 +737,16 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                 ) {
                   optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
                 }
+                const isCutout =
+                  rawSrc.toLowerCase().includes("cutout") ||
+                  rawSrc.toLowerCase().includes("head") ||
+                  rawSrc.toLowerCase().includes("avatar") ||
+                  (typeof alt === "string" && /人物|头部|头像|抠图|太夫|吉野|阿乙|武藏|小图|插画|portrait|cutout/i.test(alt));
+
+                const imgClass = isCutout
+                  ? "mx-auto my-6 w-auto max-w-[240px] sm:max-w-[280px] max-h-[380px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01]"
+                  : "mx-auto my-6 max-w-full max-h-[580px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01] sm:rounded-xl";
+
                 return (
                   <img
                     src={optimizedSrc}
@@ -745,7 +755,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                     loading="lazy"
                     decoding="async"
                     referrerPolicy="no-referrer"
-                    className="mx-auto my-5 max-w-full cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01] sm:rounded-xl"
+                    className={imgClass}
                     {...props}
                   />
                 );
