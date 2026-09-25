@@ -210,7 +210,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
     let cleanedInner = inner;
 
     if (!alertMatch) {
-      return `<blockquote ${attrs} class="mt-4 mb-2 first:mt-0 border-l-[2.5px] border-[#d8d8d8] dark:border-[#7d7d7d50] -ml-2 sm:-ml-[1.1em] pl-3 sm:pl-[1em] text-[#555] dark:text-[#bbb] opacity-75 not-italic select-text font-sans"><div class="text-[15.5px] sm:text-[16px] leading-[1.65] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
+      return `<blockquote ${attrs} class="mt-4 mb-2 first:mt-0 border-l-4 border-[#d8d8d8] dark:border-[#7d7d7d50] -ml-2 sm:-ml-[1.1em] pl-3 sm:pl-[1em] text-[#555] dark:text-[#bbb] opacity-75 not-italic select-text font-sans"><div class="text-[15.5px] sm:text-[16px] leading-[1.65] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
     }
 
     const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
@@ -233,7 +233,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
 
     const c = configMap[typeKey] || configMap.note;
 
-    return `<div class="my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${c.border} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text">
+    return `<div class="my-4 sm:my-5 first:mt-0 border-l-4 ${c.border} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text">
 
   <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-1 select-none">
     ${c.svg}
@@ -898,7 +898,7 @@ function PostContentWrapperInternal({
 
         return (
           <div
-            className={`my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${alertConfig.borderColor} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text transition-colors`}
+            className={`my-4 sm:my-5 first:mt-0 border-l-4 ${alertConfig.borderColor} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text transition-colors`}
           >
             <div
               className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-1 select-none`}

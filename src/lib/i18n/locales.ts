@@ -20,7 +20,7 @@ export const DICTIONARIES = {
     "nav.gallery": "相册",
     "nav.playlist": "歌单",
 
-    "hero.p1": "嘿！我是 {name}，一名热爱音乐，也喜欢折腾网站的全栈初学者。",
+    "hero.p1": "嘿！我是 {name}，一名热爱音乐，也喜欢折腾网站的初学者。",
     "hero.p2": "我一直觉得，很多时候真正难处理的并不是外界，而是自己。脑子里会突然冒出很多想法，也会接触到很多新的东西，但真正落到自己身上时，能力、经验和执行力又经常跟不上。",
     "hero.p3": "这种落差有时候会让人很烦，也会让人暂时什么都不想分享。",
     "hero.p4": "但我不太想一直停在这种状态里。",
@@ -116,7 +116,7 @@ export const DICTIONARIES = {
     "nav.gallery": "畫廊",
     "nav.playlist": "歌單",
 
-    "hero.p1": "嘿！我是 {name}，一名熱愛音樂，也喜歡折騰網站的全棧初學者。",
+    "hero.p1": "嘿！我是 {name}，一名熱愛音樂，也喜歡折騰網站的初學者。",
     "hero.p2": "我一直覺得，很多時候真正難處理的並不是外界，而是自己。腦子裡會突然冒出很多想法，也會接觸到很多新的東西，但真正落到自己身上時，能力、經驗和執行力又經常跟不上。",
     "hero.p3": "這種落差有時候會讓人很煩，也會讓人暫時什麼都不想分享。",
     "hero.p4": "但我不太想一直停在這種狀態裡。",
@@ -212,7 +212,7 @@ export const DICTIONARIES = {
     "nav.gallery": "Gallery",
     "nav.playlist": "Playlists",
 
-    "hero.p1": "Hey! I'm {name}, a full-stack beginner who loves music and tinkering with websites.",
+    "hero.p1": "Hey! I'm {name}, a beginner who loves music and tinkering with websites.",
     "hero.p2": "I've always felt that what's hardest to deal with is rarely the outside world, but myself. Ideas spark out of nowhere and new things constantly catch my attention, yet when it comes to turning them into reality, my ability, experience, and execution often fall short.",
     "hero.p3": "That gap can be frustrating at times, and make me feel like sharing nothing at all.",
     "hero.p4": "Yet I don't want to remain stuck in that state forever.",

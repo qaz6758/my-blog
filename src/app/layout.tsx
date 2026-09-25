@@ -85,11 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* 1. 首屏零毫秒同步锁定主题脚本（置于最顶端，解析最先执行） */}
         <script
@@ -103,8 +99,6 @@ export default function RootLayout({
                   var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
                   var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                   var isDark = saved ? saved === 'dark' : systemDark;
-                  var themeColor = isDark ? '#050505' : '#ffffff';
-                  var colorScheme = isDark ? 'only dark' : 'only light';
 
                   if (isDark) {
                     docEl.classList.add('dark');
@@ -113,8 +107,6 @@ export default function RootLayout({
                     docEl.classList.remove('dark');
                     docEl.classList.add('light');
                   }
-                  docEl.style.colorScheme = colorScheme;
-                  docEl.style.backgroundColor = themeColor;
 
                   // 歌单详情直达 0ms 阻断：若带 ?id= 或 ?playlist=，预先隐藏歌单网格避免闪烁
                   if (window.location.pathname.indexOf('/playlist') !== -1 && (window.location.search.indexOf('id=') !== -1 || window.location.search.indexOf('playlist=') !== -1)) {
@@ -122,6 +114,7 @@ export default function RootLayout({
                   }
 
                   // 净化与同步所有 theme-color meta，杜绝深色 media query 劫持 Chrome 原生清屏画布
+                  var themeColor = isDark ? '#050505' : '#ffffff';
                   var themeMetas = document.querySelectorAll('meta[name="theme-color"]');
                   themeMetas.forEach(function(m) {
                     m.removeAttribute('media');
@@ -164,6 +157,7 @@ export default function RootLayout({
             `,
           }}
         />
+
         {/* 2. 首屏关键样式：0ms 消除 FOUC 与刷新白屏/黑底闪烁 */}
         <style
           dangerouslySetInnerHTML={{
@@ -217,42 +211,46 @@ export default function RootLayout({
                 0% { opacity: 0; transform: translateY(10px); }
                 to { opacity: 1; transform: translateY(0); }
               }
-              @media (prefers-reduced-motion: no-preference) {
-                :is(.slide-enter, .slide-enter-content > *) {
-                  --enter-stage: 0;
-                  --enter-step: 90ms;
-                  --enter-initial: 0s;
-                  animation: 1s both slide-enter;
-                  animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
-                }
-                .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
-                .slide-enter-content > *:nth-child(2) { --enter-stage: 2 !important; }
-                .slide-enter-content > *:nth-child(3) { --enter-stage: 3 !important; }
-                .slide-enter-content > *:nth-child(4) { --enter-stage: 4 !important; }
-                .slide-enter-content > *:nth-child(5) { --enter-stage: 5 !important; }
-                .slide-enter-content > *:nth-child(6) { --enter-stage: 6 !important; }
-                .slide-enter-content > *:nth-child(7) { --enter-stage: 7 !important; }
-                .slide-enter-content > *:nth-child(8) { --enter-stage: 8 !important; }
-                .slide-enter-content > *:nth-child(9) { --enter-stage: 9 !important; }
-                .slide-enter-content > *:nth-child(10) { --enter-stage: 10 !important; }
-                .slide-enter-content > *:nth-child(11) { --enter-stage: 11 !important; }
-                .slide-enter-content > *:nth-child(12) { --enter-stage: 12 !important; }
-                .slide-enter-content > *:nth-child(13) { --enter-stage: 13 !important; }
-                .slide-enter-content > *:nth-child(14) { --enter-stage: 14 !important; }
-                .slide-enter-content > *:nth-child(15) { --enter-stage: 15 !important; }
-                .slide-enter-content > *:nth-child(16) { --enter-stage: 16 !important; }
-                .slide-enter-content > *:nth-child(17) { --enter-stage: 17 !important; }
-                .slide-enter-content > *:nth-child(18) { --enter-stage: 18 !important; }
-                .slide-enter-content > *:nth-child(19) { --enter-stage: 19 !important; }
-                .slide-enter-content > *:nth-child(20) { --enter-stage: 20 !important; }
-              }
+                @media (prefers-reduced-motion: no-preference) {
+  :is(.slide-enter, .slide-enter-content > *) {
+    --enter-stage: 0;
+    --enter-step: 90ms;
+    --enter-initial: 0s;
+    animation: 1s both slide-enter;
+    animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
+  }
+
+  .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
+  .slide-enter-content > *:nth-child(2) { --enter-stage: 2 !important; }
+  .slide-enter-content > *:nth-child(3) { --enter-stage: 3 !important; }
+  .slide-enter-content > *:nth-child(4) { --enter-stage: 4 !important; }
+  .slide-enter-content > *:nth-child(5) { --enter-stage: 5 !important; }
+  .slide-enter-content > *:nth-child(6) { --enter-stage: 6 !important; }
+  .slide-enter-content > *:nth-child(7) { --enter-stage: 7 !important; }
+  .slide-enter-content > *:nth-child(8) { --enter-stage: 8 !important; }
+  .slide-enter-content > *:nth-child(9) { --enter-stage: 9 !important; }
+  .slide-enter-content > *:nth-child(10) { --enter-stage: 10 !important; }
+  .slide-enter-content > *:nth-child(11) { --enter-stage: 11 !important; }
+  .slide-enter-content > *:nth-child(12) { --enter-stage: 12 !important; }
+  .slide-enter-content > *:nth-child(13) { --enter-stage: 13 !important; }
+  .slide-enter-content > *:nth-child(14) { --enter-stage: 14 !important; }
+  .slide-enter-content > *:nth-child(15) { --enter-stage: 15 !important; }
+  .slide-enter-content > *:nth-child(16) { --enter-stage: 16 !important; }
+  .slide-enter-content > *:nth-child(17) { --enter-stage: 17 !important; }
+  .slide-enter-content > *:nth-child(18) { --enter-stage: 18 !important; }
+  .slide-enter-content > *:nth-child(19) { --enter-stage: 19 !important; }
+  .slide-enter-content > *:nth-child(20) { --enter-stage: 20 !important; }
+}
             `,
           }}
         />
+        
         {/* Anthony Fu (antfu.me) 同款字体（由 Next.js 本地零延迟自托管，零运行时请求） */}
       </head>
 
-      <body className="min-h-screen w-full font-sans overflow-x-hidden antialiased">
+      <body
+        className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} min-h-screen w-full font-sans overflow-x-hidden antialiased`}
+      >
         <ThemeProvider>
           {/* 全局国际化 Provider */}
           <I18nProvider>

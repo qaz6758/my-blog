@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n/I18nContext";
 
 export interface TocItem {
@@ -67,6 +66,7 @@ export function TableOfContents({
       const articleEl =
         document.querySelector(".post-article") ||
         document.querySelector("article");
+
       if (!articleEl) return false;
 
       const elements = articleEl.querySelectorAll("h2, h3, h4");
@@ -79,6 +79,7 @@ export function TableOfContents({
         let id = el.getAttribute("id");
         const text = (el.textContent || "").trim();
         const level = Number(el.tagName.replace("H", "")) || 2;
+
         if (!text) return;
 
         // 若标题无原生 id 或存在重复，自动生成唯一规范 slug
@@ -88,7 +89,11 @@ export function TableOfContents({
             .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
             .replace(/^-+|-+$/g, "")
             .slice(0, 40);
-          id = seenIds.has(id || slug) ? `${slug || "heading"}-${index}` : (slug || `heading-${index}`);
+
+          id = seenIds.has(id || slug)
+            ? `${slug || "heading"}-${index}`
+            : slug || `heading-${index}`;
+
           el.setAttribute("id", id);
         }
 
@@ -101,11 +106,13 @@ export function TableOfContents({
         setInternalActiveId((prev) => prev || extracted[0].id);
         return true;
       }
+
       return false;
     };
 
     // 初始扫描与渐进式多阶段重试，确保无缝捕获异步翻译与 DOM 重排后的最新标题
     extractHeadings();
+
     const t1 = setTimeout(extractHeadings, 80);
     const t2 = setTimeout(extractHeadings, 250);
     const t3 = setTimeout(extractHeadings, 600);
@@ -130,7 +137,11 @@ export function TableOfContents({
       requestAnimationFrame(() => {
         ticking = false;
 
-        const articleEl = (document.querySelector(".post-article") || document.querySelector("article")) as HTMLElement;
+        const articleEl = (
+          document.querySelector(".post-article") ||
+          document.querySelector("article")
+        ) as HTMLElement;
+
         if (!articleEl) return;
 
         // A. 计算文章阅读进度
@@ -140,23 +151,36 @@ export function TableOfContents({
         const articleHeight = articleEl.offsetHeight;
 
         let progress = 0;
+
         if (scrollY < articleTop - windowHeight / 2) {
           progress = 0;
         } else if (scrollY > articleTop + articleHeight - windowHeight) {
           progress = 100;
         } else {
           const scrolled = scrollY - articleTop + windowHeight / 2;
-          progress = Math.min(100, Math.max(0, (scrolled / articleHeight) * 100));
+          progress = Math.min(
+            100,
+            Math.max(0, (scrolled / articleHeight) * 100)
+          );
         }
+
         setReadingProgress(Math.round(progress));
 
-        // B. 智能判定当前阅读标题（用户点击跳转平滑滚动期间严格锁定，不执行判断）
-        if (isClickScrollingRef.current || externalActiveId !== undefined || list.length === 0) {
+        // B. 智能判定当前阅读标题
+        // 用户点击跳转平滑滚动期间严格锁定，不执行判断
+        if (
+          isClickScrollingRef.current ||
+          externalActiveId !== undefined ||
+          list.length === 0
+        ) {
           return;
         }
 
         // 触底保护：如果已滑动至文章/页面底部，稳定高亮最后一个标题
-        if (windowHeight + scrollY >= document.documentElement.scrollHeight - 50) {
+        if (
+          windowHeight + scrollY >=
+          document.documentElement.scrollHeight - 50
+        ) {
           setInternalActiveId(list[list.length - 1].id);
           return;
         }
@@ -167,8 +191,11 @@ export function TableOfContents({
 
         for (let i = 0; i < list.length; i++) {
           const el = document.getElementById(list[i].id);
+
           if (!el) continue;
+
           const rect = el.getBoundingClientRect();
+
           if (rect.top <= readingLineOffset) {
             activeHeadingId = list[i].id;
           } else {
@@ -182,28 +209,32 @@ export function TableOfContents({
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+
     const initTimer = setTimeout(handleScroll, 120);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(initTimer);
+
       if (scrollEndTimerRef.current) {
         clearTimeout(scrollEndTimerRef.current);
       }
     };
   }, [list, externalActiveId]);
 
-  // 没有任何二级标题时，彻底隐藏大纲与 ≡ 按钮（100% 对齐 Antfu 原版）
+  // 没有任何二级标题时，彻底隐藏大纲与 ≡ 按钮
   if (list.length === 0) return null;
 
   // 点击平滑跳转：状态锁定，杜绝闪烁中间项
   const handleItemClick = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
+
     const element = document.getElementById(id);
     if (!element) return;
 
     // 立即锁定状态，避免平滑滑动过程被中间标题抢占高亮
     isClickScrollingRef.current = true;
+
     if (externalActiveId === undefined) {
       setInternalActiveId(id);
     }
@@ -213,8 +244,15 @@ export function TableOfContents({
     }
 
     // 精准定位：导航栏高度 68px + 16px 留白 = 84px 呼吸间距
-    const targetY = Math.max(0, element.getBoundingClientRect().top + window.scrollY - 84);
-    window.scrollTo({ top: targetY, behavior: "smooth" });
+    const targetY = Math.max(
+      0,
+      element.getBoundingClientRect().top + window.scrollY - 84
+    );
+
+    window.scrollTo({
+      top: targetY,
+      behavior: "smooth",
+    });
 
     try {
       window.history.pushState(null, "", `#${id}`);
@@ -237,16 +275,20 @@ export function TableOfContents({
       aria-label="文章目录大纲"
       onMouseEnter={() => setIsSelfHovered(true)}
       onMouseLeave={() => setIsSelfHovered(false)}
-      className={`select-none w-full ${className}`}
+      className={`fixed left-6 top-24 z-30 hidden xl:block w-[220px] select-none ${className}`}
     >
-      <div className="mb-6 flex flex-col items-start">
-        {/* 顶部 ≡ 锚点按钮 (28x28 容器，与 Logo 轴心居中对齐，点击平滑置顶) */}
+      <div className="flex flex-col items-start">
+        {/* 顶部 ≡ 锚点按钮 (严格对齐下方目录文字左侧基准线) */}
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          title={currentLocale === "zh-TW" ? "文章目錄 (點擊置頂)" : "文章目录 (点击置顶)"}
+          title={
+            currentLocale === "zh-TW"
+              ? "文章目錄 (點擊置頂)"
+              : "文章目录 (点击置顶)"
+          }
           aria-label="回到顶部"
-          className={`ml-1 mb-3.5 flex h-7 w-7 items-center justify-center rounded transition-colors duration-300 cursor-pointer ${
+          className={`mb-3.5 flex items-center justify-start p-0 rounded transition-colors duration-300 cursor-pointer ${
             isVisible
               ? "text-neutral-700 dark:text-neutral-300 opacity-80"
               : "text-neutral-400 dark:text-neutral-500 opacity-45 hover:opacity-80 hover:text-neutral-700 dark:hover:text-neutral-200"
@@ -254,12 +296,12 @@ export function TableOfContents({
         >
           <TocIcon className="w-[18px] h-[16px]" />
         </button>
-        
-        {/* 目录列表：仅在鼠标悬停时平滑浮现 (默认 opacity: 0，悬停 0.7s 慢速渐入) */}
+
+        {/* 目录列表 */}
         <ul
           className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             isVisible
-              ? "opacity-75 pointer-events-auto"
+              ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none"
           }`}
         >
@@ -268,25 +310,33 @@ export function TableOfContents({
             const isH2 = item.level <= 2;
             const isH3 = item.level === 3;
             const isH4 = item.level >= 4;
+
             // 大章节之间赋予自然呼吸间距
             const hasSectionMargin = isH2 && idx > 0;
 
-            const titleText = currentLocale === "zh-TW" ? convertText(item.text) : item.text;
+            const titleText =
+              currentLocale === "zh-TW"
+                ? convertText(item.text)
+                : item.text;
 
             return (
               <li
                 key={item.id}
                 className={`relative flex items-start ${
-                  isH4 ? "pl-[1.7rem]" : isH3 ? "pl-[0.85rem]" : "pl-0"
+                  isH4
+                    ? "pl-[1.7rem]"
+                    : isH3
+                      ? "pl-[0.85rem]"
+                      : "pl-0"
                 } ${hasSectionMargin ? "mt-2.5" : "mt-1"}`}
               >
                 <a
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item.id)}
-                  className={`inline-block leading-[1.6em] transition-opacity duration-200 font-normal ${
+                  className={`inline-block leading-snug pb-[1.5px] border-b transition-colors duration-200 ${
                     isActive
-                      ? "text-neutral-900 dark:text-neutral-100 opacity-100 font-medium"
-                      : "text-neutral-600 dark:text-neutral-400 opacity-60 hover:opacity-100 hover:text-neutral-800 dark:hover:text-neutral-200"
+                      ? "text-neutral-800 dark:text-neutral-100 border-neutral-600 dark:border-neutral-300 font-medium"
+                      : "text-neutral-500 dark:text-neutral-400 border-neutral-300/80 dark:border-neutral-700/80 hover:text-neutral-800 dark:hover:text-neutral-200 hover:border-neutral-600 dark:hover:border-neutral-400 font-normal"
                   }`}
                   title={titleText}
                 >

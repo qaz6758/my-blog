@@ -163,57 +163,66 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
 
       {/* 按年份编年史编排 */}
       <div className="space-y-12 sm:space-y-16">
-        {years.map((year) => {
-          const yearPosts = postsByYear[year];
+        {(() => {
+          let stageIndex = 0;
+          return years.map((year) => {
+            const yearPosts = postsByYear[year];
+            const yearStage = ++stageIndex;
 
-          return (
-            <section key={year} className="relative">
-              {/* 年份分镜切割：经典 Georgia Italic + 细腻优雅灰线 */}
-              <div className="mb-1.5 sm:mb-2 select-none flex items-center gap-4 sm:gap-6">
-                <span className="shrink-0 [font-family:Georgia,serif] italic text-[34px] sm:text-[40px] font-normal text-neutral-900 dark:text-neutral-100 leading-none">
-                  {year}
-                </span>
-                <div className="h-[1px] flex-1 bg-neutral-200 dark:bg-neutral-800" />
-              </div>
+            return (
+              <section key={year} className="relative">
+                {/* 年份分镜切割：经典 Georgia Italic + 细腻优雅灰线 */}
+                <div
+                  className="mb-1.5 sm:mb-2 select-none flex items-center gap-4 sm:gap-6 slide-enter"
+                  style={{ "--enter-stage": Math.min(yearStage, 20) } as React.CSSProperties}
+                >
+                  <span className="shrink-0 [font-family:Georgia,serif] italic text-[34px] sm:text-[40px] font-normal text-neutral-900 dark:text-neutral-100 leading-none">
+                    {year}
+                  </span>
+                  <div className="h-[1px] flex-1 bg-neutral-200 dark:bg-neutral-800" />
+                </div>
 
-              {/* 文章列表：纯净平滑悬停，去除波普跳动 */}
-              <div className="flex flex-col space-y-1">
-                {yearPosts.map((post) => {
-                  const date = post.published_at || post.created_at;
-                  const formattedDate = formatPostDate(date, isEn);
-                  const readTime = getReadTime(post);
-                  const targetLink = "/posts/" + (post.slug || (post as any).source_url || post.id);
+                {/* 文章列表：纯净平滑悬停，错落入场 */}
+                <div className="flex flex-col space-y-1">
+                  {yearPosts.map((post) => {
+                    const postStage = ++stageIndex;
+                    const date = post.published_at || post.created_at;
+                    const formattedDate = formatPostDate(date, isEn);
+                    const readTime = getReadTime(post);
+                    const targetLink = "/posts/" + (post.slug || (post as any).source_url || post.id);
 
-                  return (
-                    <Link
-                      key={post.id}
-                      href={targetLink}
-                      prefetch={true}
-                      className="group relative flex flex-wrap items-baseline gap-2.5 px-3 sm:px-4 py-2 -mx-3 sm:-mx-4 text-left rounded-lg transition-colors duration-150 hover:bg-black/[0.035] dark:hover:bg-transparent"
-                    >
-                      <span className="text-[18px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
-                        {post.title}
-                      </span>
-                      {post.is_pinned && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-400 dark:text-neutral-500 opacity-80 select-none">
-                          <svg className="w-3 h-3 rotate-45 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="17" x2="12" y2="22" />
-                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
-                          </svg>
-                          <span>{isEn ? "" : "置顶"}</span>
+                    return (
+                      <Link
+                        key={post.id}
+                        href={targetLink}
+                        prefetch={true}
+                        className="group relative flex flex-wrap items-baseline gap-2.5 px-3 sm:px-4 py-2 -mx-3 sm:-mx-4 text-left rounded-lg transition-colors duration-150 hover:bg-black/[0.035] dark:hover:bg-transparent slide-enter"
+                        style={{ "--enter-stage": Math.min(postStage, 20) } as React.CSSProperties}
+                      >
+                        <span className="text-[18px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
+                          {post.title}
                         </span>
-                      )}
-                      <span className="shrink-0 font-sans text-[12px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 opacity-60 dark:opacity-50 whitespace-nowrap">
-                        {formattedDate}
-                        {readTime ? <span> · {readTime}{isEn ? "min" : "分钟"}</span> : ""}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
+                        {post.is_pinned && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-400 dark:text-neutral-500 opacity-80 select-none">
+                            <svg className="w-3 h-3 rotate-45 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="12" y1="17" x2="12" y2="22" />
+                              <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+                            </svg>
+                            <span>{isEn ? "" : "置顶"}</span>
+                          </span>
+                        )}
+                        <span className="shrink-0 font-sans text-[12px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 opacity-60 dark:opacity-50 whitespace-nowrap">
+                          {formattedDate}
+                          {readTime ? <span> · {readTime}{isEn ? "min" : "分钟"}</span> : ""}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          });
+        })()}
       </div>
 
       {posts.length === 0 && (

@@ -19,6 +19,11 @@
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Noto Sans SC",
+    "Microsoft YaHei UI",
+    "Microsoft YaHei",
     "Segoe UI",
     Roboto,
     "Helvetica Neue",
@@ -306,7 +311,6 @@ html.dark .ink-divider::after {
 .manga-panel {
   position: relative;
   background: #ffffff;
-  /* 方正硬朗实线直角边框与波普投影 */
   border: 2px solid #050505;
   border-radius: 0;
   box-shadow: 4px 4px 0 #050505;
@@ -325,7 +329,7 @@ html.dark .manga-panel {
 
 /*
  * ============================================================
- * Anthony Fu 像素级错落入场动画 (丝滑无顿感、无闪烁、锁定高刷)
+ * Anthony Fu 像素级错落入场动画
  * ============================================================
  */
 
@@ -344,8 +348,6 @@ html.dark .manga-panel {
   --enter-stage: 0;
   --enter-step: 90ms;
   --enter-initial: 0s;
-  animation: 1s both slide-enter;
-  animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
 }
 
 /* Anthony Fu 原版 slide-enter-content 阶梯式错落入场 (1:1 官方同款参数) */
@@ -392,8 +394,6 @@ html.dark .manga-panel {
 /*
  * ============================================================
  * 原生 View Transitions API (CSS 变量注入驱动 + 硬件级防卡死波纹体系)
- * 彻底解决 Android WebView (Via 等) JS pseudoElement 解析为 (0, 0) 的 Bug，
- * 并通过动态时长统一消除 400ms 强制截胡卡死。
  * ============================================================
  */
 
@@ -410,7 +410,6 @@ html.dark .manga-panel {
   background-color: var(--page-bg);
 }
 
-/* 锚定起始主题底色，杜绝过渡期边缘与瓦片缝隙露出深色底层 */
 html.transition-from-light::view-transition {
   background-color: #ffffff !important;
 }
@@ -419,18 +418,10 @@ html.transition-from-dark::view-transition {
   background-color: #050505 !important;
 }
 
-/* 
- * 强制根过渡组禁止尺寸变形动画！
- * 避免移动端（Via / Android WebView）由于底部工具栏/滚动条微小计算差异触发尺寸补间位移，导致底部漏出黑块。
- */
 ::view-transition-group(root) {
   animation: none !important;
 }
 
-/*
- * 根快照完全覆盖视口，彻底移除 contain: paint！
- * contain: paint 在 Android Chromium 下强制约束图层边界，会导致移动端视口与底部工具栏交界处的瓦片光栅化被裁剪抛弃，产生黑块。
- */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none !important;
@@ -446,10 +437,6 @@ html.transition-from-dark::view-transition {
   animation: theme-ripple-expand var(--theme-ripple-duration, 0.4s) cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
 }
 
-/*
- * 在 View Transition 圆形波纹扩散期间，临时切断全 DOM 树所有元素的 CSS transition，
- * 彻底杜绝全局样式重算风暴（Recalculate Style Storm），将 100% GPU/CPU 算力让渡给波纹，杜绝掉帧卡死。
- */
 html.view-transition-active,
 html.view-transition-active *,
 html.view-transition-active *::before,
@@ -457,7 +444,6 @@ html.view-transition-active *::after {
   transition: none !important;
 }
 
-/* 豁免主题切换按钮图标：日/月 SVG 在 VT 波纹扩散期间保持旋转缩放过渡 */
 html.view-transition-active [data-theme-toggle] svg {
   transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -524,6 +510,7 @@ html.view-transition-active [data-theme-toggle] svg {
  * 歌单直达预阻断：杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现
  * ============================================================
  */
+
 html.hide-playlist-grid [data-playlist-grid] {
   display: none !important;
 }
@@ -533,6 +520,7 @@ html.hide-playlist-grid [data-playlist-grid] {
  * Anthony Fu (antfu.me) 同款短横线分割线 (.prose hr, hr.divider)
  * ============================================================
  */
+
 .prose hr,
 hr.divider {
   width: 50px;
@@ -540,7 +528,3 @@ hr.divider {
   border: none;
   border-top: 1px solid #7d7d7d4d;
 }
-
-
-
-

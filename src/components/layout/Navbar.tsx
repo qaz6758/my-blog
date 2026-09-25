@@ -98,7 +98,9 @@ export function Navbar() {
   const liveStatus = useLiveStatus();
   const { isDark } = useTheme();
   const { t } = useI18n();
-  const isOnline = (liveStatus.activity === "music" && liveStatus.music !== null) || liveStatus.app !== null;
+  const isOnline =
+  (liveStatus.activity === "music" && liveStatus.music !== null) ||
+  liveStatus.app !== null;
 
   // 路由跳转时关闭移动端菜单
   useEffect(() => {

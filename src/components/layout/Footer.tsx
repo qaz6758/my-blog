@@ -6,7 +6,7 @@ import { siteConfig } from "@/config/site";
 import { useSeasonalEffect } from "@/hooks/useSeasonalEffect";
 import { useI18n } from "@/lib/i18n/I18nContext";
 export function Footer() {
-  const { mounted, enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
+  const { enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
   const { t } = useI18n();
 
   // 当前季节标签（随自然节气自动流转）
@@ -82,33 +82,31 @@ export function Footer() {
             </button>
 
             {/* 极简纯粹开关：清晰线框 + 内部高亮小方块 */}
-            {mounted && (
-              <button
-                type="button"
-                onClick={toggleEnabled}
-                className={`relative inline-flex h-3.5 w-6.5 items-center rounded-[2.5px] transition-colors duration-200 focus:outline-none cursor-pointer p-[1.5px] bg-transparent ${
+            <button
+              type="button"
+              onClick={toggleEnabled}
+              className={`relative inline-flex h-3.5 w-6.5 items-center rounded-[2.5px] transition-colors duration-200 focus:outline-none cursor-pointer p-[1.5px] bg-transparent ${
+                enabled
+                  ? "border border-[#f472b6] dark:border-[#f472b6]"
+                  : "border border-neutral-400 dark:border-neutral-500"
+              }`}
+              title={
+                enabled
+                  ? `Click to disable background effect (${seasonTitle})`
+                  : "Click to enable background effect"
+              }
+              aria-label={
+                enabled ? "Disable background effect" : "Enable background effect"
+              }
+            >
+              <span
+                className={`inline-block h-2 w-2 rounded-[1px] transition-transform duration-200 ${
                   enabled
-                    ? "border border-[#f472b6] dark:border-[#f472b6]"
-                    : "border border-neutral-400 dark:border-neutral-500"
+                    ? "translate-x-3 bg-[#f472b6] dark:bg-[#f472b6] shadow-[0_0_6px_rgba(244,114,182,0.8)]"
+                    : "translate-x-0 bg-neutral-400 dark:bg-neutral-400"
                 }`}
-                title={
-                  enabled
-                    ? `Click to disable background effect (${seasonTitle})`
-                    : "Click to enable background effect"
-                }
-                aria-label={
-                  enabled ? "Disable background effect" : "Enable background effect"
-                }
-              >
-                <span
-                  className={`inline-block h-2 w-2 rounded-[1px] transition-transform duration-200 ${
-                    enabled
-                      ? "translate-x-3 bg-[#f472b6] dark:bg-[#f472b6] shadow-[0_0_6px_rgba(244,114,182,0.8)]"
-                      : "translate-x-0 bg-neutral-400 dark:bg-neutral-400"
-                  }`}
-                />
-              </button>
-            )}
+              />
+            </button>
           </div>
         </div>
       </div>
