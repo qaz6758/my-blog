@@ -328,6 +328,7 @@ export function MusicPlayer({
         onNext={onNext}
         onSeek={onSeek}
         onVolumeChange={onVolumeChange}
+        onAdjustVolume={onAdjustVolume}
         onToggleMute={onToggleMute}
         formatTime={formatTime}
       />

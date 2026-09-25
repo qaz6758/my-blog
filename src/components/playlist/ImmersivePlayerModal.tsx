@@ -34,6 +34,7 @@ export interface ImmersivePlayerModalProps {
   onNext: () => void;
   onSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAdjustVolume?: (delta: number) => void;
   onToggleMute: () => void;
   formatTime?: (time: number) => string;
 }
@@ -56,6 +57,7 @@ export function ImmersivePlayerModal({
   onNext,
   onSeek,
   onVolumeChange,
+  onAdjustVolume,
   onToggleMute,
 }: ImmersivePlayerModalProps) {
   // ESC 键退出大屏沉浸界面
@@ -129,11 +131,11 @@ export function ImmersivePlayerModal({
             </button>
           </div>
 
-          {/* ================= 3. Apple 官方同款 CSS Grid 排版引擎容器 ================= */}
-          <article className="relative z-10 flex-1 w-full grid grid-cols-[minmax(0,540px)] justify-center items-center px-6 sm:px-8 py-2 overflow-y-auto sm:overflow-y-visible">
+          {/* ================= 3. Apple 官方同款排版引擎容器 (严格单轴等宽全链路对齐) ================= */}
+          <article className="relative z-10 flex-1 w-full flex items-center justify-center px-6 sm:px-8 py-2 overflow-y-auto sm:overflow-y-visible">
             <div
               data-testid="lyrics-controls"
-              className="w-full grid grid-cols-[minmax(0,100%)] justify-items-center gap-y-3.5 sm:gap-y-5 md:gap-y-6"
+              className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] flex flex-col items-center gap-y-3.5 sm:gap-y-5 md:gap-y-6 mx-auto"
             >
               {/* 巨幅专辑封面 (自适应视口比例，移动端不撑破视口 + 唱片圆角 + 深度投影) */}
               <motion.div
@@ -141,7 +143,7 @@ export function ImmersivePlayerModal({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.92, opacity: 0 }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="relative aspect-square w-[68vw] max-w-[270px] sm:w-full sm:max-w-[460px] md:max-w-[520px] rounded-[16px] sm:rounded-[22px] overflow-hidden shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85)] sm:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.85)] ring-1 ring-white/15 justify-self-center"
+                className="relative aspect-square w-full rounded-[16px] sm:rounded-[22px] overflow-hidden shadow-[0_20px_50px_-10px_rgba(0,0,0,0.85)] sm:shadow-[0_30px_80px_-15px_rgba(0,0,0,0.85)] ring-1 ring-white/15"
               >
                 <img
                   src={activeCover}
@@ -161,7 +163,7 @@ export function ImmersivePlayerModal({
               </motion.div>
 
               {/* 歌曲信息 (网格轨道 100% 等宽左对齐排版) */}
-              <div className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] justify-self-center">
+              <div className="w-full">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg sm:text-xl md:text-[23px] font-bold text-white tracking-tight truncate leading-tight">
                     {currentSong.title}
@@ -177,8 +179,8 @@ export function ImmersivePlayerModal({
                 </p>
               </div>
 
-              {/* 极简流线进度条 (带纯白圆点滑块 Thumb + 0:04 / -1:26 格式) */}
-              <div className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] justify-self-center">
+              {/* 极简流线进度条 (带纯白圆点滑块 Thumb + 0:04 / -1:26 格式，两端严格对齐) */}
+              <div className="w-full">
                 <div className="relative flex items-center group/prog cursor-pointer">
                   {/* 底槽与已播放进度 (极细 2.5px 粗细) */}
                   <div className="w-full h-[2.5px] sm:h-[3px] rounded-full bg-white/20 overflow-hidden">
@@ -209,13 +211,13 @@ export function ImmersivePlayerModal({
                 </div>
               </div>
 
-              {/* 播放控制五键组 (实心双三角 ◀◀ / ▶▶ + 纯白实心正三角/双竖线) */}
-              <div className="w-full max-w-[340px] sm:max-w-[360px] flex items-center justify-between text-white justify-self-center pt-1">
+              {/* 播放控制五键组 (实心双三角 ◀◀ / ▶▶ + 纯白实心正三角/双竖线，与进度条两端严格对齐) */}
+              <div className="w-full flex items-center justify-between text-white pt-1">
                 {/* 随机播放 */}
                 <button
                   type="button"
                   onClick={onToggleShuffle}
-                  className={`p-2 transition-colors cursor-pointer ${
+                  className={`p-2 -ml-2 transition-colors cursor-pointer ${
                     isShuffle ? "text-[#FA2D48]" : "text-white/40 hover:text-white"
                   }`}
                   title={isShuffle ? "随机播放：开" : "随机播放：关"}
@@ -265,7 +267,7 @@ export function ImmersivePlayerModal({
                 <button
                   type="button"
                   onClick={onToggleRepeat}
-                  className={`p-2 transition-colors cursor-pointer ${
+                  className={`p-2 -mr-2 transition-colors cursor-pointer ${
                     repeatMode !== "off" ? "text-[#FA2D48]" : "text-white/40 hover:text-white"
                   }`}
                   title={
@@ -284,13 +286,13 @@ export function ImmersivePlayerModal({
                 </button>
               </div>
 
-              {/* 底部音量调节条 (粗细 1:1 匹配上方进度条，带纯白圆点滑块，与中轴严格等宽) */}
-              <div className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] flex items-center gap-3 text-white/60 justify-self-center pt-0.5 sm:pt-1">
-                {/* 左侧极简小喇叭 */}
+              {/* 底部音量调节条 (Apple 官方同款双端喇叭锚定，粗细 1:1 匹配上方进度条，与全屏控件严格两端对齐) */}
+              <div className="w-full flex items-center gap-3 text-white/60 pt-0.5 sm:pt-1">
+                {/* 左侧极简小喇叭 (低音量/静音指示，点击切换静音) */}
                 <button
                   type="button"
                   onClick={onToggleMute}
-                  className="hover:text-white transition-colors cursor-pointer shrink-0"
+                  className="hover:text-white transition-colors cursor-pointer shrink-0 p-1 -ml-1"
                   title={isMuted ? "取消静音" : "静音"}
                 >
                   {isMuted || volume === 0 ? (
@@ -307,7 +309,7 @@ export function ImmersivePlayerModal({
                   )}
                 </button>
 
-                {/* 音量滑轨 (粗细与上方进度条 100% 一致：h-[2.5px] sm:h-[3px] + 纯白滑块) */}
+                {/* 音量滑轨 (粗细与上方进度条 100% 一致：h-[2.5px] sm:h-[3px] + 纯白滑块，居中对称) */}
                 <div className="relative flex-1 flex items-center group/vol">
                   <div className="w-full h-[2.5px] sm:h-[3px] rounded-full bg-white/20 overflow-hidden">
                     <div
@@ -330,6 +332,25 @@ export function ImmersivePlayerModal({
                     className="absolute inset-0 w-full opacity-0 cursor-pointer h-5"
                   />
                 </div>
+
+                {/* 右侧极简大喇叭 (Apple 官方同款高音量指示，点击设为最大音量) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fakeEvent = {
+                      target: { value: "1" },
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    onVolumeChange(fakeEvent);
+                  }}
+                  className="hover:text-white transition-colors cursor-pointer shrink-0 p-1 -mr-1"
+                  title="最大音量"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 sm:h-4 sm:w-4">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                  </svg>
+                </button>
               </div>
             </div>
           </article>
