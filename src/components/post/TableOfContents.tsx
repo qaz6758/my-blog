@@ -193,7 +193,10 @@ export function TableOfContents({
     };
   }, [list, externalActiveId]);
 
-  // 3. 点击平滑跳转：状态锁定，杜绝闪烁中间项
+  // 没有任何二级标题时，彻底隐藏大纲与 ≡ 按钮（100% 对齐 Antfu 原版）
+  if (list.length === 0) return null;
+
+  // 点击平滑跳转：状态锁定，杜绝闪烁中间项
   const handleItemClick = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
@@ -241,26 +244,25 @@ export function TableOfContents({
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          title={list.length > 0 ? (currentLocale === "zh-TW" ? "文章目錄 (點擊置頂)" : "文章目录 (点击置顶)") : (currentLocale === "zh-TW" ? "回到頂部" : "回到顶部")}
+          title={currentLocale === "zh-TW" ? "文章目錄 (點擊置頂)" : "文章目录 (点击置顶)"}
           aria-label="回到顶部"
-          className={`ml-1.5 mb-3.5 flex h-7 w-7 items-center justify-center rounded transition-colors duration-300 cursor-pointer ${
+          className={`ml-1 mb-3.5 flex h-7 w-7 items-center justify-center rounded transition-colors duration-300 cursor-pointer ${
             isVisible
-              ? "text-neutral-900 dark:text-neutral-100 opacity-90"
-              : "text-neutral-400 dark:text-neutral-500 opacity-50 hover:opacity-90 hover:text-black dark:hover:text-white"
+              ? "text-neutral-700 dark:text-neutral-300 opacity-80"
+              : "text-neutral-400 dark:text-neutral-500 opacity-45 hover:opacity-80 hover:text-neutral-700 dark:hover:text-neutral-200"
           }`}
         >
           <TocIcon className="w-[18px] h-[16px]" />
         </button>
         
-        {/* 目录列表：仅在有标题且鼠标悬停时平滑浮现 (默认 opacity: 0，悬停 0.7s 慢速渐入) */}
-        {list.length > 0 && (
-          <ul
-            className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-              isVisible
-                ? "opacity-75 pointer-events-auto"
-                : "opacity-0 pointer-events-none"
-            }`}
-          >
+        {/* 目录列表：仅在鼠标悬停时平滑浮现 (默认 opacity: 0，悬停 0.7s 慢速渐入) */}
+        <ul
+          className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            isVisible
+              ? "opacity-75 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
           {list.map((item, idx) => {
             const isActive = currentActiveId === item.id;
             const isH2 = item.level <= 2;
@@ -281,10 +283,10 @@ export function TableOfContents({
                 <a
                   href={`#${item.id}`}
                   onClick={(e) => handleItemClick(e, item.id)}
-                  className={`inline-block leading-[1.5em] transition-all duration-150 font-normal border-b pb-0.5 ${
+                  className={`inline-block leading-[1.6em] transition-opacity duration-200 font-normal ${
                     isActive
-                      ? "text-black dark:text-white opacity-100 border-black dark:border-white"
-                      : "text-neutral-600 dark:text-neutral-400 opacity-75 hover:opacity-100 hover:text-black dark:hover:text-white border-[#7d7d7d4d] hover:border-black dark:hover:border-white"
+                      ? "text-neutral-900 dark:text-neutral-100 opacity-100 font-medium"
+                      : "text-neutral-600 dark:text-neutral-400 opacity-60 hover:opacity-100 hover:text-neutral-800 dark:hover:text-neutral-200"
                   }`}
                   title={titleText}
                 >
@@ -294,7 +296,6 @@ export function TableOfContents({
             );
           })}
         </ul>
-        )}
       </div>
     </nav>
   );

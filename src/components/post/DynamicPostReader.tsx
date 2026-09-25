@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
-import { TableOfContents, TocIcon } from "@/components/post/TableOfContents";
+import { TableOfContents } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { calculateReadTime, formatDate } from "@/lib/utils";
@@ -169,6 +169,14 @@ export function DynamicPostReader({
     return /<\/?(p|div|h[1-6]|article|section|blockquote|pre|code|table|ul|ol|li|html|body|a)\b/i.test(raw);
   }, [post, displayContent]);
 
+function normalizeText(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/[ \t]+$/gm, "")
+    .trim();
+}
+
   // 当 initialPost 或路由变化时同步数据，并开启 SWR 毫秒级后台静默比对
   useEffect(() => {
     const workerUrl =
@@ -183,10 +191,12 @@ export function DynamicPostReader({
         setLoading(false);
       }
       
-      // 开启 SWR 后台静默校验：向 Worker 获取 Notion 实时数据，如果用户刚刚在 Notion 进行了更新，静默热替换
+      // 开启 SWR 后台静默校验：延迟 3.5 秒执行，确保首屏进场动画（1s）完全播放完毕且浏览器空闲
       const rawId = String(initialPost.id || "").replace(/-/g, "");
       const cleanTargetId = rawId.length === 32 ? rawId : undefined;
-      if (cleanTargetId) {
+      if (!cleanTargetId) return;
+
+      const swrTimer = setTimeout(() => {
         fetch(`${workerUrl}/api/posts/${cleanTargetId}`)
           .then((res) => {
             if (!res.ok) throw new Error("Worker fetch failed");
@@ -197,12 +207,12 @@ export function DynamicPostReader({
               const fresh = detailData.data as PostDetail;
               setPost((prev) => {
                 if (!prev) return fresh;
-                const prevContent = (prev.content || "").trim();
-                const freshContent = (fresh.content || "").trim();
+                const prevContent = normalizeText(prev.content || "");
+                const freshContent = normalizeText(fresh.content || "");
                 const prevTitle = (prev.title || "").trim();
                 const freshTitle = (fresh.title || "").trim();
 
-                // 仅当正文或标题发生实质性变化时触发静默更新（杜绝无谓 re-render）
+                // 仅当正文或标题发生实质性变化时触发静默更新（过滤换行/空格差异，杜绝无谓 re-render 与二次进场动画）
                 if (prevContent !== freshContent || prevTitle !== freshTitle) {
                   return {
                     ...prev,
@@ -218,8 +228,9 @@ export function DynamicPostReader({
             }
           })
           .catch(() => {});
-      }
-      return;
+      }, 3500);
+
+      return () => clearTimeout(swrTimer);
     }
 
     // 3. 兜底：没有 initialPost（例如客户端动态路由或 404 回退渲染）
@@ -307,12 +318,8 @@ export function DynamicPostReader({
           transition={{ duration: 0.2 }}
           className="relative min-h-screen w-full flex flex-col justify-between"
         >
-          {/* 左侧固定 TOC 骨架：严格使用 top-[88px] 与 28x28 尺寸，中心同轴对齐，杜绝闪烁跳变 */}
-          <aside className="hidden xl:block fixed top-[88px] left-5 w-44 pointer-events-none opacity-40 select-none">
-            <div className="ml-1.5 mb-3.5 flex h-7 w-7 items-center justify-center text-neutral-400 dark:text-neutral-500">
-              <TocIcon className="w-[18px] h-[16px]" />
-            </div>
-          </aside>
+          {/* 左侧固定 TOC 骨架：保持占位空间，但不预置图标（无标题文章 100% 隐藏，杜绝闪烁跳变） */}
+          <aside className="hidden xl:block fixed top-[88px] left-5 w-44 pointer-events-none opacity-40 select-none" />
 
           {/* 正文版心骨架 */}
           <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28 flex-1">

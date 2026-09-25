@@ -137,6 +137,16 @@ export default function RootLayout({
                     document.cookie = 'theme=' + saved + '; path=/; max-age=31536000; SameSite=Lax';
                   }
 
+                  // 同步读取用户语言偏好，消除首屏 locale 闪跳
+                  var savedLang = localStorage.getItem('blog_lang');
+                  var validLangs = ['en','zh-CN','zh-TW','ja','ko'];
+                  if (savedLang && validLangs.indexOf(savedLang) !== -1) {
+                    docEl.setAttribute('data-locale', savedLang);
+                    docEl.lang = savedLang;
+                  } else {
+                    docEl.setAttribute('data-locale', 'en');
+                  }
+
                   function removeNoTransitions() {
                     requestAnimationFrame(function() {
                       requestAnimationFrame(function() {
@@ -243,46 +253,6 @@ export default function RootLayout({
       </head>
 
       <body className="min-h-screen w-full font-sans overflow-x-hidden antialiased">
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var docEl = document.documentElement;
-                  var queryTheme = window.location.search.indexOf('theme=light') !== -1 ? 'light' : (window.location.search.indexOf('theme=dark') !== -1 ? 'dark' : null);
-                  var saved = queryTheme || localStorage.getItem('theme') || (document.cookie.match(/(?:^|;\\s*)theme=([^;]+)/) || [])[1];
-                  var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var isDark = saved ? saved === 'dark' : systemDark;
-                  if (isDark) {
-                    docEl.classList.add('dark');
-                    docEl.classList.remove('light');
-                    docEl.style.backgroundColor = '#050505';
-                    docEl.style.colorScheme = 'dark';
-                  } else {
-                    docEl.classList.remove('dark');
-                    docEl.classList.add('light');
-                    docEl.style.backgroundColor = '#ffffff';
-                    docEl.style.colorScheme = 'light';
-                  }
-
-                  if (window.location.search && (window.location.search.indexOf('id=') !== -1 || window.location.search.indexOf('playlist=') !== -1)) {
-                    docEl.classList.add('hide-playlist-grid');
-                  }
-
-                  // 同步读取用户语言偏好，消除首屏 locale 闪跳（与 dark mode 同理）
-                  var savedLang = localStorage.getItem('blog_lang');
-                  var validLangs = ['en','zh-CN','zh-TW','ja','ko'];
-                  if (savedLang && validLangs.indexOf(savedLang) !== -1) {
-                    docEl.setAttribute('data-locale', savedLang);
-                    docEl.lang = savedLang;
-                  } else {
-                    docEl.setAttribute('data-locale', 'en');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
         <ThemeProvider>
           {/* 全局国际化 Provider */}
           <I18nProvider>

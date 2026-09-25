@@ -467,14 +467,9 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const enterTimer = setTimeout(() => {
-      setHasEntered(true);
-    }, 1200);
-    return () => clearTimeout(enterTimer);
   }, []);
 
   const cleanHtmlContent = useMemo(() => {
@@ -630,7 +625,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
+          className={`${proseClassName} slide-enter-content`}
           dangerouslySetInnerHTML={{ __html: cleanHtmlContent }}
         />
       ) : (
@@ -638,7 +633,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
+          className={`${proseClassName} slide-enter-content`}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
