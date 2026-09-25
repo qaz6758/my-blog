@@ -187,7 +187,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                 </div>
 
                 {/* 文章列表：纯净平滑悬停，错落入场 */}
-                <div className="flex flex-col space-y-1">
+                <div className="flex flex-col">
                   {yearPosts.map((post) => {
                     const postStage = ++stageIndex;
                     const date = post.published_at || post.created_at;
@@ -200,10 +200,10 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                         key={post.id}
                         href={targetLink}
                         prefetch={true}
-                        className="group relative flex flex-wrap items-baseline gap-2.5 px-3 sm:px-4 py-2 -mx-3 sm:-mx-4 text-left rounded-lg transition-colors duration-150 hover:bg-black/[0.035] dark:hover:bg-transparent slide-enter"
+                        className="group relative flex flex-wrap items-baseline gap-2 px-3 sm:px-4 py-2 -mx-3 sm:-mx-4 text-left rounded-lg transition-colors duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] slide-enter"
                         style={{ "--enter-stage": Math.min(postStage, 20) } as React.CSSProperties}
                       >
-                        <span className="text-[18px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
+                        <span className="text-[16px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-600 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors duration-150">
                           {post.title}
                         </span>
                         {post.is_pinned && (
@@ -215,7 +215,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                             <span>{isEn ? "" : "置顶"}</span>
                           </span>
                         )}
-                        <span className="shrink-0 font-sans text-[12px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 opacity-60 dark:opacity-50 whitespace-nowrap">
+                        <span className="shrink-0 font-sans text-[12px] sm:text-[13px] text-neutral-400 dark:text-neutral-500 opacity-80 dark:opacity-60 whitespace-nowrap">
                           {formattedDate}
                           {readTime ? <span> · {readTime}{isEn ? "min" : "分钟"}</span> : ""}
                         </span>
