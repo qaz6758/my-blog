@@ -210,7 +210,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
     let cleanedInner = inner;
 
     if (!alertMatch) {
-      return `<blockquote ${attrs} class="my-4 sm:my-5 first:mt-0 border-l-4 border-[#7d7d7d4d] pl-4 py-1 text-[#555] dark:text-[#bbb] not-italic select-text font-sans"><div class="text-[16px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
+      return `<blockquote ${attrs} class="mt-4 mb-2 first:mt-0 border-l-[2.5px] border-[#d8d8d8] dark:border-[#7d7d7d50] -ml-2 sm:-ml-[1.1em] pl-3 sm:pl-[1em] text-[#555] dark:text-[#bbb] opacity-75 not-italic select-text font-sans"><div class="text-[15.5px] sm:text-[16px] leading-[1.65] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
     }
 
     const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
@@ -462,20 +462,79 @@ function getNodeText(node: React.ReactNode): string {
   return "";
 }
 
+function hasMediaElement(node: React.ReactNode): boolean {
+  if (!node) return false;
+  if (Array.isArray(node)) {
+    return node.some(hasMediaElement);
+  }
+  if (React.isValidElement(node)) {
+    const typeStr =
+      typeof node.type === "string"
+        ? node.type
+        : (node.type as { name?: string; displayName?: string })?.name ||
+          (node.type as { name?: string; displayName?: string })?.displayName ||
+          "";
+
+    const props = node.props as Record<string, unknown> | undefined;
+
+    if (
+      typeStr === "img" ||
+      typeStr === "picture" ||
+      typeStr === "video" ||
+      typeStr === "audio" ||
+      typeStr === "iframe" ||
+      typeStr === "svg" ||
+      Boolean(props?.src) ||
+      Boolean(props?.alt)
+    ) {
+      return true;
+    }
+
+    if (props && props.children) {
+      return hasMediaElement(props.children as React.ReactNode);
+    }
+  }
+  return false;
+}
+
+function isBlankParagraph(children: React.ReactNode): boolean {
+  if (hasMediaElement(children)) return false;
+
+  const childArray = React.Children.toArray(children);
+  if (
+    childArray.some(
+      (c) =>
+        React.isValidElement(c) &&
+        typeof c.type === "string" &&
+        c.type !== "br"
+    )
+  ) {
+    return false;
+  }
+
+  const text = getNodeText(children);
+  return text === "\u00A0" || text === "&nbsp;" || !text.trim();
+}
+
 function preserveMarkdownWhitespace(md: string): string {
   if (!md) return "";
   // 1. 支持直接书写 <br> 或 <br/> 换行
   const withBr = md.replace(/<br\s*\/?>/gi, "  \n");
 
-  // 2. 将代码块以外的连续 3 个及以上换行（连续回车空行）保留为 &nbsp; 占位段落，避免被 Markdown 引擎合并吞掉
-  const parts = withBr.split(/(```[\s\S]*?```)/g);
+  // 2. 彻底清理标题（# ~ ######）前方的一切多余空行与 &nbsp; 占位，避免产生 28px+ 的幽灵空白块
+  const cleanedHeadings = withBr.replace(/(?:&nbsp;|\u00A0|[ \t])*\n+(?=#{1,6}\s)/gi, "\n\n");
+
+  // 3. 将代码块以外的连续 3 个及以上换行（正文普通回车空行）保留为 &nbsp; 占位段落
+  const parts = cleanedHeadings.split(/(```[\s\S]*?```)/g);
   return parts
     .map((part, index) => {
       if (index % 2 === 1) return part;
-      return part.replace(/\n{3,}/g, (match) => {
+      const replaced = part.replace(/\n{3,}/g, (match) => {
         const extraCount = match.length - 2;
         return "\n\n" + Array(extraCount).fill("&nbsp;").join("\n\n") + "\n\n";
       });
+      // 再次确保标题上方不带 &nbsp;
+      return replaced.replace(/(?:&nbsp;|\u00A0|[ \t])*\n+(?=#{1,6}\s)/gi, "\n\n");
     })
     .join("");
 }
@@ -562,6 +621,18 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
     </div>
   );
 }
+
+/**
+ * 全局统一标题样式字典 (Single Source of Truth)
+ * 彻底消除外层 proseClassName 与内层 markdownComponents 的特异性打架问题。
+ * 修改此处任一项，无论上下边距还是字号字重，100% 立即直接生效。
+ */
+export const HEADING_STYLES = {
+  h1: "scroll-mt-24 text-[22px] sm:text-[25px] font-bold mt-8 sm:mt-10 mb-3.5 sm:mb-4 text-neutral-800 dark:text-neutral-100 font-sans tracking-tight leading-[1.2]",
+  h2: "scroll-mt-24 text-[21px] sm:text-[23px] font-semibold mt-6 sm:mt-7 mb-5 sm:mb-5.5 text-neutral-800 dark:text-neutral-100 font-sans tracking-tight leading-[1.3]",
+  h3: "scroll-mt-24 text-[18px] sm:text-[20px] font-semibold mt-5 sm:mt-6 mb-5 sm:mb-5.5 text-neutral-800 dark:text-neutral-100 font-sans tracking-tight leading-[1.33]",
+  h4: "scroll-mt-24 text-[16px] sm:text-[17px] font-semibold mt-4 mb-2 text-neutral-800 dark:text-neutral-100 font-sans tracking-tight leading-[1.4]",
+};
 
 function PostContentWrapperInternal({
   content,
@@ -738,16 +809,21 @@ function PostContentWrapperInternal({
     text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
     [&>*:first-child]:mt-0
     [&_p]:mb-4
+    [&_blockquote+.empty-placeholder]:hidden [&_.empty-placeholder:has(+h1)]:hidden [&_.empty-placeholder:has(+h2)]:hidden [&_.empty-placeholder:has(+h3)]:hidden
+    [&_blockquote+h1]:!mt-6 [&_blockquote+h2]:!mt-6 [&_blockquote+h3]:!mt-5
 
-    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[32px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-12 sm:[&_h1]:mt-14 [&_h1]:mb-4 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.15] [&_h1]:tracking-tight
+    ${
+      isHtml
+        ? `
+      [&_h1]:scroll-mt-24 [&_h1]:text-[22px] sm:[&_h1]:text-[25px] [&_h1]:font-bold [&_h1]:mt-8 sm:[&_h1]:mt-10 [&_h1]:mb-3.5 sm:[&_h1]:mb-4 [&_h1]:text-neutral-800 dark:[&_h1]:text-neutral-100 [&_h1]:leading-[1.2] [&_h1]:tracking-tight
+      [&_h2]:scroll-mt-24 [&_h2]:text-[21px] sm:[&_h2]:text-[23px] [&_h2]:font-semibold [&_h2]:mt-6 sm:[&_h2]:mt-7 [&_h2]:mb-4 sm:[&_h2]:mb-4.5 [&_h2]:text-neutral-800 dark:[&_h2]:text-neutral-100 [&_h2]:leading-[1.3] [&_h2]:tracking-tight
+      [&_h3]:scroll-mt-24 [&_h3]:text-[18px] sm:[&_h3]:text-[20px] [&_h3]:font-semibold [&_h3]:mt-5 sm:[&_h3]:mt-6 [&_h3]:mb-3 sm:[&_h3]:mb-3.5 [&_h3]:text-neutral-800 dark:[&_h3]:text-neutral-100 [&_h3]:leading-[1.33] [&_h3]:tracking-tight
+      [&_h4]:scroll-mt-24 [&_h4]:text-[16px] sm:[&_h4]:text-[17px] [&_h4]:font-semibold [&_h4]:mt-4 [&_h4]:mb-2 [&_h4]:text-neutral-800 dark:[&_h4]:text-neutral-100 [&_h4]:leading-[1.4]
+    `
+        : ""
+    }
 
-    [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[26px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-12 sm:[&_h2]:mt-14 [&_h2]:mb-3.5 sm:[&_h2]:mb-4 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
-
-    [&_h3]:scroll-mt-24 [&_h3]:text-[19px] sm:[&_h3]:text-[21px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-10 sm:[&_h3]:mt-12 [&_h3]:mb-3 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
-
-    [&_h4]:scroll-mt-24 [&_h4]:text-[16.5px] sm:[&_h4]:text-[17.5px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-8 [&_h4]:mb-2.5 [&_h4]:text-black dark:[&_h4]:text-white [&_h4]:leading-[1.4]
-
-    [&_strong]:font-semibold [&_strong]:text-black dark:[&_strong]:text-white
+    [&_strong]:font-semibold [&_strong]:text-neutral-800 dark:[&_strong]:text-neutral-100
 
     [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5
 
@@ -772,7 +848,7 @@ function PostContentWrapperInternal({
 
   const markdownComponents = useMemo(
     () => ({
-      // 段落渲染：如果为空白占位段落（如 &nbsp; 或纯空白），渲染为标准高度的自然空行占位
+      // 段落渲染：如果为空白占位段落（如 &nbsp; 或纯空白），渲染为标准高度的自然空行占位；图片等媒体元素必须正常保留并渲染
       p: ({
         children,
         node,
@@ -782,9 +858,8 @@ function PostContentWrapperInternal({
         node?: unknown;
         [key: string]: unknown;
       }) => {
-        const text = getNodeText(children);
-        if (text === "\u00A0" || text === "&nbsp;" || !text.trim()) {
-          return <div aria-hidden="true" className="h-6 sm:h-7 select-none" />;
+        if (isBlankParagraph(children)) {
+          return <div aria-hidden="true" className="empty-placeholder h-4 select-none" />;
         }
         return <p {...props}>{children}</p>;
       },
@@ -802,11 +877,11 @@ function PostContentWrapperInternal({
         const text = getNodeText(children).trim();
         const alertConfig = getAlertConfig(text);
 
-        // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净 4px 微透竖线 + 16px 字号）
+        // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（负边距悬挂线 -1.1em + 1em 呼吸回正 + 75% 优雅透光度）
         if (!alertConfig) {
           return (
-            <blockquote className="my-4 sm:my-5 first:mt-0 border-l-4 border-[#7d7d7d4d] pl-4 py-1 text-[#555] dark:text-[#bbb] not-italic select-text font-sans">
-              <div className="text-[16px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+            <blockquote className="mt-4 mb-3 first:mt-0 border-l-4 border-[#d8d8d8] dark:border-[#7d7d7d50] -ml-2 sm:-ml-[1.1em] pl-3 sm:pl-[1em] text-[#555] dark:text-[#bbb] opacity-75 not-italic select-text font-sans">
+              <div className="text-[15.5px] sm:text-[16px] leading-[1.65] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                 {children}
               </div>
             </blockquote>
@@ -851,13 +926,9 @@ function PostContentWrapperInternal({
         const id = slugifyHeading(getNodeText(children));
 
         return (
-          <h2
-            id={id}
-            className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]"
-            {...props}
-          >
+          <h1 id={id} className={HEADING_STYLES.h1} {...props}>
             {children}
-          </h2>
+          </h1>
         );
       },
 
@@ -873,11 +944,7 @@ function PostContentWrapperInternal({
         const id = slugifyHeading(getNodeText(children));
 
         return (
-          <h2
-            id={id}
-            className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]"
-            {...props}
-          >
+          <h2 id={id} className={HEADING_STYLES.h2} {...props}>
             {children}
           </h2>
         );
@@ -895,11 +962,7 @@ function PostContentWrapperInternal({
         const id = slugifyHeading(getNodeText(children));
 
         return (
-          <h3
-            id={id}
-            className="text-[19px] sm:text-[21px] font-bold mt-10 sm:mt-12 mb-3 text-black dark:text-white font-sans tracking-tight leading-[1.33]"
-            {...props}
-          >
+          <h3 id={id} className={HEADING_STYLES.h3} {...props}>
             {children}
           </h3>
         );
@@ -917,11 +980,7 @@ function PostContentWrapperInternal({
         const id = slugifyHeading(getNodeText(children));
 
         return (
-          <h4
-            id={id}
-            className="text-[16.5px] sm:text-[17.5px] font-bold mt-8 mb-2.5 text-black dark:text-white font-sans tracking-tight leading-[1.4]"
-            {...props}
-          >
+          <h4 id={id} className={HEADING_STYLES.h4} {...props}>
             {children}
           </h4>
         );
