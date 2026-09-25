@@ -307,10 +307,10 @@ export function DynamicPostReader({
           transition={{ duration: 0.2 }}
           className="relative min-h-screen w-full flex flex-col justify-between"
         >
-          {/* 左侧固定 TOC 骨架：首屏直接占位，防止后续闪烁 (20px 对齐，距离 Logo 底部 24px) */}
-          <aside className="hidden xl:block fixed top-[82px] left-5 w-44 pointer-events-none opacity-40 select-none">
-            <div className="mb-3.5 flex items-center justify-start bg-transparent p-0 text-neutral-400 dark:text-neutral-500">
-              <TocIcon className="w-[18px] h-[18px]" />
+          {/* 左侧固定 TOC 骨架：严格使用 top-[88px] 与 28x28 尺寸，中心同轴对齐，杜绝闪烁跳变 */}
+          <aside className="hidden xl:block fixed top-[88px] left-5 w-44 pointer-events-none opacity-40 select-none">
+            <div className="ml-1.5 mb-3.5 flex h-7 w-7 items-center justify-center text-neutral-400 dark:text-neutral-500">
+              <TocIcon className="w-[18px] h-[16px]" />
             </div>
           </aside>
 
@@ -384,7 +384,7 @@ export function DynamicPostReader({
               
               {/* 标题头部保持静止不动（消除位移动画），正文段落优雅递进滑入 */}
               <header className="mb-5 sm:mb-6 relative">
-                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight text-black dark:text-white leading-[1.2] font-sans relative inline-block">
+                <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-extrabold tracking-tight text-black dark:text-white leading-[1.15] font-sans relative inline-block">
                   {displayTitle}
                 </h1>
                 
@@ -430,7 +430,7 @@ export function DynamicPostReader({
               <article
                 lang={isSourceZh ? "zh-CN" : "en"}
                 className="post-article min-w-0 font-sans"
-                style={{ fontSize: "1rem", lineHeight: "1.75", letterSpacing: "normal" }}
+                style={{ fontSize: "16px", lineHeight: "1.75", letterSpacing: "normal" }}
               >
                 <PostContentWrapper
                   content={displayContent}

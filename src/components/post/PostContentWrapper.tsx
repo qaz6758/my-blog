@@ -174,7 +174,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
     let cleanedInner = inner;
 
     if (!alertMatch) {
-      return `<blockquote ${attrs} class="my-4 sm:my-5 first:mt-0 border-l-[2.5px] border-neutral-300 dark:border-neutral-700 pl-3.5 sm:pl-4 py-0.5 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans"><div class="text-[14.5px] sm:text-[15px] leading-[1.7] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">${inner}</div></blockquote>`;
+      return `<blockquote ${attrs} class="my-4 sm:my-5 first:mt-0 border-l-4 border-[#7d7d7d4d] pl-4 py-1 text-[#555] dark:text-[#bbb] not-italic select-text font-sans"><div class="text-[16px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">${inner}</div></blockquote>`;
     }
 
     const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
@@ -467,9 +467,14 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const enterTimer = setTimeout(() => {
+      setHasEntered(true);
+    }, 1200);
+    return () => clearTimeout(enterTimer);
   }, []);
 
   const cleanHtmlContent = useMemo(() => {
@@ -576,11 +581,11 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
   }, [activeImg, closeLightbox]);
 
   const proseClassName = `
-    text-[15.5px] sm:text-[16px] leading-[1.75] text-neutral-700 dark:text-neutral-200 font-sans tracking-normal
+    text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
     [&>*:first-child]:mt-0
     [&_p]:mb-4
-    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[30px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-12 sm:[&_h1]:mt-14 [&_h1]:mb-4 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.2] [&_h1]:tracking-tight
-    [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[25px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-12 sm:[&_h2]:mt-14 [&_h2]:mb-3.5 sm:[&_h2]:mb-4 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
+    [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[32px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-12 sm:[&_h1]:mt-14 [&_h1]:mb-4 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.15] [&_h1]:tracking-tight
+    [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[26px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-12 sm:[&_h2]:mt-14 [&_h2]:mb-3.5 sm:[&_h2]:mb-4 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
     [&_h3]:scroll-mt-24 [&_h3]:text-[19px] sm:[&_h3]:text-[21px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-10 sm:[&_h3]:mt-12 [&_h3]:mb-3 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
     [&_h4]:scroll-mt-24 [&_h4]:text-[16.5px] sm:[&_h4]:text-[17.5px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-8 [&_h4]:mb-2.5 [&_h4]:text-black dark:[&_h4]:text-white [&_h4]:leading-[1.4]
     [&_strong]:font-semibold [&_strong]:text-black dark:[&_strong]:text-white
@@ -591,7 +596,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
     [&_a]:prose-link
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-6
     [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2.5 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
-    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2.5 [&_td]:text-neutral-700 dark:[&_td]:text-neutral-300
+    [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2.5 [&_td]:text-[#555] dark:[&_td]:text-[#bbb]
     [&_tr:nth-child(even)]:bg-transparent
     [&_hr]:my-8 sm:[&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
@@ -625,7 +630,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} slide-enter-content`}
+          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
           dangerouslySetInnerHTML={{ __html: cleanHtmlContent }}
         />
       ) : (
@@ -633,7 +638,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
           ref={contentRef}
           onClick={handleContentClick}
           suppressHydrationWarning
-          className={`${proseClassName} slide-enter-content`}
+          className={`${proseClassName} ${hasEntered ? "" : "slide-enter-content"}`}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -643,11 +648,11 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
                 const text = getNodeText(children).trim();
                 const alertConfig = getAlertConfig(text);
 
-                // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净左竖线 + 无 Note 图标与大标题）
+                // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净 4px 微透竖线 + 16px 字号）
                 if (!alertConfig) {
                   return (
-                    <blockquote className="my-4 sm:my-5 first:mt-0 border-l-[2.5px] border-neutral-300 dark:border-neutral-700 pl-3.5 sm:pl-4 py-0.5 text-neutral-600 dark:text-neutral-400 not-italic select-text font-sans">
-                      <div className="text-[14.5px] sm:text-[15px] leading-[1.7] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
+                    <blockquote className="my-4 sm:my-5 first:mt-0 border-l-4 border-[#7d7d7d4d] pl-4 py-1 text-[#555] dark:text-[#bbb] not-italic select-text font-sans">
+                      <div className="text-[16px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                         {children}
                       </div>
                     </blockquote>

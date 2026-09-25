@@ -193,8 +193,6 @@ export function TableOfContents({
     };
   }, [list, externalActiveId]);
 
-  if (list.length === 0) return null;
-
   // 3. 点击平滑跳转：状态锁定，杜绝闪烁中间项
   const handleItemClick = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -239,25 +237,30 @@ export function TableOfContents({
       className={`select-none w-full ${className}`}
     >
       <div className="mb-6 flex flex-col items-start">
-        {/* 顶部 ≡ 图标（纯净无框原生排版，严格与下方文字左侧起点同轴） */}
-        <div
-          className={`mb-3.5 flex items-center justify-start transition-colors duration-300 ${
+        {/* 顶部 ≡ 锚点按钮 (28x28 容器，与 Logo 轴心居中对齐，点击平滑置顶) */}
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          title={list.length > 0 ? (currentLocale === "zh-TW" ? "文章目錄 (點擊置頂)" : "文章目录 (点击置顶)") : (currentLocale === "zh-TW" ? "回到頂部" : "回到顶部")}
+          aria-label="回到顶部"
+          className={`ml-1.5 mb-3.5 flex h-7 w-7 items-center justify-center rounded transition-colors duration-300 cursor-pointer ${
             isVisible
               ? "text-neutral-900 dark:text-neutral-100 opacity-90"
-              : "text-neutral-400 dark:text-neutral-500 opacity-60 hover:opacity-90"
+              : "text-neutral-400 dark:text-neutral-500 opacity-50 hover:opacity-90 hover:text-black dark:hover:text-white"
           }`}
         >
           <TocIcon className="w-[18px] h-[16px]" />
-        </div>
+        </button>
         
-        {/* 目录列表：默认以微透明度常驻呈现（平衡版面重心），鼠标悬停或阅读时高亮透出 */}
-        <ul
-          className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-            isVisible
-              ? "opacity-80 pointer-events-auto"
-              : "opacity-35 hover:opacity-80 pointer-events-auto"
-          }`}
-        >
+        {/* 目录列表：仅在有标题且鼠标悬停时平滑浮现 (默认 opacity: 0，悬停 0.7s 慢速渐入) */}
+        {list.length > 0 && (
+          <ul
+            className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+              isVisible
+                ? "opacity-75 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
+            }`}
+          >
           {list.map((item, idx) => {
             const isActive = currentActiveId === item.id;
             const isH2 = item.level <= 2;
@@ -291,6 +294,7 @@ export function TableOfContents({
             );
           })}
         </ul>
+        )}
       </div>
     </nav>
   );
