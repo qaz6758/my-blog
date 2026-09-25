@@ -15,18 +15,30 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+  // 同步读取 blocking script 已注入的 data-locale 属性，确保首帧即为正确语言（零闪跳）
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof document !== "undefined") {
+      const dataLocale = document.documentElement.getAttribute("data-locale") as Locale;
+      if (dataLocale && SUPPORTED_LOCALES.some((l) => l.id === dataLocale)) {
+        return dataLocale;
+      }
+    }
+    return "en";
+  });
 
-  // 初始化语言（全站默认英文，若用户手动切换过则读取保存设置）
+  // 兜底：确保 document.documentElement.lang 与 React state 同步
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      // 若 blocking script 未执行（极端情况），从 localStorage 再次读取
       const saved = localStorage.getItem("blog_lang") as Locale;
       if (saved && SUPPORTED_LOCALES.some((l) => l.id === saved)) {
-        setLocaleState(saved);
+        if (saved !== locale) {
+          setLocaleState(saved);
+        }
         document.documentElement.lang = saved;
       } else {
-        document.documentElement.lang = "en";
+        document.documentElement.lang = locale;
       }
     } catch {
       // ignore

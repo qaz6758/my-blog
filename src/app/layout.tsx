@@ -268,6 +268,16 @@ export default function RootLayout({
                   if (window.location.search && (window.location.search.indexOf('id=') !== -1 || window.location.search.indexOf('playlist=') !== -1)) {
                     docEl.classList.add('hide-playlist-grid');
                   }
+
+                  // 同步读取用户语言偏好，消除首屏 locale 闪跳（与 dark mode 同理）
+                  var savedLang = localStorage.getItem('blog_lang');
+                  var validLangs = ['en','zh-CN','zh-TW','ja','ko'];
+                  if (savedLang && validLangs.indexOf(savedLang) !== -1) {
+                    docEl.setAttribute('data-locale', savedLang);
+                    docEl.lang = savedLang;
+                  } else {
+                    docEl.setAttribute('data-locale', 'en');
+                  }
                 } catch (e) {}
               })();
             `,

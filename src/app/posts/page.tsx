@@ -4,7 +4,7 @@ import { PostsListClient, PostItem } from '@/components/post/PostsListClient';
 import { siteUrl } from '@/lib/site';
 
 export const dynamic = "force-static";
-export const revalidate = 60;
+export const revalidate = 10;
 
 export const metadata: Metadata = {
   title: 'Blog',

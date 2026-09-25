@@ -52,21 +52,18 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
   const { locale } = useI18n();
   const isEn = locale === "en";
 
+  // 1. 当服务端 ISR 刷新后 initialPosts 产生变化时无缝同步最新数据
   React.useEffect(() => {
-    // 1. 本地会话缓存对齐：若之前已获取过最新文章列表，立即在首帧恢复，杜绝按 F5 刷新时出现旧静态标题闪现
+    if (initialPosts && initialPosts.length > 0) {
+      setPosts(initialPosts);
+    }
+  }, [initialPosts]);
+
+  // 2. 客户端兜底与增量同步（严格继承服务端置顶状态，杜绝 Worker 缺失字段引发重排）
+  React.useEffect(() => {
+    // 清理可能包含缺失置顶字段的旧会话缓存
     try {
-      const cached = sessionStorage.getItem("ow_posts_cache_v1");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setPosts((prev) => {
-            if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
-              return parsed;
-            }
-            return prev;
-          });
-        }
-      }
+      sessionStorage.removeItem("ow_posts_cache_v1");
     } catch {}
 
     const workerUrl =
@@ -76,27 +73,46 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
       .then((res) => res.json())
       .then((result) => {
         if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
-          const published = result.data
+          // 建立已有文章索引以保留权威属性
+          const existingMap = new Map<string, PostItem>();
+          [...initialPosts, ...posts].forEach((p) => {
+            if (p.id) existingMap.set(String(p.id).replace(/-/g, ""), p);
+            if (p.slug) existingMap.set(String(p.slug), p);
+          });
+
+          const published: PostItem[] = result.data
             .filter(
               (p: any) =>
-                p.status?.includes('已发布') ||
-                p.status?.includes('Published') ||
-                p.status?.includes('🚀')
+                p.status?.includes("已发布") ||
+                p.status?.includes("Published") ||
+                p.status?.includes("🚀")
             )
-            .map((p: any) => ({
-              ...p,
-              slug: p.slug || p.source_url || p.id,
-            }));
+            .map((p: any) => {
+              const cleanId = String(p.id || "").replace(/-/g, "");
+              const cleanSlug = String(p.slug || p.source_url || "")
+                .replace(/^https?:\/\/[^/]+\/posts\//, "")
+                .replace(/^\/posts\//, "")
+                .replace(/^\//, "");
+              const existing = existingMap.get(cleanId) || (cleanSlug ? existingMap.get(cleanSlug) : undefined);
+
+              return {
+                ...p,
+                slug: cleanSlug || p.slug || p.source_url || p.id,
+                // 核心关键：外部 Worker 缺失 is_pinned 时，100% 继承服务端权威真实的置顶状态
+                is_pinned: (p.is_pinned !== undefined ? p.is_pinned : existing?.is_pinned) ?? false,
+              };
+            });
+
           if (published.length > 0) {
             setPosts((prev) => {
-              if (JSON.stringify(prev) === JSON.stringify(published)) {
+              // 若核心字段与排序均一致，绝不触发不必要的重新渲染
+              const prevSign = prev.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}`).join("|");
+              const nextSign = published.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}`).join("|");
+              if (prevSign === nextSign) {
                 return prev;
               }
               return published;
             });
-            try {
-              sessionStorage.setItem("ow_posts_cache_v1", JSON.stringify(published));
-            } catch {}
           }
         }
       })
@@ -178,6 +194,15 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                       <span className="text-[18px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-800 dark:text-neutral-200 group-hover:text-black dark:group-hover:text-white transition-colors duration-150">
                         {post.title}
                       </span>
+                      {post.is_pinned && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-mono text-neutral-400 dark:text-neutral-500 opacity-80 select-none">
+                          <svg className="w-3 h-3 rotate-45 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="17" x2="12" y2="22" />
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
+                          </svg>
+                          <span>{isEn ? "" : "置顶"}</span>
+                        </span>
+                      )}
                       <span className="shrink-0 font-sans text-[12px] sm:text-[12px] text-neutral-500 dark:text-neutral-400 opacity-60 dark:opacity-50 whitespace-nowrap">
                         {formattedDate}
                         {readTime ? <span> · {readTime}{isEn ? "min" : "分钟"}</span> : ""}
