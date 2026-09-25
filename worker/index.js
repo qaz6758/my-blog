@@ -463,6 +463,8 @@ function richTextToMarkdown(richTextArray) {
 
 function convertBlocksToMarkdown(blocks) {
   const lines = [];
+  let skipEmptyAfterDivider = false;
+
   for (const block of blocks) {
     const type = block.type;
     const data = block[type];
@@ -470,54 +472,87 @@ function convertBlocksToMarkdown(blocks) {
     switch (type) {
       case "paragraph": {
         const text = richTextToMarkdown(data?.rich_text);
+        if (!text && skipEmptyAfterDivider) {
+          break;
+        }
+        if (text) {
+          skipEmptyAfterDivider = false;
+        }
         lines.push(text ? text + "\n" : "&nbsp;\n");
         break;
       }
       case "heading_1":
+        skipEmptyAfterDivider = false;
         lines.push(`\n# ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
       case "heading_2":
+        skipEmptyAfterDivider = false;
         lines.push(`\n## ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
       case "heading_3":
+        skipEmptyAfterDivider = false;
         lines.push(`\n### ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
       case "bulleted_list_item":
+        skipEmptyAfterDivider = false;
         lines.push(`* ${richTextToMarkdown(data?.rich_text)}`);
         break;
       case "numbered_list_item":
+        skipEmptyAfterDivider = false;
         lines.push(`1. ${richTextToMarkdown(data?.rich_text)}`);
         break;
       case "to_do":
+        skipEmptyAfterDivider = false;
         lines.push(`* [${data?.checked ? "x" : " "}] ${richTextToMarkdown(data?.rich_text)}`);
         break;
       case "quote":
+        skipEmptyAfterDivider = false;
         lines.push(`> ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
-      case "code":
+      case "code": {
+        skipEmptyAfterDivider = false;
         const codeText = (data?.rich_text || []).map((t) => t.plain_text).join("");
         const lang = data?.language || "";
         lines.push(`\n\`\`\`${lang}\n${codeText}\n\`\`\`\n`);
         break;
+      }
       case "callout":
+        skipEmptyAfterDivider = false;
         lines.push(`> 💡 ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
-      case "divider":
+      case "divider": {
+        while (lines.length > 0 && (lines[lines.length - 1] === "&nbsp;\n" || lines[lines.length - 1].trim() === "")) {
+          lines.pop();
+        }
         lines.push(`\n---\n`);
+        skipEmptyAfterDivider = true;
         break;
-      case "image":
+      }
+      case "image": {
         const imgUrl = data?.file?.url || data?.external?.url || "";
         const caption = (data?.caption || []).map((t) => t.plain_text).join("") || "配图";
-        if (imgUrl) lines.push(`\n![${caption}](${imgUrl})\n`);
+        if (imgUrl) {
+          skipEmptyAfterDivider = false;
+          lines.push(`\n![${caption}](${imgUrl})\n`);
+        }
         break;
+      }
       case "bookmark":
-      case "link_preview":
+      case "link_preview": {
         const url = data?.url || "";
-        if (url) lines.push(`\n[${url}](${url})\n`);
+        if (url) {
+          skipEmptyAfterDivider = false;
+          lines.push(`\n[${url}](${url})\n`);
+        }
         break;
+      }
       default:
         if (data?.rich_text) {
-          lines.push(richTextToMarkdown(data.rich_text) + "\n");
+          const content = richTextToMarkdown(data.rich_text);
+          if (content.trim()) {
+            skipEmptyAfterDivider = false;
+            lines.push(content + "\n");
+          }
         }
         break;
     }

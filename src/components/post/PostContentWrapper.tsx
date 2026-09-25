@@ -809,6 +809,12 @@ function PostContentWrapperInternal({
     text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
     [&>*:first-child]:mt-0
     [&_p]:mb-4
+    [&_p:has(+hr)]:!mb-0
+    [&_.empty-placeholder:has(+hr)]:hidden
+    [&_hr+.empty-placeholder]:hidden
+    [&_hr+.empty-placeholder+.empty-placeholder]:hidden
+    [&_hr+blockquote]:!mt-0
+    [&_hr+h1]:!mt-0 [&_hr+h2]:!mt-0 [&_hr+h3]:!mt-0
     [&_blockquote+.empty-placeholder]:hidden [&_.empty-placeholder:has(+h1)]:hidden [&_.empty-placeholder:has(+h2)]:hidden [&_.empty-placeholder:has(+h3)]:hidden
     [&_blockquote+h1]:!mt-6 [&_blockquote+h2]:!mt-6 [&_blockquote+h3]:!mt-5
 
@@ -843,7 +849,7 @@ function PostContentWrapperInternal({
 
     [&_tr:nth-child(even)]:bg-transparent
 
-    [&_hr]:my-8 sm:[&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
+    [&_hr]:my-8 sm:[&_hr]:my-10 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
 
   const markdownComponents = useMemo(
@@ -1105,6 +1111,10 @@ function PostContentWrapperInternal({
           </a>
         );
       },
+
+      hr: () => (
+        <hr className="my-8 sm:my-10 border-0 border-t border-neutral-200 dark:border-neutral-800" />
+      ),
     }),
     [locale]
   );
