@@ -70,59 +70,98 @@ export function TableOfContents({
       if (!articleEl) return false;
 
       const elements = articleEl.querySelectorAll("h2, h3, h4");
-      if (elements.length === 0) return false;
+      if (elements.length === 0) {
+        setDomList([]);
+        return false;
+      }
 
       const extracted: TocItem[] = [];
       const seenIds = new Set<string>();
 
       elements.forEach((el, index) => {
-        let id = el.getAttribute("id");
         const text = (el.textContent || "").trim();
         const level = Number(el.tagName.replace("H", "")) || 2;
 
         if (!text) return;
 
-        // 若标题无原生 id 或存在重复，自动生成唯一规范 slug
-        if (!id || seenIds.has(id)) {
-          const slug = text
-            .toLowerCase()
-            .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
-            .replace(/^-+|-+$/g, "")
-            .slice(0, 40);
+        // 生成唯一规范 slug
+        const slug = text
+          .toLowerCase()
+          .replace(/[^\w\u4e00-\u9fa5\d-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 40);
 
-          id = seenIds.has(id || slug)
-            ? `${slug || "heading"}-${index}`
-            : slug || `heading-${index}`;
+        const uniqueId = seenIds.has(slug)
+          ? `${slug || "heading"}-${index}`
+          : slug || `heading-${index}`;
 
-          el.setAttribute("id", id);
-        }
-
-        seenIds.add(id);
-        extracted.push({ id, text, level });
+        el.setAttribute("id", uniqueId);
+        seenIds.add(uniqueId);
+        extracted.push({ id: uniqueId, text, level });
       });
 
       if (extracted.length > 0) {
-        setDomList(extracted);
-        setInternalActiveId((prev) => prev || extracted[0].id);
+        setDomList((prev) => {
+          if (
+            prev.length === extracted.length &&
+            prev.every(
+              (item, i) =>
+                item.id === extracted[i].id &&
+                item.text === extracted[i].text &&
+                item.level === extracted[i].level
+            )
+          ) {
+            return prev;
+          }
+          return extracted;
+        });
+        setInternalActiveId((prev) => {
+          if (extracted.some((item) => item.id === prev)) return prev;
+          return extracted[0].id;
+        });
         return true;
+      } else {
+        setDomList([]);
+        return false;
       }
-
-      return false;
     };
 
     // 初始扫描与渐进式多阶段重试，确保无缝捕获异步翻译与 DOM 重排后的最新标题
     extractHeadings();
 
-    const t1 = setTimeout(extractHeadings, 80);
-    const t2 = setTimeout(extractHeadings, 250);
-    const t3 = setTimeout(extractHeadings, 600);
-    const t4 = setTimeout(extractHeadings, 1200);
+    let observer: MutationObserver | null = null;
+    const setupObserver = () => {
+      if (observer) return;
+      const target =
+        document.querySelector(".post-article") ||
+        document.querySelector("article");
+      if (target && typeof MutationObserver !== "undefined") {
+        observer = new MutationObserver(() => {
+          extractHeadings();
+        });
+        observer.observe(target, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+      }
+    };
+
+    setupObserver();
+
+    const t1 = setTimeout(() => { extractHeadings(); setupObserver(); }, 80);
+    const t2 = setTimeout(() => { extractHeadings(); setupObserver(); }, 250);
+    const t3 = setTimeout(() => { extractHeadings(); setupObserver(); }, 600);
+    const t4 = setTimeout(() => { extractHeadings(); setupObserver(); }, 1200);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(t4);
+      if (observer) {
+        observer.disconnect();
+      }
     };
   }, [propList, contentKey, currentLocale]);
 

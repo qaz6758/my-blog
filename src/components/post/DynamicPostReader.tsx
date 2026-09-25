@@ -185,13 +185,18 @@ function normalizeText(text: string): string {
 
     // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
     if (initialPost) {
-      if (post?.id !== initialPost.id) {
+      if (
+        !post ||
+        post.id !== initialPost.id ||
+        post.title !== initialPost.title ||
+        post.content !== initialPost.content
+      ) {
         setPost(initialPost);
         setMode("post");
         setLoading(false);
       }
       
-      // 开启 SWR 后台静默校验：延迟 3.5 秒执行，确保首屏进场动画（1s）完全播放完毕且浏览器空闲
+      // 开启 SWR 后台静默校验：短延时（300ms）执行，迅速校准后台修改，杜绝数秒后阅读时突兀跳变
       const rawId = String(initialPost.id || "").replace(/-/g, "");
       const cleanTargetId = rawId.length === 32 ? rawId : undefined;
       if (!cleanTargetId) return;
@@ -228,7 +233,7 @@ function normalizeText(text: string): string {
             }
           })
           .catch(() => {});
-      }, 3500);
+      }, 300);
 
       return () => clearTimeout(swrTimer);
     }
@@ -376,7 +381,7 @@ function normalizeText(text: string): string {
                 <TableOfContents
                   key={`${post.id}_${globalLocale}`}
                   isArticleHovered={isArticleHovered}
-                  contentKey={`${displayTitle}_${(displayContent || "").slice(0, 80)}_${globalLocale}`}
+                  contentKey={`${displayTitle}_${displayContent}_${globalLocale}`}
                   locale={globalLocale}
                 />
               </aside>
