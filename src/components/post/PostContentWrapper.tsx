@@ -1,9 +1,13 @@
 // src/components/post/PostContentWrapper.tsx
+
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+
 import { createPortal } from "react-dom";
+
 import { AnimatePresence, motion } from "framer-motion";
+
 import {
   Copy,
   Check,
@@ -13,36 +17,60 @@ import {
   AlertTriangle,
   AlertOctagon,
 } from "lucide-react";
+
 import ReactMarkdown from "react-markdown";
+
 import remarkGfm from "remark-gfm";
+
 import Prism from "prismjs";
+
 import { slugifyHeading } from "@/lib/utils";
+
 import { getProxyImageUrl } from "@/lib/image-proxy";
+
 import { useI18n } from "@/lib/i18n/I18nContext";
 
 // Prism 常用语言语法解析支持
+
 import "prismjs/components/prism-javascript";
+
 import "prismjs/components/prism-typescript";
+
 import "prismjs/components/prism-jsx";
+
 import "prismjs/components/prism-tsx";
+
 import "prismjs/components/prism-css";
+
 import "prismjs/components/prism-bash";
+
 import "prismjs/components/prism-json";
+
 import "prismjs/components/prism-python";
+
 import "prismjs/components/prism-sql";
+
 import "prismjs/components/prism-markdown";
+
 import "prismjs/components/prism-yaml";
+
 import "prismjs/components/prism-rust";
+
 import "prismjs/components/prism-go";
+
 import "prismjs/components/prism-java";
+
 import "prismjs/components/prism-c";
+
 import "prismjs/components/prism-cpp";
 
-const COPY_SVG = `<svg class="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+const COPY_SVG = `<svg class="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+
 const CHECK_SVG = `<svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 function processAndOptimizeHtml(rawHtml: string): string {
   if (!rawHtml) return "";
+
   let cleaned = rawHtml;
 
   // 1. 如果包含完整的 body 标签，优先提取 body 内部正文
@@ -101,7 +129,9 @@ function processAndOptimizeHtml(rawHtml: string): string {
       (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
       !rawSrc.includes("wsrv.nl")
     ) {
-      optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
+      optimizedSrc = getProxyImageUrl(
+        `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`
+      );
     }
 
     const isCutout =
@@ -125,17 +155,23 @@ function processAndOptimizeHtml(rawHtml: string): string {
     if (attrs.includes("data-styled")) return match;
 
     return `<div class="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]">
+
   <button type="button" data-action="copy-code" aria-label="复制代码" class="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none">
     ${COPY_SVG}
   </button>
+
   <pre ${attrs} data-styled="true" class="overflow-x-auto p-4 sm:p-5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-800 dark:text-neutral-200 font-mono">${innerCode}</pre>
+
 </div>`;
   });
 
   // 6. 将原生 <blockquote> 转为高质感 GitHub Alert / Note 引用卡片（方案 B：无论是否有 [!NOTE]，所有引用块全部变成 Note 提示卡片）
   cleaned = cleaned.replace(/<blockquote\b([^>]*)>([\s\S]*?)<\/blockquote>/gi, (match, attrs, inner) => {
     const textOnly = inner.replace(/<[^>]+>/g, "").trim();
-    const alertMatch = textOnly.match(/^(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)/i);
+
+    const alertMatch = textOnly.match(
+      /^(\[!? ?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)/i
+    );
 
     const configMap: Record<string, { title: string; border: string; color: string; svg: string }> = {
       note: {
@@ -178,23 +214,36 @@ function processAndOptimizeHtml(rawHtml: string): string {
     }
 
     const rawKey = (alertMatch[2] || alertMatch[3] || "note").toLowerCase();
-    typeKey = rawKey.includes("warn") ? "warning" : rawKey.includes("tip") ? "tip" : rawKey.includes("import") ? "important" : rawKey.includes("caut") ? "caution" : "note";
+
+    typeKey =
+      rawKey.includes("warn")
+        ? "warning"
+        : rawKey.includes("tip")
+          ? "tip"
+          : rawKey.includes("import")
+            ? "important"
+            : rawKey.includes("caut")
+              ? "caution"
+              : "note";
 
     cleanedInner = inner.replace(
-      /^\s*(<p[^>]*>)?\s*(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)\s*(<br\s*\/?>)?/i,
+      /^\s*(<p[^>]*>)?\s*(\[!? ?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)(\s*(<br\s*\/?>)?)/i,
       "$1"
     );
 
     const c = configMap[typeKey] || configMap.note;
 
     return `<div class="my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${c.border} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text">
+
   <div class="flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${c.color} mb-1 select-none">
     ${c.svg}
     <span>${c.title}</span>
   </div>
+
   <div class="text-[14.5px] sm:text-[15px] leading-[1.7] text-neutral-700 dark:text-neutral-300 font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
     ${cleanedInner}
   </div>
+
 </div>`;
   });
 
@@ -224,6 +273,7 @@ const ALERT_MAP: Record<
     titleColor: "text-[#0969da] dark:text-[#2f81f7]",
     icon: Info,
   },
+
   tip: {
     key: "tip",
     title: "提示",
@@ -231,6 +281,7 @@ const ALERT_MAP: Record<
     titleColor: "text-[#1a7f37] dark:text-[#3fb950]",
     icon: Lightbulb,
   },
+
   important: {
     key: "important",
     title: "重要",
@@ -238,6 +289,7 @@ const ALERT_MAP: Record<
     titleColor: "text-[#8250df] dark:text-[#a371f7]",
     icon: Flame,
   },
+
   warning: {
     key: "warning",
     title: "警告",
@@ -245,6 +297,7 @@ const ALERT_MAP: Record<
     titleColor: "text-[#9a6700] dark:text-[#d29922]",
     icon: AlertTriangle,
   },
+
   caution: {
     key: "caution",
     title: "注意",
@@ -262,6 +315,7 @@ const ALERT_TITLES: Record<string, Record<string, string>> = {
     ja: "ノート",
     ko: "메모",
   },
+
   tip: {
     "zh-CN": "提示",
     "zh-TW": "提示",
@@ -269,6 +323,7 @@ const ALERT_TITLES: Record<string, Record<string, string>> = {
     ja: "ヒント",
     ko: "팁",
   },
+
   important: {
     "zh-CN": "重要",
     "zh-TW": "重要",
@@ -276,6 +331,7 @@ const ALERT_TITLES: Record<string, Record<string, string>> = {
     ja: "重要",
     ko: "중요",
   },
+
   warning: {
     "zh-CN": "警告",
     "zh-TW": "警告",
@@ -283,6 +339,7 @@ const ALERT_TITLES: Record<string, Record<string, string>> = {
     ja: "警告",
     ko: "경고",
   },
+
   caution: {
     "zh-CN": "注意",
     "zh-TW": "注意",
@@ -294,45 +351,59 @@ const ALERT_TITLES: Record<string, Record<string, string>> = {
 
 function getAlertConfig(text: string) {
   const trimmed = text.trim();
+
   const gfmMatch = trimmed.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i);
+
   if (gfmMatch) {
     const key = gfmMatch[1].toLowerCase();
     return ALERT_MAP[key] || ALERT_MAP.note;
   }
+
   const prefixMatch = trimmed.match(/^(Note|Tip|Important|Warning|Caution):/i);
+
   if (prefixMatch) {
     const key = prefixMatch[1].toLowerCase();
     return ALERT_MAP[key] || ALERT_MAP.note;
   }
+
   if (/^(\(i\)|ℹ️|💡)\s*(Note|提示|注意|说明)?/i.test(trimmed)) {
     return ALERT_MAP.note;
   }
+
   if (/^⚠️\s*(Warning|警告|注意)?/i.test(trimmed)) {
     return ALERT_MAP.warning;
   }
+
   return null;
 }
 
 function stripAlertPrefix(children: React.ReactNode): React.ReactNode {
   const childArray = React.Children.toArray(children);
+
   if (childArray.length === 0) return children;
 
   const regex =
-    /^\s*(\[!?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)\s*/i;
+    /^\s*(\[!? ?(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]|(Note|Tip|Important|Warning|Caution):|\(i\)\s*Note|ℹ️\s*(Note|提示|注意|说明)?|💡\s*(Tip|提示|注意)?|⚠️\s*(Warning|警告|注意)?)\s*/i;
 
   const firstChild = childArray[0];
 
   if (React.isValidElement(firstChild)) {
     const pProps = firstChild.props as { children?: React.ReactNode };
+
     if (pProps && pProps.children) {
       const pChildrenArray = React.Children.toArray(pProps.children);
+
       if (pChildrenArray.length > 0) {
         const firstPChild = pChildrenArray[0];
+
         if (typeof firstPChild === "string") {
           const stripped = firstPChild.replace(regex, "");
+
           let nextPChildren: React.ReactNode[];
+
           if (!stripped.trim()) {
             nextPChildren = pChildrenArray.slice(1);
+
             if (
               nextPChildren.length > 0 &&
               React.isValidElement(nextPChildren[0]) &&
@@ -364,9 +435,11 @@ function stripAlertPrefix(children: React.ReactNode): React.ReactNode {
     }
   } else if (typeof firstChild === "string") {
     const stripped = firstChild.replace(regex, "");
+
     if (!stripped.trim()) {
       return childArray.slice(1);
     }
+
     return [stripped, ...childArray.slice(1)];
   }
 
@@ -375,12 +448,36 @@ function stripAlertPrefix(children: React.ReactNode): React.ReactNode {
 
 function getNodeText(node: React.ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
-  if (Array.isArray(node)) return node.map(getNodeText).join("");
+
+  if (Array.isArray(node)) {
+    return node.map(getNodeText).join("");
+  }
+
   if (React.isValidElement(node)) {
     const props = node.props as { children?: React.ReactNode };
+
     return props && props.children ? getNodeText(props.children) : "";
   }
+
   return "";
+}
+
+function preserveMarkdownWhitespace(md: string): string {
+  if (!md) return "";
+  // 1. 支持直接书写 <br> 或 <br/> 换行
+  const withBr = md.replace(/<br\s*\/?>/gi, "  \n");
+
+  // 2. 将代码块以外的连续 3 个及以上换行（连续回车空行）保留为 &nbsp; 占位段落，避免被 Markdown 引擎合并吞掉
+  const parts = withBr.split(/(```[\s\S]*?```)/g);
+  return parts
+    .map((part, index) => {
+      if (index % 2 === 1) return part;
+      return part.replace(/\n{3,}/g, (match) => {
+        const extraCount = match.length - 2;
+        return "\n\n" + Array(extraCount).fill("&nbsp;").join("\n\n") + "\n\n";
+      });
+    })
+    .join("");
 }
 
 function CodeBlock({ language, code }: { language: string; code: string }) {
@@ -388,7 +485,9 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
 
   const highlighted = useMemo(() => {
     if (!code) return "";
+
     const cleanLang = (language || "").toLowerCase().trim();
+
     const langMap: Record<string, string> = {
       ts: "typescript",
       js: "javascript",
@@ -400,6 +499,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
       xml: "markup",
       md: "markdown",
     };
+
     const targetLang = langMap[cleanLang] || cleanLang;
     const grammar = Prism.languages[targetLang] || Prism.languages.javascript;
 
@@ -410,12 +510,14 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
         return "";
       }
     }
+
     return "";
   }, [code, language]);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
@@ -461,19 +563,27 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   );
 }
 
-function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: PostContentWrapperProps) {
+function PostContentWrapperInternal({
+  content,
+  isHtml,
+  locale: propLocale,
+}: PostContentWrapperProps) {
   const { locale: contextLocale } = useI18n();
   const locale = propLocale || contextLocale;
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [activeImg, setActiveImg] = useState<{ src: string; alt: string } | null>(null);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const [activeImg, setActiveImg] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
 
   const cleanHtmlContent = useMemo(() => {
     return isHtml ? processAndOptimizeHtml(content) : content;
+  }, [content, isHtml]);
+
+  const formattedMarkdown = useMemo(() => {
+    return isHtml ? content : preserveMarkdownWhitespace(content);
   }, [content, isHtml]);
 
   useEffect(() => {
@@ -483,30 +593,51 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
 
     preElements.forEach((pre) => {
       // 1. 如果没有在 code-block-wrapper 容器中，动态包裹为极简样式
-      if (pre.parentElement && !pre.parentElement.classList.contains("code-block-wrapper")) {
+      if (
+        pre.parentElement &&
+        !pre.parentElement.classList.contains("code-block-wrapper")
+      ) {
         const wrapper = document.createElement("div");
+
         wrapper.className =
           "code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]";
 
         const copyBtn = document.createElement("button");
+
         copyBtn.type = "button";
         copyBtn.setAttribute("data-action", "copy-code");
         copyBtn.setAttribute("aria-label", "复制代码");
+
         copyBtn.className =
           "absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none";
+
         copyBtn.innerHTML = COPY_SVG;
 
         pre.parentNode?.insertBefore(wrapper, pre);
         wrapper.appendChild(copyBtn);
         wrapper.appendChild(pre);
-        pre.classList.add("overflow-x-auto", "p-4", "sm:p-5", "text-[13px]", "sm:text-[14px]", "leading-relaxed", "text-neutral-800", "dark:text-neutral-200", "font-mono");
+
+        pre.classList.add(
+          "overflow-x-auto",
+          "p-4",
+          "sm:p-5",
+          "text-[13px]",
+          "sm:text-[14px]",
+          "leading-relaxed",
+          "text-neutral-800",
+          "dark:text-neutral-200",
+          "font-mono"
+        );
       }
 
       // 2. 语法高亮
       const codeEl = pre.querySelector("code");
+
       if (codeEl && pre.getAttribute("data-highlighted") !== "true") {
         pre.setAttribute("data-highlighted", "true");
+
         const match = (codeEl.className || "").match(/language-(\w+)/);
+
         if (match) {
           Prism.highlightElement(codeEl);
         }
@@ -514,41 +645,67 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
     });
   }, [cleanHtmlContent, isHtml]);
 
-  const handleContentClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleContentClick = async (
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
     const target = e.target as HTMLElement;
 
-    const copyBtn = target.closest<HTMLButtonElement>('button[data-action="copy-code"]');
+    const copyBtn =
+      target.closest<HTMLButtonElement>('button[data-action="copy-code"]');
+
     if (copyBtn) {
       e.preventDefault();
       e.stopPropagation();
 
-      const block = copyBtn.closest(".code-block-wrapper") || copyBtn.closest("pre");
-      const codeEl = block?.querySelector("code") || block?.querySelector("pre") || block;
+      const block =
+        copyBtn.closest(".code-block-wrapper") ||
+        copyBtn.closest("pre");
+
+      const codeEl =
+        block?.querySelector("code") ||
+        block?.querySelector("pre") ||
+        block;
+
       if (!codeEl) return;
 
       try {
-        const textToCopy = (codeEl as HTMLElement).innerText || codeEl.textContent || "";
+        const textToCopy =
+          (codeEl as HTMLElement).innerText ||
+          codeEl.textContent ||
+          "";
+
         await navigator.clipboard.writeText(textToCopy);
+
         copyBtn.innerHTML = CHECK_SVG;
+
         setTimeout(() => {
           if (copyBtn) copyBtn.innerHTML = COPY_SVG;
         }, 2000);
       } catch (err) {
         console.error("复制失败:", err);
       }
+
       return;
     }
 
     if (target.tagName === "IMG") {
       e.preventDefault();
       e.stopPropagation();
+
       const img = target as HTMLImageElement;
-      const rawOriginal = img.getAttribute("data-original-src") || img.src;
+
+      const rawOriginal =
+        img.getAttribute("data-original-src") || img.src;
+
       const isNotionOrAws =
         rawOriginal.includes("amazonaws.com") ||
         rawOriginal.includes("notion.so") ||
         rawOriginal.includes("notion-static.com");
-      const originalSrc = isNotionOrAws ? (img.currentSrc || img.src) : rawOriginal;
+
+      const originalSrc = isNotionOrAws
+        ? img.currentSrc || img.src
+        : rawOriginal;
+
       setActiveImg({
         src: originalSrc,
         alt: img.alt || "文章配图",
@@ -566,7 +723,9 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
     };
 
     const originalOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
+
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
@@ -579,22 +738,317 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
     text-[16px] leading-[1.75] text-[#555] dark:text-[#bbb] font-sans tracking-normal
     [&>*:first-child]:mt-0
     [&_p]:mb-4
+
     [&_h1]:scroll-mt-24 [&_h1]:text-2xl sm:[&_h1]:text-[32px] [&_h1]:font-extrabold [&_h1]:font-sans [&_h1]:mt-12 sm:[&_h1]:mt-14 [&_h1]:mb-4 [&_h1]:text-black dark:[&_h1]:text-white [&_h1]:leading-[1.15] [&_h1]:tracking-tight
+
     [&_h2]:scroll-mt-24 [&_h2]:text-[22px] sm:[&_h2]:text-[26px] [&_h2]:font-bold [&_h2]:font-sans [&_h2]:mt-12 sm:[&_h2]:mt-14 [&_h2]:mb-3.5 sm:[&_h2]:mb-4 [&_h2]:text-black dark:[&_h2]:text-white [&_h2]:leading-[1.3] [&_h2]:tracking-tight
+
     [&_h3]:scroll-mt-24 [&_h3]:text-[19px] sm:[&_h3]:text-[21px] [&_h3]:font-bold [&_h3]:font-sans [&_h3]:mt-10 sm:[&_h3]:mt-12 [&_h3]:mb-3 [&_h3]:text-black dark:[&_h3]:text-white [&_h3]:leading-[1.33] [&_h3]:tracking-tight
+
     [&_h4]:scroll-mt-24 [&_h4]:text-[16.5px] sm:[&_h4]:text-[17.5px] [&_h4]:font-bold [&_h4]:font-sans [&_h4]:mt-8 [&_h4]:mb-2.5 [&_h4]:text-black dark:[&_h4]:text-white [&_h4]:leading-[1.4]
+
     [&_strong]:font-semibold [&_strong]:text-black dark:[&_strong]:text-white
+
     [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5
+
     [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5
+
     [&_li]:leading-[1.75]
+
     [&_img]:rounded-md [&_img]:mx-auto [&_img]:my-8 [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:transition-transform [&_img]:duration-200 hover:[&_img]:scale-[1.005] [&_img]:shadow-sm
+
     [&_a]:prose-link
+
     [&_table]:w-full [&_table]:overflow-x-auto [&_table]:block sm:[&_table]:table [&_table]:border-collapse [&_table]:my-6
+
     [&_th]:border-b [&_th]:border-neutral-200 dark:[&_th]:border-neutral-800 [&_th]:px-4 [&_th]:py-2.5 [&_th]:bg-transparent [&_th]:font-semibold [&_th]:text-neutral-900 dark:[&_th]:text-neutral-100 [&_th]:text-left
+
     [&_td]:border-b [&_td]:border-neutral-200 dark:[&_td]:border-neutral-800 [&_td]:px-4 [&_td]:py-2.5 [&_td]:text-[#555] dark:[&_td]:text-[#bbb]
+
     [&_tr:nth-child(even)]:bg-transparent
+
     [&_hr]:my-8 sm:[&_hr]:my-10 [&_hr]:border-neutral-200 dark:[&_hr]:border-neutral-800
   `;
+
+  const markdownComponents = useMemo(
+    () => ({
+      // 段落渲染：如果为空白占位段落（如 &nbsp; 或纯空白），渲染为标准高度的自然空行占位
+      p: ({
+        children,
+        node,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const text = getNodeText(children);
+        if (text === "\u00A0" || text === "&nbsp;" || !text.trim()) {
+          return <div aria-hidden="true" className="h-6 sm:h-7 select-none" />;
+        }
+        return <p {...props}>{children}</p>;
+      },
+
+      // 引用块渲染：普通引用（如名人名言、对话、副标题导言）保持极简高雅引用；带 [!NOTE] / [!TIP] 标识时渲染为 Note/Tip 提示卡片
+      blockquote: ({
+        children,
+        node,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const text = getNodeText(children).trim();
+        const alertConfig = getAlertConfig(text);
+
+        // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净 4px 微透竖线 + 16px 字号）
+        if (!alertConfig) {
+          return (
+            <blockquote className="my-4 sm:my-5 first:mt-0 border-l-4 border-[#7d7d7d4d] pl-4 py-1 text-[#555] dark:text-[#bbb] not-italic select-text font-sans">
+              <div className="text-[16px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
+                {children}
+              </div>
+            </blockquote>
+          );
+        }
+
+        const AlertIcon = alertConfig.icon;
+        const cleanChildren = stripAlertPrefix(children);
+
+        const alertTitle =
+          ALERT_TITLES[alertConfig.key]?.[locale] ||
+          ALERT_TITLES[alertConfig.key]?.["zh-CN"] ||
+          alertConfig.title;
+
+        return (
+          <div
+            className={`my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${alertConfig.borderColor} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text transition-colors`}
+          >
+            <div
+              className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-1 select-none`}
+            >
+              <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
+              <span>{alertTitle}</span>
+            </div>
+
+            <div className="text-[14.5px] sm:text-[15px] leading-[1.7] text-neutral-700 dark:text-neutral-300 font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
+              {cleanChildren}
+            </div>
+          </div>
+        );
+      },
+
+      h1: ({
+        children,
+        node,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const id = slugifyHeading(getNodeText(children));
+
+        return (
+          <h2
+            id={id}
+            className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]"
+            {...props}
+          >
+            {children}
+          </h2>
+        );
+      },
+
+      h2: ({
+        children,
+        node,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const id = slugifyHeading(getNodeText(children));
+
+        return (
+          <h2
+            id={id}
+            className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]"
+            {...props}
+          >
+            {children}
+          </h2>
+        );
+      },
+
+      h3: ({
+        children,
+        node,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const id = slugifyHeading(getNodeText(children));
+
+        return (
+          <h3
+            id={id}
+            className="text-[19px] sm:text-[21px] font-bold mt-10 sm:mt-12 mb-3 text-black dark:text-white font-sans tracking-tight leading-[1.33]"
+            {...props}
+          >
+            {children}
+          </h3>
+        );
+      },
+
+      h4: ({
+        children,
+        node,
+        ...props
+      }: {
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const id = slugifyHeading(getNodeText(children));
+
+        return (
+          <h4
+            id={id}
+            className="text-[16.5px] sm:text-[17.5px] font-bold mt-8 mb-2.5 text-black dark:text-white font-sans tracking-tight leading-[1.4]"
+            {...props}
+          >
+            {children}
+          </h4>
+        );
+      },
+
+      pre: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+
+      code: ({
+        className,
+        children,
+        node,
+        ...props
+      }: {
+        className?: string;
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const match = /language-(\w+)/.exec(className || "");
+        const codeString = String(children).replace(/\n$/, "");
+        const isInline = !match && !codeString.includes("\n");
+
+        if (isInline) {
+          return (
+            <code
+              className="rounded bg-[#aaaaaa18] dark:bg-[#ffffff15] px-1.5 py-0.5 text-[13px] sm:text-[13.5px] font-mono font-medium text-[#222] dark:text-[#ddd]"
+              {...props}
+            >
+              {children}
+            </code>
+          );
+        }
+
+        return (
+          <CodeBlock
+            language={match ? match[1] : "text"}
+            code={codeString}
+          />
+        );
+      },
+
+      img: ({
+        src,
+        alt,
+        node,
+        ...props
+      }: {
+        src?: string;
+        alt?: string;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const rawSrc = typeof src === "string" ? src : "";
+        let optimizedSrc = rawSrc;
+
+        const isNotionOrAws =
+          rawSrc.includes("amazonaws.com") ||
+          rawSrc.includes("notion.so") ||
+          rawSrc.includes("notion-static.com");
+
+        if (isNotionOrAws) {
+          optimizedSrc = getProxyImageUrl(rawSrc);
+        } else if (
+          (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
+          !rawSrc.includes("wsrv.nl")
+        ) {
+          optimizedSrc = getProxyImageUrl(
+            `https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`
+          );
+        }
+
+        const isCutout =
+          rawSrc.toLowerCase().includes("cutout") ||
+          rawSrc.toLowerCase().includes("head") ||
+          rawSrc.toLowerCase().includes("avatar") ||
+          (typeof alt === "string" &&
+            /人物|头部|头像|抠图|太夫|吉野|阿乙|武藏|小图|插画|portrait|cutout/i.test(
+              alt
+            ));
+
+        const imgClass = isCutout
+          ? "!ml-0 !mr-auto block my-6 w-auto max-w-[240px] sm:max-w-[280px] max-h-[380px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01]"
+          : "mx-auto my-6 max-w-full max-h-[580px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01] sm:rounded-xl";
+
+        return (
+          <img
+            src={optimizedSrc}
+            alt={alt || "文章配图"}
+            data-original-src={isNotionOrAws ? optimizedSrc : rawSrc}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            className={imgClass}
+            {...props}
+          />
+        );
+      },
+
+      a: ({
+        href,
+        children,
+        node,
+        ...props
+      }: {
+        href?: string;
+        children?: React.ReactNode;
+        node?: unknown;
+        [key: string]: unknown;
+      }) => {
+        const isExternal =
+          href?.startsWith("http://") || href?.startsWith("https://");
+
+        return (
+          <a
+            href={href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
+            className="text-sky-600 underline underline-offset-4 transition-colors hover:text-sky-500 dark:text-sky-400"
+            {...props}
+          >
+            {children}
+          </a>
+        );
+      },
+    }),
+    [locale]
+  );
 
   return (
     <>
@@ -613,6 +1067,7 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
         .dark .token.keyword { color: #e06c75; font-weight: 500; }
         .token.function, .token.class-name { color: #0284c7; }
         .dark .token.function, .dark .token.class-name { color: #61afef; }
+
         .code-block-wrapper pre {
           margin: 0 !important;
           background: transparent !important;
@@ -637,161 +1092,14 @@ function PostContentWrapperInternal({ content, isHtml, locale: propLocale }: Pos
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            components={{
-              // 引用块渲染：普通引用（如名人名言、对话、副标题导言）保持极简高雅引用；带 [!NOTE]/[!TIP] 标识时渲染为 Note/Tip 提示卡片
-              blockquote: ({ children, node, ...props }) => {
-                const text = getNodeText(children).trim();
-                const alertConfig = getAlertConfig(text);
-
-                // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（纯净 4px 微透竖线 + 16px 字号）
-                if (!alertConfig) {
-                  return (
-                    <blockquote className="my-4 sm:my-5 first:mt-0 border-l-4 border-[#7d7d7d4d] pl-4 py-1 text-[#555] dark:text-[#bbb] not-italic select-text font-sans">
-                      <div className="text-[16px] leading-[1.75] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
-                        {children}
-                      </div>
-                    </blockquote>
-                  );
-                }
-
-                const AlertIcon = alertConfig.icon;
-                const cleanChildren = stripAlertPrefix(children);
-                const alertTitle =
-                  ALERT_TITLES[alertConfig.key]?.[locale] ||
-                  ALERT_TITLES[alertConfig.key]?.["zh-CN"] ||
-                  alertConfig.title;
-
-                return (
-                  <div
-                    className={`my-4 sm:my-5 first:mt-0 border-l-[2.5px] ${alertConfig.borderColor} pl-3.5 sm:pl-4 py-0.5 bg-transparent not-italic select-text transition-colors`}
-                  >
-                    <div className={`flex items-center gap-1.5 text-[14px] sm:text-[14.5px] font-medium ${alertConfig.titleColor} mb-1 select-none`}>
-                      <AlertIcon className="h-4 w-4 shrink-0 stroke-[2.2]" />
-                      <span>{alertTitle}</span>
-                    </div>
-                    <div className="text-[14.5px] sm:text-[15px] leading-[1.7] text-neutral-700 dark:text-neutral-300 font-sans [&>p]:mb-0 [&>p:not(:last-child)]:mb-2">
-                      {cleanChildren}
-                    </div>
-                  </div>
-                );
-              },
-              h1: ({ children, node, ...props }) => {
-                const id = slugifyHeading(getNodeText(children));
-                return (
-                  <h2 id={id} className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
-                    {children}
-                  </h2>
-                );
-              },
-              h2: ({ children, node, ...props }) => {
-                const id = slugifyHeading(getNodeText(children));
-                return (
-                  <h2 id={id} className="text-[22px] sm:text-[25px] font-bold mt-12 sm:mt-14 mb-3.5 sm:mb-4 text-black dark:text-white font-sans tracking-tight leading-[1.3]" {...props}>
-                    {children}
-                  </h2>
-                );
-              },
-              h3: ({ children, node, ...props }) => {
-                const id = slugifyHeading(getNodeText(children));
-                return (
-                  <h3 id={id} className="text-[19px] sm:text-[21px] font-bold mt-10 sm:mt-12 mb-3 text-black dark:text-white font-sans tracking-tight leading-[1.33]" {...props}>
-                    {children}
-                  </h3>
-                );
-              },
-              h4: ({ children, node, ...props }) => {
-                const id = slugifyHeading(getNodeText(children));
-                return (
-                  <h4 id={id} className="text-[16.5px] sm:text-[17.5px] font-bold mt-8 mb-2.5 text-black dark:text-white font-sans tracking-tight leading-[1.4]" {...props}>
-                    {children}
-                  </h4>
-                );
-              },
-              pre: ({ children }) => <>{children}</>,
-              code: ({ className, children, node, ...props }) => {
-                const match = /language-(\w+)/.exec(className || "");
-                const codeString = String(children).replace(/\n$/, "");
-                const isInline = !match && !codeString.includes("\n");
-
-                if (isInline) {
-                  return (
-                    <code
-                      className="rounded bg-[#aaaaaa18] dark:bg-[#ffffff15] px-1.5 py-0.5 text-[13px] sm:text-[13.5px] font-mono font-medium text-[#222] dark:text-[#ddd]"
-                      {...props}
-                    >
-                      {children}
-                    </code>
-                  );
-                }
-
-                return (
-                  <CodeBlock
-                    language={match ? match[1] : "text"}
-                    code={codeString}
-                  />
-                );
-              },
-              img: ({ src, alt, node, ...props }) => {
-                const rawSrc = typeof src === "string" ? src : "";
-                let optimizedSrc = rawSrc;
-                const isNotionOrAws =
-                  rawSrc.includes("amazonaws.com") ||
-                  rawSrc.includes("notion.so") ||
-                  rawSrc.includes("notion-static.com");
-
-                if (isNotionOrAws) {
-                  optimizedSrc = getProxyImageUrl(rawSrc);
-                } else if (
-                  (rawSrc.startsWith("http://") || rawSrc.startsWith("https://")) &&
-                  !rawSrc.includes("wsrv.nl")
-                ) {
-                  optimizedSrc = getProxyImageUrl(`https://wsrv.nl/?url=${encodeURIComponent(rawSrc)}&w=900&output=webp&q=80`);
-                }
-                const isCutout =
-                  rawSrc.toLowerCase().includes("cutout") ||
-                  rawSrc.toLowerCase().includes("head") ||
-                  rawSrc.toLowerCase().includes("avatar") ||
-                  (typeof alt === "string" && /人物|头部|头像|抠图|太夫|吉野|阿乙|武藏|小图|插画|portrait|cutout/i.test(alt));
-
-                const imgClass = isCutout
-                  ? "!ml-0 !mr-auto block my-6 w-auto max-w-[240px] sm:max-w-[280px] max-h-[380px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01]"
-                  : "mx-auto my-6 max-w-full max-h-[580px] object-contain cursor-zoom-in rounded-lg transition-transform duration-200 hover:scale-[1.01] sm:rounded-xl";
-
-                return (
-                  <img
-                    src={optimizedSrc}
-                    alt={alt || "文章配图"}
-                    data-original-src={isNotionOrAws ? optimizedSrc : rawSrc}
-                    loading="lazy"
-                    decoding="async"
-                    referrerPolicy="no-referrer"
-                    className={imgClass}
-                    {...props}
-                  />
-                );
-              },
-              a: ({ href, children, node, ...props }) => {
-                const isExternal = href?.startsWith("http://") || href?.startsWith("https://");
-                return (
-                  <a
-                    href={href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
-                    className="text-sky-600 underline underline-offset-4 transition-colors hover:text-sky-500 dark:text-sky-400"
-                    {...props}
-                  >
-                    {children}
-                  </a>
-                );
-              },
-            }}
+            components={markdownComponents as unknown as import("react-markdown").Components}
           >
-            {content}
+            {formattedMarkdown}
           </ReactMarkdown>
         </div>
       )}
 
-      {mounted &&
+      {activeImg &&
         createPortal(
           <AnimatePresence>
             {activeImg && (

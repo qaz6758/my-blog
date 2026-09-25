@@ -256,9 +256,12 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
     const data = block[type];
 
     switch (type) {
-      case 'paragraph':
-        lines.push(richTextToMarkdown(data?.rich_text) + '\n');
+      case 'paragraph': {
+        const text = richTextToMarkdown(data?.rich_text);
+        // 若为 Notion 空白段落块（用户按回车留白），输出 &nbsp; 保留物理空行，避免被 Markdown 引擎合并吞掉
+        lines.push(text ? text + '\n' : '&nbsp;\n');
         break;
+      }
       case 'heading_1':
         lines.push(`\n# ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
