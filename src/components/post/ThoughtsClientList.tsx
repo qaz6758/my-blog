@@ -7,6 +7,40 @@ import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp, translateActi
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
 
+type OrderedThought = ThoughtMediaItem & { _order: number };
+type UserReaction = { liked?: boolean };
+
+function isThoughtMediaItem(value: unknown): value is ThoughtMediaItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.id === "string" &&
+    typeof item.author === "string" &&
+    typeof item.action === "string" &&
+    typeof item.time === "string" &&
+    typeof item.type === "string" &&
+    typeof item.year === "string" &&
+    typeof item.title === "string" &&
+    typeof item.description === "string" &&
+    typeof item.likes === "number" &&
+    typeof item.upvotes === "number" &&
+    typeof item.replies === "number"
+  );
+}
+
+function parseUserReactions(value: string): Record<string, UserReaction> {
+  const parsed: unknown = JSON.parse(value);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+
+  return Object.fromEntries(
+    Object.entries(parsed).flatMap(([id, reaction]) => {
+      if (!reaction || typeof reaction !== "object" || Array.isArray(reaction)) return [];
+      const liked = (reaction as Record<string, unknown>).liked;
+      return typeof liked === "boolean" ? [[id, { liked }]] : [];
+    })
+  );
+}
+
 export function ThoughtsClientList({
   initialItems,
 }: {
@@ -36,7 +70,8 @@ export function ThoughtsClientList({
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        setUserReactions(JSON.parse(saved));
+        const reactions = parseUserReactions(saved);
+        requestAnimationFrame(() => setUserReactions(reactions));
       }
     } catch (e) {
       console.warn("读取本地点赞记忆失败", e);
@@ -52,13 +87,17 @@ export function ThoughtsClientList({
     fetch(`${workerUrl}/api/thoughts`)
       .then((res) => res.json())
       .then((result) => {
-        if (result?.success && Array.isArray(result.data)) {
+        if (
+          result?.success &&
+          Array.isArray(result.data) &&
+          result.data.every(isThoughtMediaItem)
+        ) {
           setItems((prev) => {
             const existingMap = new Map<string, ThoughtMediaItem>();
             prev.forEach((item) => existingMap.set(item.id, item));
 
             // 以最新的 Notion 数据源为唯一真实基准：Notion 中已删除的项即时剔除
-            const updatedList: ThoughtMediaItem[] = result.data.map((item: ThoughtMediaItem, index: number) => {
+            const updatedList: OrderedThought[] = result.data.map((item: ThoughtMediaItem, index: number) => {
               const existing = existingMap.get(item.id);
               const targetDate = item.rawDate || item.time || existing?.rawDate || existing?.time || "";
               const dateInfo = formatThoughtDate(targetDate, locale);
@@ -77,10 +116,10 @@ export function ThoughtsClientList({
                 likes: existing?.likes ?? item.likes ?? 0,
                 upvotes: 0,
                 _order: index,
-              } as any;
+              };
             });
 
-            updatedList.sort((a: any, b: any) => {
+            updatedList.sort((a, b) => {
               const diff = getThoughtTimestamp(b) - getThoughtTimestamp(a);
               if (diff !== 0) return diff;
               return (a._order ?? 0) - (b._order ?? 0);
@@ -194,20 +233,27 @@ export function ThoughtsClientList({
       list.map((item) => (item.id === id ? { ...item, likes: newLikes } : item))
     );
 
-    // ④ 云端落盘：优先原子 RPC，失败降级为直接 UPDATE
+    // ④ 云端只通过原子 RPC 写入，避免客户端直接覆盖共享计数
     try {
       const { error: rpcErr } = await supabase.rpc("increment_thought_like", {
         target_id: id,
         delta,
       });
-      if (rpcErr) {
-        await supabase
-          .from("thoughts")
-          .update({ likes: newLikes })
-          .eq("id", id);
-      }
+      if (rpcErr) throw rpcErr;
     } catch (err) {
       console.error("云端点赞落盘失败:", err);
+      setItems((list) =>
+        list.map((item) => (item.id === id ? { ...item, likes: baseLikes } : item))
+      );
+      setUserReactions((prev) => {
+        const updated = { ...prev, [id]: currentReaction };
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch (storageError) {
+          console.warn("恢复本地点赞状态失败", storageError);
+        }
+        return updated;
+      });
     }
   };
 

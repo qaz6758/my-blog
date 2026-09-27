@@ -80,6 +80,12 @@ Notion 负责内容，Supabase 负责动态数据，其余部分尽可能保持�
 
 ---
 
+## Supabase 安全迁移
+
+部署包含评论、随想点赞的版本前，请先备份数据库，并在 Supabase Dashboard 的 SQL Editor 中执行 [安全迁移](./supabase/migrations/20260927203000_harden_public_blog_data.sql)。迁移会收紧公开表权限和 RLS、限制点赞 RPC，并将已有评论邮箱与用户 ID 移至不可由 `anon` / `authenticated` 访问的 `blog_private` schema；公开评论记录中的这两项会被清空。不要把 `blog_private` schema 加入 Supabase 的 API exposed schemas。
+
+---
+
 ## Structure
 
 ```text

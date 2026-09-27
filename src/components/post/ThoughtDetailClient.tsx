@@ -28,7 +28,6 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   const [likes, setLikes] = useState(item.likes || 0);
   const [commentCount, setCommentCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
-  const [displayTime, setDisplayTime] = useState(item.time);
 
   // SWR：毫秒级后台静默获取 Notion 最新随想录改动，支持免重新部署即时生效
   useEffect(() => {
@@ -61,29 +60,34 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
     return locale === "zh-TW" ? convertText(thoughtItem.description) : thoughtItem.description;
   }, [thoughtItem.description, locale, convertText]);
 
-  // 客户端挂载时动态计算相对时间，与列表页算法严格统一
-  useEffect(() => {
-    if (thoughtItem.rawDate || thoughtItem.time) {
-      const info = formatThoughtDate(thoughtItem.rawDate || thoughtItem.time, locale);
-      if (info.relative) {
-        setDisplayTime(info.relative);
-      }
-    }
+  const displayTime = useMemo(() => {
+    const date = thoughtItem.rawDate || thoughtItem.time;
+    return formatThoughtDate(date, locale).relative || thoughtItem.time;
   }, [thoughtItem.rawDate, thoughtItem.time, locale]);
 
   // 恢复本地红心高亮状态
   useEffect(() => {
+    let frame = 0;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed[item.id]?.liked) {
-          setIsLiked(true);
+        const parsed: unknown = JSON.parse(saved);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          const reaction = (parsed as Record<string, unknown>)[item.id];
+          if (
+            reaction &&
+            typeof reaction === "object" &&
+            !Array.isArray(reaction) &&
+            (reaction as Record<string, unknown>).liked === true
+          ) {
+            frame = requestAnimationFrame(() => setIsLiked(true));
+          }
         }
       }
     } catch (e) {
       console.warn("读取本地点赞记忆失败", e);
     }
+    return () => cancelAnimationFrame(frame);
   }, [item.id]);
 
   const isNote = item.type.toUpperCase() === "NOTE";
@@ -161,14 +165,18 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
         target_id: item.id,
         delta,
       });
-      if (rpcErr) {
-        await supabase
-          .from("thoughts")
-          .update({ likes: newLikes })
-          .eq("id", item.id);
-      }
+      if (rpcErr) throw rpcErr;
     } catch (err) {
       console.error("云端点赞落盘失败:", err);
+      setIsLiked(!willBeLiked);
+      setLikes(likes);
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        saved[item.id] = { ...(saved[item.id] || {}), liked: !willBeLiked };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      } catch (storageError) {
+        console.warn("恢复本地点赞状态失败", storageError);
+      }
     }
   };
 

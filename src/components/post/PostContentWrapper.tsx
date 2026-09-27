@@ -24,6 +24,17 @@ import remarkGfm from "remark-gfm";
 
 import Prism from "prismjs";
 
+import rehypeParse from "rehype-parse";
+
+import rehypeSanitize, {
+  defaultSchema,
+  type Options as RehypeSanitizeOptions,
+} from "rehype-sanitize";
+
+import rehypeStringify from "rehype-stringify";
+
+import { unified } from "unified";
+
 import { slugifyHeading } from "@/lib/utils";
 
 import { getProxyImageUrl } from "@/lib/image-proxy";
@@ -68,6 +79,52 @@ const COPY_SVG = `<svg class="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-400
 
 const CHECK_SVG = `<svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
+const htmlSanitizerSchema: RehypeSanitizeOptions = {
+  ...defaultSchema,
+  strip: [...(defaultSchema.strip ?? []), "style", "iframe", "object", "embed", "form"],
+  tagNames: [
+    ...(defaultSchema.tagNames ?? []),
+    "button",
+    "svg",
+    "path",
+    "rect",
+    "polyline",
+    "polygon",
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    "*": [...(defaultSchema.attributes?.["*"] ?? []), "className"],
+    a: [...(defaultSchema.attributes?.a ?? []), "className"],
+    button: [["type", "button"], ["dataAction", "copy-code"], "ariaLabel", "className"],
+    code: [...(defaultSchema.attributes?.code ?? []), "className"],
+    img: [
+      ...(defaultSchema.attributes?.img ?? []),
+      "alt",
+      "title",
+      "className",
+      ["dataOriginalSrc", /^(?:https?:\/\/|\/(?!\/))/i],
+      "loading",
+      "decoding",
+      "referrerPolicy",
+    ],
+    path: ["d", "fill"],
+    polyline: ["points"],
+    polygon: ["points"],
+    pre: ["className", "dataStyled"],
+    rect: ["width", "height", "x", "y", "rx"],
+    svg: [
+      "className",
+      "viewBox",
+      "fill",
+      "stroke",
+      "strokeWidth",
+      "strokeLinecap",
+      "strokeLinejoin",
+      "ariaHidden",
+    ],
+  },
+};
+
 function processAndOptimizeHtml(rawHtml: string): string {
   if (!rawHtml) return "";
 
@@ -79,22 +136,7 @@ function processAndOptimizeHtml(rawHtml: string): string {
     cleaned = bodyMatch[1];
   }
 
-  // 2. 全面剥离危险与外层标签 (防范存储型 XSS 注入并规范 HTML 结构)
-  cleaned = cleaned
-    .replace(/<!DOCTYPE[\s\S]*?>/gi, "")
-    .replace(/<head[\s\S]*?<\/head>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
-    .replace(/<object[\s\S]*?<\/object>/gi, "")
-    .replace(/<embed[\s\S]*?<\/embed>/gi, "")
-    .replace(/<form[\s\S]*?<\/form>/gi, "")
-    .replace(/<\/?(html|head|body|meta|link|base|script|iframe|object|embed|form|input|button)[^>]*>/gi, "")
-    // 剥离所有内联 on* 事件处理器 (例如 onerror, onload, onclick)
-    .replace(/\s+on[a-zA-Z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    // 剥离 href/src 危险伪协议 (javascript:, vbscript:)
-    .replace(/\b(href|src)\s*=\s*(["'])\s*(?:javascript|vbscript):[\s\S]*?\2/gi, '$1="#"')
-    .trim();
+  cleaned = cleaned.trim();
 
   // 3. 常见排版字符实体安全转码解码 (消除 don&rsquo;t 等丑陋实体源码)
   cleaned = cleaned
@@ -247,7 +289,13 @@ function processAndOptimizeHtml(rawHtml: string): string {
 </div>`;
   });
 
-  return cleaned;
+  return String(
+    unified()
+      .use(rehypeParse, { fragment: true })
+      .use(rehypeSanitize, htmlSanitizerSchema)
+      .use(rehypeStringify)
+      .processSync(cleaned)
+  );
 }
 
 interface PostContentWrapperProps {
@@ -407,8 +455,7 @@ function stripAlertPrefix(children: React.ReactNode): React.ReactNode {
             if (
               nextPChildren.length > 0 &&
               React.isValidElement(nextPChildren[0]) &&
-              ((nextPChildren[0] as any).type === "br" ||
-                (nextPChildren[0] as any)?.type?.name === "br")
+                nextPChildren[0].type === "br"
             ) {
               nextPChildren = nextPChildren.slice(1);
             }

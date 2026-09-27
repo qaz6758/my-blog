@@ -16,15 +16,16 @@ interface Comment {
   id: string | number;
   post_id?: string | number;
   thought_id?: string | number;
-  author?: string;
-  user_name?: string;
-  user_avatar?: string;
+  author?: string | null;
+  user_name?: string | null;
+  user_avatar?: string | null;
   avatar_url?: string;
-  email?: string | null;
   website?: string | null;
   content: string;
-  created_at: string;
+  created_at: string | null;
 }
+
+type CommentPayload = Record<string, string | null>;
 
 interface CommentSectionProps {
   postId?: string | number;
@@ -46,6 +47,13 @@ function avatarBg(name?: string | null) {
   let h = 0;
   for (let i = 0; i < safe.length; i++) h = safe.charCodeAt(i) + ((h << 5) - h);
   return BG_COLOURS[Math.abs(h) % BG_COLOURS.length];
+}
+
+function normalizeComment(row: Comment): Comment {
+  return {
+    ...row,
+    created_at: row.created_at ?? new Date().toISOString(),
+  };
 }
 
 // ─────────────────────────────────────────────
@@ -176,8 +184,12 @@ export function CommentSection({
 
   const ct = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>) => {
-      const dict = (DICTIONARIES as any)[currentLocale] || DICTIONARIES["zh-CN"];
-      let val: string = dict[key] || (DICTIONARIES["zh-CN"] as any)[key] || key;
+      const fallback = DICTIONARIES["zh-CN"];
+      const dict =
+        currentLocale === "en"
+          ? (DICTIONARIES.en as Partial<Record<TranslationKey, string>>)
+          : fallback;
+      let val = dict[key] || fallback[key] || key;
       if (params) {
         Object.entries(params).forEach(([k, v]) => {
           val = val.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
@@ -191,6 +203,18 @@ export function CommentSection({
   const targetTable = thoughtId ? "thought_comments" : "comments";
   const targetIdField = thoughtId ? "thought_id" : "post_id";
   const targetId = String(thoughtId ?? postId ?? "");
+  const insertComment = (payload: CommentPayload) =>
+    thoughtId
+      ? supabase
+          .from("thought_comments")
+          .insert([payload])
+          .select("id,thought_id,user_name,user_avatar,author,website,content,created_at")
+          .single()
+      : supabase
+          .from("comments")
+          .insert([payload])
+          .select("id,post_id,author,user_avatar,website,content,created_at")
+          .single();
 
   // ── Auth ──
   const [session, setSession] = useState<Session | null>(null);
@@ -207,7 +231,9 @@ export function CommentSection({
   const [error, setError] = useState("");
 
   // ── Guest fallback (when not OAuth'd) ──
-  const [guest, setGuest] = useState<GuestDraft>({ name: "", email: "" });
+  const [guest, setGuest] = useState<GuestDraft>(() =>
+    typeof window === "undefined" ? { name: "", email: "" } : loadGuest()
+  );
   const [guestMode, setGuestMode] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -219,22 +245,43 @@ export function CommentSection({
     return () => subscription.unsubscribe();
   }, []);
 
-  // 2. Restore guest info
-  useEffect(() => { setGuest(loadGuest()); }, []);
-
   // 3. Fetch comments
-  const fetchComments = useCallback(async () => {
-    if (!targetId) return;
-    const { data } = await supabase
-      .from(targetTable)
-      .select("*")
-      .eq(targetIdField, targetId)
-      .order("created_at", { ascending: false });
-    setComments(data ?? []);
-    setCommentsLoading(false);
-  }, [targetTable, targetIdField, targetId]);
+  useEffect(() => {
+    let active = true;
 
-  useEffect(() => { fetchComments(); }, [fetchComments]);
+    async function loadComments() {
+      if (!targetId) {
+        setCommentsLoading(false);
+        return;
+      }
+
+      const result = thoughtId
+        ? await supabase
+            .from("thought_comments")
+            .select("id,thought_id,user_name,user_avatar,author,website,content,created_at")
+            .eq("thought_id", targetId)
+            .order("created_at", { ascending: false })
+        : await supabase
+            .from("comments")
+            .select("id,post_id,author,user_avatar,website,content,created_at")
+            .eq("post_id", targetId)
+            .order("created_at", { ascending: false });
+
+      if (!active) return;
+      if (result.error) {
+        console.error("读取评论失败:", result.error);
+        setCommentsLoading(false);
+        return;
+      }
+      setComments((result.data ?? []).map(normalizeComment));
+      setCommentsLoading(false);
+    }
+
+    void loadComments();
+    return () => {
+      active = false;
+    };
+  }, [thoughtId, targetId]);
 
   // 4. Realtime subscription
   useEffect(() => {
@@ -310,7 +357,7 @@ export function CommentSection({
     setSubmitting(true);
     try {
       // 基础完整 Payload
-      const payload: Record<string, any> = {
+      const payload: CommentPayload = {
         [targetIdField]: targetId,
         author,
         user_name: author,
@@ -328,7 +375,7 @@ export function CommentSection({
       }
 
       // 智能插入与 Schema 容错重试机制
-      let result = await supabase.from(targetTable).insert([payload]).select().single();
+      let result = await insertComment(payload);
 
       // 如果提示缺少 user_name 或 user_avatar 等非必须列，自动裁剪重试
       if (result.error) {
@@ -342,19 +389,19 @@ export function CommentSection({
         if (errMsg.includes("email")) delete fallbackPayload.email;
         if (errMsg.includes("author") && !fallbackPayload.user_name) fallbackPayload.user_name = author;
 
-        result = await supabase.from(targetTable).insert([fallbackPayload]).select().single();
+        result = await insertComment(fallbackPayload);
       }
 
       if (result.error) throw result.error;
 
       setContent("");
       if (result.data) {
-        const newRecord = result.data as Comment;
+        const newRecord = normalizeComment(result.data);
         setComments(prev => prev.some(x => String(x.id) === String(newRecord.id)) ? prev : [newRecord, ...prev]);
         onCommentAdded?.();
       }
-    } catch (e: any) {
-      setError(e?.message || ct("comments.send_failed"));
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : ct("comments.send_failed"));
     } finally {
       setSubmitting(false);
     }

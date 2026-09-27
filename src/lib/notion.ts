@@ -5,6 +5,32 @@ const NOTION_API_KEY = process.env.NOTION_API_KEY?.trim();
 const NOTION_VERSION = '2022-06-28';
 const REQUEST_TIMEOUT_MS = 10000;
 
+type NotionRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): NotionRecord | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as NotionRecord)
+    : null;
+}
+
+function asRecords(value: unknown): NotionRecord[] {
+  return Array.isArray(value)
+    ? value.map(asRecord).filter((item): item is NotionRecord => item !== null)
+    : [];
+}
+
+function readString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function readRecord(value: unknown, key: string): NotionRecord | null {
+  return asRecord(asRecord(value)?.[key]);
+}
+
+function readRichText(value: unknown): NotionRecord[] {
+  return asRecords(value);
+}
+
 export interface NotionPostItem {
   id: string;
   slug: string;
@@ -57,96 +83,117 @@ export function extractDatabaseId(input?: string): string {
 /**
  * 属性模糊匹配辅助函数
  */
-function findProp(props: any, ...keys: string[]) {
-  if (!props) return null;
+function findProp(props: unknown, ...keys: string[]): NotionRecord | null {
+  const properties = asRecord(props);
+  if (!properties) return null;
   const lowerKeys = keys.map((k) => k.toLowerCase().replace(/[\s_/-]/g, ''));
-  for (const propKey of Object.keys(props)) {
+  for (const propKey of Object.keys(properties)) {
     const cleanPropKey = propKey.toLowerCase().replace(/[\s_/-]/g, '');
     if (lowerKeys.includes(cleanPropKey)) {
-      return props[propKey];
+      return asRecord(properties[propKey]);
     }
   }
   return null;
 }
 
-function getText(prop: any): string {
+function getText(value: unknown): string {
+  const prop = asRecord(value);
   if (!prop) return '';
-  if (prop.type === 'title') return prop.title?.[0]?.plain_text || '';
+  if (prop.type === 'title') {
+    return readString(readRichText(prop.title)[0]?.plain_text);
+  }
   if (prop.type === 'rich_text') {
-    return (prop.rich_text || []).map((t: any) => t.plain_text).join('') || '';
+    return readRichText(prop.rich_text).map((text) => readString(text.plain_text)).join('');
   }
   return '';
 }
 
-function getUrl(prop: any): string {
+function getUrl(value: unknown): string {
+  const prop = asRecord(value);
   if (!prop) return '';
-  if (prop.type === 'url') return prop.url || '';
-  if (prop.type === 'rich_text') return prop.rich_text?.[0]?.plain_text || '';
+  if (prop.type === 'url') return readString(prop.url);
+  if (prop.type === 'rich_text') return readString(readRichText(prop.rich_text)[0]?.plain_text);
   return '';
 }
 
-function getSelect(prop: any): string {
+function getSelect(value: unknown): string {
+  const prop = asRecord(value);
   if (!prop) return '';
-  if (prop.type === 'select') return prop.select?.name || '';
-  if (prop.type === 'status') return prop.status?.name || '';
+  if (prop.type === 'select') return readString(readRecord(prop, 'select')?.name);
+  if (prop.type === 'status') return readString(readRecord(prop, 'status')?.name);
   return '';
 }
 
-function getMultiSelect(prop: any): string[] {
+function getMultiSelect(value: unknown): string[] {
+  const prop = asRecord(value);
   if (!prop) return [];
   if (prop.type === 'multi_select') {
-    return (prop.multi_select || []).map((s: any) => s.name);
+    return asRecords(prop.multi_select)
+      .map((item) => readString(item.name))
+      .filter(Boolean);
   }
   return [];
 }
 
-function getDate(prop: any): string {
+function getDate(value: unknown): string {
+  const prop = asRecord(value);
   if (!prop) return '';
-  if (prop.type === 'date') return prop.date?.start || '';
-  if (prop.type === 'created_time') return prop.created_time || '';
+  if (prop.type === 'date') return readString(readRecord(prop, 'date')?.start);
+  if (prop.type === 'created_time') return readString(prop.created_time);
   return '';
 }
 
-function getStatus(prop: any): string {
+function getStatus(value: unknown): string {
+  const prop = asRecord(value);
   if (!prop) return '';
-  if (prop.type === 'status') return prop.status?.name || '';
-  if (prop.type === 'select') return prop.select?.name || '';
+  if (prop.type === 'status') return readString(readRecord(prop, 'status')?.name);
+  if (prop.type === 'select') return readString(readRecord(prop, 'select')?.name);
   return '';
 }
 
-function getCheckbox(prop: any): boolean {
+function getCheckbox(value: unknown): boolean {
+  const prop = asRecord(value);
   if (!prop) return false;
-  if (prop.type === 'checkbox') return Boolean(prop.checkbox);
+  if (prop.type === 'checkbox') return prop.checkbox === true;
   return false;
 }
 
-function getCover(page: any): string {
+function getCover(value: unknown): string {
+  const page = asRecord(value);
   if (!page) return '';
+  const cover = readRecord(page, 'cover');
+  const coverType = cover?.type;
   let url = '';
-  if (page.cover?.type === 'external') url = page.cover.external.url || '';
-  if (page.cover?.type === 'file') url = page.cover.file.url || '';
+  if (coverType === 'external') url = readString(readRecord(cover, 'external')?.url);
+  if (coverType === 'file') url = readString(readRecord(cover, 'file')?.url);
   return url ? getProxyImageUrl(url) : '';
 }
 
-function getNumber(prop: any): number | null {
+function getNumber(value: unknown): number | null {
+  const prop = asRecord(value);
   if (!prop) return null;
   if (prop.type === 'number') return typeof prop.number === 'number' ? prop.number : null;
   return null;
 }
 
-function getImageFromPage(page: any): string {
+function getImageFromPage(value: unknown): string {
+  const page = asRecord(value);
   if (!page) return '';
   const p = page.properties;
   if (p) {
     const fileProp = findProp(p, 'Photo', 'Image', 'Cover', '封面', '图片', '照片', 'File', 'Files');
     if (fileProp) {
-      if (fileProp.type === 'files' && Array.isArray(fileProp.files) && fileProp.files.length > 0) {
-        const f = fileProp.files[0];
-        const raw = f?.file?.url || f?.external?.url || '';
+      const files = asRecords(fileProp.files);
+      if (fileProp.type === 'files' && files.length > 0) {
+        const firstFile = files[0];
+        const raw =
+          readString(readRecord(firstFile, 'file')?.url) ||
+          readString(readRecord(firstFile, 'external')?.url);
         return raw ? getProxyImageUrl(raw) : '';
       }
       if (fileProp.type === 'url') {
-        return fileProp.url ? getProxyImageUrl(fileProp.url) : '';
+        const url = readString(fileProp.url);
+        return url ? getProxyImageUrl(url) : '';
       }
     }
   }
@@ -156,19 +203,21 @@ function getImageFromPage(page: any): string {
 /**
  * 递归转换 Notion RichText 为 Markdown 格式
  */
-function richTextToMarkdown(richTexts: any[] = []): string {
-  return richTexts
+function richTextToMarkdown(value: unknown): string {
+  return readRichText(value)
     .map((rt) => {
-      let text = rt.plain_text || '';
+      let text = readString(rt.plain_text);
       if (!text) return '';
-      if (rt.annotations) {
-        if (rt.annotations.code) text = `\`${text}\``;
-        if (rt.annotations.bold) text = `**${text}**`;
-        if (rt.annotations.italic) text = `*${text}*`;
-        if (rt.annotations.strikethrough) text = `~~${text}~~`;
+      const annotations = asRecord(rt.annotations);
+      if (annotations) {
+        if (annotations.code === true) text = `\`${text}\``;
+        if (annotations.bold === true) text = `**${text}**`;
+        if (annotations.italic === true) text = `*${text}*`;
+        if (annotations.strikethrough === true) text = `~~${text}~~`;
       }
-      if (rt.href) {
-        text = `[${text}](${rt.href})`;
+      const href = readString(rt.href);
+      if (href) {
+        text = `[${text}](${href})`;
       }
       return text;
     })
@@ -179,8 +228,8 @@ function richTextToMarkdown(richTexts: any[] = []): string {
  * 严格判断 Notion 页面是否属于已发布状态
  * 绝不把未发布的草稿公开
  */
-export function isPagePublished(properties: any): boolean {
-  if (!properties) return false;
+export function isPagePublished(properties: unknown): boolean {
+  if (!asRecord(properties)) return false;
 
   // 1. 优先检查 Published 勾选框
   const pubCheckbox = findProp(properties, 'Published', '公开', '发布');
@@ -191,14 +240,18 @@ export function isPagePublished(properties: any): boolean {
   // 2. 检查状态属性
   const statusProp = findProp(properties, '状态', 'Status', 'State', '阶段');
   if (statusProp) {
-    const statusVal = getStatus(statusProp);
+    const statusVal = getStatus(statusProp).trim().toLowerCase().replace(/\s+/g, '');
     if (!statusVal) return false;
-    return (
-      statusVal.includes('已发布') ||
-      statusVal.includes('Published') ||
-      statusVal.includes('🚀') ||
-      statusVal.includes('✅')
-    );
+    return [
+      '已发布',
+      'published',
+      '已发布🚀',
+      'published🚀',
+      '已发布✅',
+      'published✅',
+      '🚀',
+      '✅',
+    ].includes(statusVal);
   }
 
   return false;
@@ -207,11 +260,11 @@ export function isPagePublished(properties: any): boolean {
 /**
  * 获取页面的子块 (Block Children) - 支持超 100 块长文完整分页拉取
  */
-async function fetchBlockChildren(blockId: string): Promise<any[]> {
+async function fetchBlockChildren(blockId: string): Promise<NotionRecord[]> {
   const cleanId = extractDatabaseId(blockId);
   if (!cleanId || !NOTION_API_KEY) return [];
 
-  const results: any[] = [];
+  const results: NotionRecord[] = [];
   let cursor: string | undefined = undefined;
 
   try {
@@ -233,11 +286,10 @@ async function fetchBlockChildren(blockId: string): Promise<any[]> {
       });
 
       if (!res.ok) break;
-      const data: any = await res.json();
-      if (Array.isArray(data.results)) {
-        results.push(...data.results);
-      }
-      cursor = data.has_more ? data.next_cursor : undefined;
+      const data = asRecord(await res.json());
+      if (!data) break;
+      results.push(...asRecords(data.results));
+      cursor = data.has_more === true ? readString(data.next_cursor) || undefined : undefined;
     } while (cursor);
 
     return results;
@@ -249,13 +301,14 @@ async function fetchBlockChildren(blockId: string): Promise<any[]> {
 /**
  * 将 Notion Blocks 转换为标准 Markdown
  */
-async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
+async function convertBlocksToMarkdown(blocks: NotionRecord[]): Promise<string> {
   const lines: string[] = [];
   let skipEmptyAfterDivider = false;
 
   for (const block of blocks) {
-    const type = block.type;
-    const data = block[type];
+    const type = readString(block.type);
+    const data = asRecord(block[type]);
+    if (!data) continue;
 
     switch (type) {
       case 'paragraph': {
@@ -292,7 +345,7 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
         break;
       case 'to_do':
         skipEmptyAfterDivider = false;
-        lines.push(`* [${data?.checked ? 'x' : ' '}] ${richTextToMarkdown(data?.rich_text)}`);
+        lines.push(`* [${data.checked === true ? 'x' : ' '}] ${richTextToMarkdown(data.rich_text)}`);
         break;
       case 'quote':
         skipEmptyAfterDivider = false;
@@ -300,14 +353,14 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
         break;
       case 'code': {
         skipEmptyAfterDivider = false;
-        const codeText = (data?.rich_text || []).map((t: any) => t.plain_text).join('');
-        const lang = data?.language || '';
+        const codeText = readRichText(data.rich_text).map((text) => readString(text.plain_text)).join('');
+        const lang = readString(data.language);
         lines.push(`\n\`\`\`${lang}\n${codeText}\n\`\`\`\n`);
         break;
       }
       case 'callout':
         skipEmptyAfterDivider = false;
-        const icon = data?.icon?.emoji || '💡';
+        const icon = readString(readRecord(data, 'icon')?.emoji) || '💡';
         lines.push(`> ${icon} ${richTextToMarkdown(data?.rich_text)}\n`);
         break;
       case 'divider': {
@@ -320,8 +373,12 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
         break;
       }
       case 'image': {
-        const imgUrl = data?.file?.url || data?.external?.url || '';
-        const caption = (data?.caption || []).map((t: any) => t.plain_text).join('') || '配图';
+        const imgUrl =
+          readString(readRecord(data, 'file')?.url) ||
+          readString(readRecord(data, 'external')?.url);
+        const caption = readRichText(data.caption)
+          .map((text) => readString(text.plain_text))
+          .join('') || '配图';
         if (imgUrl) {
           skipEmptyAfterDivider = false;
           const proxiedUrl = getProxyImageUrl(imgUrl);
@@ -331,7 +388,7 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
       }
       case 'bookmark':
       case 'link_preview': {
-        const url = data?.url || '';
+        const url = readString(data.url);
         if (url) {
           skipEmptyAfterDivider = false;
           lines.push(`\n[${url}](${url})\n`);
@@ -339,7 +396,7 @@ async function convertBlocksToMarkdown(blocks: any[]): Promise<string> {
         break;
       }
       default:
-        if (data?.rich_text) {
+        if (data.rich_text) {
           const content = richTextToMarkdown(data.rich_text);
           if (content.trim()) {
             skipEmptyAfterDivider = false;
@@ -385,9 +442,12 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
         break;
       }
 
-      const data: any = await res.json();
+      const data = asRecord(await res.json());
+      if (!data) break;
 
-      for (const page of data.results || []) {
+      for (const page of asRecords(data.results)) {
+        const pageId = readString(page.id);
+        if (!pageId) continue;
         const p = page.properties;
         
         // 严格检查是否已发布（未勾选或草稿直接跳过）
@@ -397,7 +457,7 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
 
         const status = getStatus(findProp(p, '状态', 'Status', 'State'));
         const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
-        const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
+        const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || readString(page.created_time);
         const title = getText(findProp(p, '文章标题', 'Title', 'Name', '标题')) || '未命名文章';
         const category = getSelect(findProp(p, '主题/分类', 'Category', '分类', '主题')) || '技术';
         let tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
@@ -414,10 +474,10 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
         const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
         const cleanSlug = customUrl
           ? customUrl.replace(/^https?:\/\/[^/]+\/posts\//, '').replace(/^\/posts\//, '').replace(/^\//, '').trim()
-          : page.id.replace(/-/g, '');
+          : pageId.replace(/-/g, '');
 
         items.push({
-          id: page.id,
+          id: pageId,
           slug: cleanSlug,
           title,
           created_at: new Date(rawDate).toISOString(),
@@ -434,7 +494,7 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
         });
       }
 
-      cursor = data.has_more ? data.next_cursor : undefined;
+      cursor = data.has_more === true ? readString(data.next_cursor) || undefined : undefined;
     } while (cursor);
 
     // 优先按置顶排前，其次按发布时间倒序
@@ -451,11 +511,10 @@ export async function fetchPostsFromNotion(): Promise<NotionPostItem[]> {
           const blocks = await fetchBlockChildren(item.id);
           let chars = 0;
           for (const block of blocks) {
-            const textArr = block[block.type]?.rich_text;
-            if (Array.isArray(textArr)) {
-              for (const t of textArr) {
-                chars += (t.plain_text || '').length;
-              }
+            const blockType = readString(block.type);
+            const textArr = readRichText(asRecord(block[blockType])?.rich_text);
+            for (const text of textArr) {
+              chars += readString(text.plain_text).length;
             }
           }
           item.read_time = Math.max(1, Math.ceil(chars / 350));
@@ -507,7 +566,10 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
     ]);
 
     if (!pageRes.ok) return null;
-    const page = await pageRes.json();
+    const page = asRecord(await pageRes.json());
+    if (!page) return null;
+    const pageId = readString(page.id);
+    if (!pageId) return null;
     const p = page.properties;
 
     // 严格校验是否已发布：若为未发布草稿，直接返回 null 触发 404
@@ -516,7 +578,7 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
     }
 
     const isPinned = getCheckbox(findProp(p, '置顶', 'Pinned', 'Top', 'IsPinned', 'is_pinned', '精选'));
-    const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || page.created_time;
+    const rawDate = getDate(findProp(p, '发布日期', 'Date', '日期', '时间')) || readString(page.created_time);
     const title = getText(findProp(p, '文章标题', 'Title', 'Name', '标题')) || '未命名文章';
     const category = getSelect(findProp(p, '主题/分类', 'Category', '分类', '主题')) || '技术';
     let tagsList = getMultiSelect(findProp(p, '主要SEO关键词', 'Tags', 'Tag', '标签', '关键词'));
@@ -530,9 +592,10 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
     let inspiration = '';
     let inspirationUrl = '';
     const relProp = findProp(p, '灵感与创意', 'Inspiration', 'Source', '灵感', '创意');
-    if (relProp && relProp.type === 'relation' && Array.isArray(relProp.relation) && relProp.relation.length > 0) {
-      const relId = relProp.relation[0].id;
-      try {
+    const relation = relProp?.type === 'relation' ? asRecords(relProp.relation) : [];
+    if (relation.length > 0) {
+      const relId = readString(relation[0].id);
+      if (relId) try {
         const relRes = await fetch(`https://api.notion.com/v1/pages/${relId}`, {
           method: 'GET',
           headers: {
@@ -543,12 +606,12 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
           next: { revalidate: 10 },
         });
         if (relRes.ok) {
-          const relData = await relRes.json();
-          const titleProp = findProp(relData.properties, '创意/链接', 'Title', 'Name', '标题', '创意', '灵感');
+          const relData = asRecord(await relRes.json());
+          const titleProp = findProp(relData?.properties, '创意/链接', 'Title', 'Name', '标题', '创意', '灵感');
           if (titleProp) {
             inspiration = getText(titleProp);
           }
-          const urlProp = findProp(relData.properties, '来源网址', 'Url', 'URL', '链接');
+          const urlProp = findProp(relData?.properties, '来源网址', 'Url', 'URL', '链接');
           if (urlProp) {
             inspirationUrl = getUrl(urlProp);
           }
@@ -559,18 +622,18 @@ export async function fetchPostDetailFromNotion(slugOrId: string): Promise<Notio
     }
 
     // 2. 解析摘要 (Summary)
-    let summary = getText(findProp(p, '文本', 'Summary', 'Description', '简介', '摘要')) || inspiration || '';
+    const summary = getText(findProp(p, '文本', 'Summary', 'Description', '简介', '摘要')) || inspiration || '';
 
     const status = getStatus(findProp(p, '状态', 'Status', 'State'));
     const customUrl = getUrl(findProp(p, '发布网址', 'Url', 'Slug', '路径'));
     const cleanSlug = customUrl
       ? customUrl.replace(/^https?:\/\/[^/]+\/posts\//, '').replace(/^\/posts\//, '').replace(/^\//, '').trim()
-      : page.id.replace(/-/g, '');
+      : pageId.replace(/-/g, '');
 
     const markdownContent = await convertBlocksToMarkdown(blocks);
 
     return {
-      id: page.id,
+      id: pageId,
       slug: cleanSlug,
       title,
       created_at: new Date(rawDate).toISOString(),
@@ -623,24 +686,28 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
     });
 
     if (!res.ok) return [];
-    const data = await res.json();
+    const data = asRecord(await res.json());
+    if (!data) return [];
     const items: NotionThoughtItem[] = [];
 
-    for (const page of data.results || []) {
+    for (const page of asRecords(data.results)) {
+      const pageId = readString(page.id);
+      if (!pageId) continue;
       const p = page.properties;
       const isPublished = getCheckbox(findProp(p, 'Published', '公开', '发布'));
       if (!isPublished && findProp(p, 'Published')) continue;
 
       const dateProp = findProp(p, 'Date', '日期', '时间');
       const specifiedDate = getDate(dateProp);
-      let rawDate = page.created_time || '';
+      const createdTime = readString(page.created_time);
+      let rawDate = createdTime;
       if (specifiedDate) {
         if (specifiedDate.includes('T')) {
           rawDate = specifiedDate;
-        } else if (page.created_time && page.created_time.startsWith(specifiedDate)) {
-          rawDate = page.created_time;
-        } else if (page.created_time) {
-          const timePart = page.created_time.split('T')[1];
+        } else if (createdTime && createdTime.startsWith(specifiedDate)) {
+          rawDate = createdTime;
+        } else if (createdTime) {
+          const timePart = createdTime.split('T')[1];
           rawDate = `${specifiedDate}T${timePart}`;
         } else {
           rawDate = specifiedDate;
@@ -652,7 +719,7 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
       const type = getSelect(findProp(p, 'Type', '类型')) || 'NOTE';
 
       items.push({
-        id: page.id,
+        id: pageId,
         author: 'Vince Ou',
         action: getText(findProp(p, 'Action', '动态')) || '',
         time: rawDate,
@@ -719,9 +786,12 @@ export async function fetchGalleryFromNotion(): Promise<NotionPhotoItem[]> {
         break;
       }
 
-      const data: any = await res.json();
+      const data = asRecord(await res.json());
+      if (!data) break;
 
-      for (const page of data.results || []) {
+      for (const page of asRecords(data.results)) {
+        const pageId = readString(page.id);
+        if (!pageId) continue;
         const p = page.properties;
 
         // 如果配置了公开勾选框，未勾选的直接跳过
@@ -735,11 +805,11 @@ export async function fetchGalleryFromNotion(): Promise<NotionPhotoItem[]> {
         const title = getText(findProp(p, 'Title', 'Name', '标题', '名称')) || '';
         const category = getSelect(findProp(p, 'Category', '分类', '主题', 'Tag')) || null;
         const location = getText(findProp(p, 'Location', '地点', '位置')) || null;
-        const rawDate = getDate(findProp(p, 'Date', '日期', '时间')) || page.created_time;
+        const rawDate = getDate(findProp(p, 'Date', '日期', '时间')) || readString(page.created_time);
         const sortOrder = getNumber(findProp(p, 'Order', '序号', '排序', 'No'));
 
         items.push({
-          id: page.id,
+          id: pageId,
           title,
           url: imgUrl,
           created_at: new Date(rawDate).toISOString(),
@@ -749,7 +819,7 @@ export async function fetchGalleryFromNotion(): Promise<NotionPhotoItem[]> {
         });
       }
 
-      cursor = data.has_more ? data.next_cursor : undefined;
+      cursor = data.has_more === true ? readString(data.next_cursor) || undefined : undefined;
     } while (cursor);
 
     // 优先按指定的数字序号从小到大排序；未指定的保持在 Notion 中的排列顺序
@@ -768,4 +838,3 @@ export async function fetchGalleryFromNotion(): Promise<NotionPhotoItem[]> {
     return [];
   }
 }
-

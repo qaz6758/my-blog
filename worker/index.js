@@ -154,14 +154,7 @@ async function handleGetPosts(env) {
     const p = page.properties;
     const status = getStatus(findProp(p, "状态", "Status", "State"));
 
-    // 发布判定：只要不是归档或废弃，默认均允许展示（支持已发布、准备发布、编辑、起草、创意等）
-    const isArchived =
-      status.includes("归档") ||
-      status.includes("废弃") ||
-      status.includes("Trash") ||
-      status.includes("Archived");
-
-    if (isArchived) {
+    if (!isPagePublished(p)) {
       continue;
     }
 
@@ -228,6 +221,10 @@ async function handleGetPostDetail(pageId, env) {
 
   const page = await pageRes.json();
   const p = page.properties;
+
+  if (!isPagePublished(p)) {
+    return jsonResponse({ success: false, error: "Post not found" }, 404);
+  }
 
   // 2. 分页递归拉取全部 blocks (支持超 100 块长文，彻底杜绝文章末尾被截断)
   const allBlocks = [];
@@ -511,6 +508,22 @@ function getStatus(prop) {
   if (prop.type === "status") return prop.status?.name || "";
   if (prop.type === "select") return prop.select?.name || "";
   return "";
+}
+
+function isPagePublished(properties) {
+  if (!properties) return false;
+
+  const publishedProp = findProp(properties, "Published", "公开", "发布");
+  if (publishedProp?.type === "checkbox") {
+    return publishedProp.checkbox === true;
+  }
+
+  const status = getStatus(findProp(properties, "状态", "Status", "State", "阶段"))
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  return ["已发布", "published", "已发布🚀", "published🚀", "已发布✅", "published✅", "🚀", "✅"].includes(status);
 }
 
 function richTextToMarkdown(richTextArray) {
