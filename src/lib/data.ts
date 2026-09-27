@@ -6,7 +6,6 @@ import {
   fetchThoughtsFromNotion as fetchNotionThoughts,
   extractDatabaseId,
   NotionPostItem,
-  NotionThoughtItem,
 } from '@/lib/notion';
 
 export type { NotionPostItem };

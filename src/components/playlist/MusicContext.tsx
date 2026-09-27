@@ -1,7 +1,14 @@
 // components/playlist/MusicContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useEffectEvent,
+} from "react";
 import { Song } from "@/components/playlist/SongList";
 import dynamic from "next/dynamic";
 
@@ -50,7 +57,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         import("@/components/playlist/MusicPlayer");
       };
       if ("requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(preload);
+        window.requestIdleCallback(preload);
       } else {
         setTimeout(preload, 1000);
       }
@@ -78,34 +85,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
     return () => clearTimeout(timer);
   }, [currentSong, playlistSongs]);
-
-  // 媒体会话联动（支持键盘快捷键、锁屏与系统控制中心原生切歌）
-  useEffect(() => {
-    if (!currentSong || typeof window === "undefined" || !("mediaSession" in navigator)) return;
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentSong.title,
-      artist: currentSong.artist,
-      album: currentSong.album || "Playlist",
-      artwork: currentSong.cover_url
-        ? [
-            { src: currentSong.cover_url, sizes: "128x128", type: "image/jpeg" },
-            { src: currentSong.cover_url, sizes: "256x256", type: "image/jpeg" },
-            { src: currentSong.cover_url, sizes: "512x512", type: "image/jpeg" },
-          ]
-        : [],
-    });
-
-    navigator.mediaSession.setActionHandler("play", () => {
-      audioRef.current?.play();
-      setIsPlaying(true);
-    });
-    navigator.mediaSession.setActionHandler("pause", () => {
-      audioRef.current?.pause();
-      setIsPlaying(false);
-    });
-    navigator.mediaSession.setActionHandler("previoustrack", handlePrev);
-    navigator.mediaSession.setActionHandler("nexttrack", handleNext);
-  }, [currentSong]);
 
   // ⚡ 核心无感切歌管线：直接调度原生音频驱动，避免定时器与 React DOM 冲突
   const performSeamlessSwitch = (targetSong: Song, newPlaylist?: Song[]) => {
@@ -198,6 +177,47 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     performSeamlessSwitch(playlistSongs[prevIndex]);
   };
 
+  const handleMediaSessionPlay = useEffectEvent(() => {
+    audioRef.current?.play();
+    setIsPlaying(true);
+  });
+  const handleMediaSessionPause = useEffectEvent(() => {
+    audioRef.current?.pause();
+    setIsPlaying(false);
+  });
+  const handleMediaSessionPrev = useEffectEvent(handlePrev);
+  const handleMediaSessionNext = useEffectEvent(handleNext);
+
+  // 媒体会话联动（支持键盘快捷键、锁屏与系统控制中心原生切歌）
+  useEffect(() => {
+    if (!currentSong || typeof window === "undefined" || !("mediaSession" in navigator)) return;
+    const mediaSession = navigator.mediaSession;
+    mediaSession.metadata = new MediaMetadata({
+      title: currentSong.title,
+      artist: currentSong.artist,
+      album: currentSong.album || "Playlist",
+      artwork: currentSong.cover_url
+        ? [
+            { src: currentSong.cover_url, sizes: "128x128", type: "image/jpeg" },
+            { src: currentSong.cover_url, sizes: "256x256", type: "image/jpeg" },
+            { src: currentSong.cover_url, sizes: "512x512", type: "image/jpeg" },
+          ]
+        : [],
+    });
+
+    mediaSession.setActionHandler("play", handleMediaSessionPlay);
+    mediaSession.setActionHandler("pause", handleMediaSessionPause);
+    mediaSession.setActionHandler("previoustrack", handleMediaSessionPrev);
+    mediaSession.setActionHandler("nexttrack", handleMediaSessionNext);
+
+    return () => {
+      mediaSession.setActionHandler("play", null);
+      mediaSession.setActionHandler("pause", null);
+      mediaSession.setActionHandler("previoustrack", null);
+      mediaSession.setActionHandler("nexttrack", null);
+    };
+  }, [currentSong]);
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const target = Number(e.target.value);
     if (audioRef.current) {
@@ -287,7 +307,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
           const audio = audioRef.current;
           if (audio && currentSong) {
             const match = (currentSong.audio_url || "").match(/(\d+)\.mp3/);
-            const neteaseId = match ? match[1] : (currentSong as any).netease_id;
+            const neteaseId = match ? match[1] : currentSong.netease_id;
             const fallbackStream = neteaseId ? `/api/music/stream?id=${neteaseId}` : null;
             if (fallbackStream && !audio.src.includes("/api/music/stream")) {
               console.log(`[Audio Fallback] 正在无缝切换到备用音频流: ${fallbackStream}`);

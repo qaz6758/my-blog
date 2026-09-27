@@ -17,8 +17,8 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-export default {
-  async fetch(request, env, ctx) {
+const worker = {
+  async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: CORS_HEADERS });
     }
@@ -61,13 +61,25 @@ export default {
         timestamp: new Date().toISOString(),
       });
     } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Internal Server Error";
+      console.error(
+        JSON.stringify({
+          message: "Notion API request failed",
+          method: request.method,
+          path: pathname,
+          error: errorMessage,
+        })
+      );
       return jsonResponse(
-        { success: false, error: err.message || "Internal Server Error" },
+        { success: false, error: errorMessage },
         500
       );
     }
   },
 };
+
+export default worker;
 
 /* ========================================================================= */
 /* 路由处理器                                                                */

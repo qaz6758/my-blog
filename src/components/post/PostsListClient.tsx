@@ -18,6 +18,46 @@ export interface PostItem {
   tags?: string[] | string | null;
   is_pinned?: boolean | null;
   read_time?: number | null;
+  status?: string | string[];
+  source_url?: string | null;
+}
+
+type WorkerPost = PostItem;
+
+function isWorkerPost(value: unknown): value is WorkerPost {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    (typeof value.id === "string" || typeof value.id === "number") &&
+    "title" in value &&
+    typeof value.title === "string" &&
+    "created_at" in value &&
+    typeof value.created_at === "string"
+  );
+}
+
+function isPostsResponse(
+  value: unknown
+): value is { success: true; data: unknown[] } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "success" in value &&
+    value.success === true &&
+    "data" in value &&
+    Array.isArray(value.data)
+  );
+}
+
+function isPublished(status: WorkerPost["status"]): boolean {
+  const statuses = Array.isArray(status) ? status : [status ?? ""];
+  return statuses.some(
+    (value) =>
+      value.includes("已发布") ||
+      value.includes("Published") ||
+      value.includes("🚀")
+  );
 }
 
 interface PostsListClientProps {
@@ -51,16 +91,14 @@ function formatPostDate(dateString: string, isEn: boolean) {
 }
 
 export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
-  const [posts, setPosts] = React.useState<PostItem[]>(initialPosts);
+  const [syncedPosts, setSyncedPosts] = React.useState<{
+    source: PostItem[];
+    posts: PostItem[];
+  } | null>(null);
+  const posts =
+    syncedPosts?.source === initialPosts ? syncedPosts.posts : initialPosts;
   const { locale } = useI18n();
   const isEn = locale === "en";
-
-  // 1. 当服务端 ISR 刷新后 initialPosts 产生变化时无缝同步最新数据
-  React.useEffect(() => {
-    if (initialPosts && initialPosts.length > 0) {
-      setPosts(initialPosts);
-    }
-  }, [initialPosts]);
 
   // 2. 客户端兜底与增量同步（严格继承服务端置顶状态，杜绝 Worker 缺失字段引发重排）
   React.useEffect(() => {
@@ -72,25 +110,25 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
     const workerUrl =
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
       "https://api.vinceou.site";
+    let isActive = true;
     fetch(`${workerUrl}/api/posts`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error(`Worker returned HTTP ${res.status}`);
+        return res.json() as Promise<unknown>;
+      })
       .then((result) => {
-        if (result?.success && Array.isArray(result.data) && result.data.length > 0) {
+        if (isPostsResponse(result) && result.data.length > 0) {
           // 建立已有文章索引以保留权威属性
           const existingMap = new Map<string, PostItem>();
-          [...initialPosts, ...posts].forEach((p) => {
+          initialPosts.forEach((p) => {
             if (p.id) existingMap.set(String(p.id).replace(/-/g, ""), p);
             if (p.slug) existingMap.set(String(p.slug), p);
           });
 
           const published: PostItem[] = result.data
-            .filter(
-              (p: any) =>
-                p.status?.includes("已发布") ||
-                p.status?.includes("Published") ||
-                p.status?.includes("🚀")
-            )
-            .map((p: any) => {
+            .filter(isWorkerPost)
+            .filter((p) => isPublished(p.status))
+            .map((p) => {
               const cleanId = String(p.id || "").replace(/-/g, "");
               const cleanSlug = String(p.slug || p.source_url || "")
                 .replace(/^https?:\/\/[^/]+\/posts\//, "")
@@ -100,28 +138,33 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
 
               return {
                 ...p,
-                slug: cleanSlug || p.slug || p.source_url || p.id,
+                slug: cleanSlug || String(p.id),
                 // 核心关键：外部 Worker 缺失 is_pinned 时，100% 继承服务端权威真实的置顶状态
                 is_pinned: (p.is_pinned !== undefined ? p.is_pinned : existing?.is_pinned) ?? false,
                 read_time: p.read_time ?? existing?.read_time ?? null,
               };
             });
 
-          if (published.length > 0) {
-            setPosts((prev) => {
-              // 若核心字段与排序均一致，绝不触发不必要的重新渲染
-              const prevSign = prev.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}_${p.read_time}`).join("|");
-              const nextSign = published.map((p: PostItem) => `${p.id}_${p.title}_${p.is_pinned}_${p.read_time}`).join("|");
-              if (prevSign === nextSign) {
-                return prev;
-              }
-              return published;
-            });
+          const currentSign = initialPosts
+            .map((p) => `${p.id}_${p.title}_${p.is_pinned}_${p.read_time}`)
+            .join("|");
+          const nextSign = published
+            .map((p) => `${p.id}_${p.title}_${p.is_pinned}_${p.read_time}`)
+            .join("|");
+          if (isActive && published.length > 0 && currentSign !== nextSign) {
+            setSyncedPosts({ source: initialPosts, posts: published });
           }
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch((error: unknown) => {
+        if (isActive) {
+          console.warn("[Posts] 后台文章同步失败:", error);
+        }
+      });
+    return () => {
+      isActive = false;
+    };
+  }, [initialPosts]);
 
   const { years, postsByYear } = useMemo(() => {
     const groups: Record<string, PostItem[]> = {};
@@ -193,7 +236,8 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                     const date = post.published_at || post.created_at;
                     const formattedDate = formatPostDate(date, isEn);
                     const readTime = getReadTime(post);
-                    const targetLink = "/posts/" + (post.slug || (post as any).source_url || post.id);
+                    const targetLink =
+                      "/posts/" + (post.slug || post.source_url || post.id);
 
                     return (
                       <Link

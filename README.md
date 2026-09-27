@@ -25,7 +25,7 @@ OW 是一个以 **记录、表达与生活** 为核心的个人空间。
 
 **文字是主体，留白是空间，交互保持克制。**
 
-设计上受到 Anthony Fu 的极简排版与 Innei 的个人表达方式启发
+设计上受到 Anthony Fu 的极简排版与 Innei 的个人表达方式启发。
 
 ---
 
@@ -126,6 +126,7 @@ NOTION_THOUGHTS_DB_ID=your-thoughts-database-id
 
 ```bash
 npm run build
+npm run lint
 ```
 
 ---

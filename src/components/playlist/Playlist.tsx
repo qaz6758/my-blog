@@ -1,7 +1,7 @@
 // components/playlist/Playlist.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, ArrowLeft } from "lucide-react";
 import { Song, SongList } from "@/components/playlist/SongList";
@@ -16,6 +16,8 @@ export interface PlaylistCategory {
   title: string;
   description: string;
   cover: string;
+  cover_url?: string;
+  coverUrl?: string;
   tag: string;
   curatorNote: string;
   songs: Song[];
@@ -107,18 +109,14 @@ export function Playlist({
                     {/* 歌单封面卡片 (纸墨世界风格：无圆角，无阴影，静谧刻痕) */}
                     <div className="relative aspect-square w-full overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 ring-1 ring-black/5 dark:ring-white/5 transition-all group-hover:scale-[1.015]" style={{ transitionDuration: "var(--realm-motion-duration)" }}>
                       {(() => {
-                        const rawCover =
-                          playlist.cover ||
-                          (playlist as any).cover_url ||
-                          (playlist as any).coverUrl ||
-                          "";
+                        const rawCover = playlist.cover || playlist.cover_url || playlist.coverUrl || "";
                         return (
                           <img
                             src={getProxyImageUrl(rawCover) || FALLBACK_COVER}
                             alt={playlist.title}
                             referrerPolicy="no-referrer"
                             onError={(e) => {
-                              const target = e.target as HTMLImageElement;
+                              const target = e.currentTarget;
                               if (target.dataset.errorCount === "2") {
                                 target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
                                 return;
@@ -197,8 +195,8 @@ export function Playlist({
                     {(() => {
                       const rawHeroCover =
                         activePlaylist.cover ||
-                        (activePlaylist as any).cover_url ||
-                        (activePlaylist as any).coverUrl ||
+                        activePlaylist.cover_url ||
+                        activePlaylist.coverUrl ||
                         "";
                       return (
                         <img
@@ -206,7 +204,7 @@ export function Playlist({
                           alt={activePlaylist.title}
                           referrerPolicy="no-referrer"
                           onError={(e) => {
-                            const target = e.target as HTMLImageElement;
+                            const target = e.currentTarget;
                             if (target.dataset.errorCount === "2") {
                               target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
                               return;

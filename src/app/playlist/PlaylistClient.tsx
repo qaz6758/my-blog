@@ -1,12 +1,60 @@
 // app/playlist/PlaylistClient.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Disc3, RefreshCw } from "lucide-react";
 import { Playlist, PlaylistCategory } from "@/components/playlist/Playlist";
 import { Song } from "@/components/playlist/SongList";
 import { useMusic } from "@/components/playlist/MusicContext";
 import { PlaylistSkeleton } from "@/components/playlist/PlaylistSkeleton";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isSong(value: unknown): value is Song {
+  return (
+    isRecord(value) &&
+    (typeof value.id === "string" || typeof value.id === "number") &&
+    typeof value.title === "string" &&
+    typeof value.artist === "string" &&
+    typeof value.cover_url === "string" &&
+    typeof value.audio_url === "string" &&
+    (value.album === undefined || typeof value.album === "string") &&
+    (value.duration === undefined ||
+      typeof value.duration === "string" ||
+      typeof value.duration === "number") &&
+    (value.explicit === undefined || typeof value.explicit === "boolean")
+  );
+}
+
+function isPlaylistCategory(value: unknown): value is PlaylistCategory {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.description === "string" &&
+    typeof value.cover === "string" &&
+    typeof value.tag === "string" &&
+    typeof value.curatorNote === "string" &&
+    Array.isArray(value.songs) &&
+    value.songs.every(isSong)
+  );
+}
+
+function isPlaylistCategoryArray(value: unknown): value is PlaylistCategory[] {
+  return Array.isArray(value) && value.every(isPlaylistCategory);
+}
+
+function isPlaylistResponse(
+  value: unknown
+): value is { success: boolean; data: PlaylistCategory[] } {
+  return (
+    isRecord(value) &&
+    typeof value.success === "boolean" &&
+    isPlaylistCategoryArray(value.data)
+  );
+}
 
 interface PlaylistClientProps {
   initialPlaylists?: PlaylistCategory[];
@@ -21,6 +69,7 @@ export default function PlaylistClient({
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(initialPlaylistId);
   const [isLoading, setIsLoading] = useState(initialPlaylists.length === 0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const hasFreshPlaylistsRef = useRef(false);
 
   const { currentSong, isPlaying, playSong, playAll } = useMusic();
 
@@ -74,9 +123,7 @@ export default function PlaylistClient({
     };
   }, []);
 
-  const loadNotionPlaylists = async () => {
-    if (playlists.length === 0) setIsLoading(true);
-    setErrorMsg(null);
+  const loadNotionPlaylists = useCallback(async () => {
     try {
       const workerUrl =
         process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
@@ -89,8 +136,9 @@ export default function PlaylistClient({
       }
 
       if (res && res.ok) {
-        const json = await res.json();
-        if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+        const json: unknown = await res.json();
+        if (isPlaylistResponse(json) && json.success && json.data.length > 0) {
+          hasFreshPlaylistsRef.current = true;
           setPlaylists((prev) => {
             if (JSON.stringify(prev) === JSON.stringify(json.data)) {
               return prev;
@@ -104,38 +152,51 @@ export default function PlaylistClient({
         }
       }
 
-      if (playlists.length === 0) {
-        setErrorMsg("未能获取到歌单数据");
-      }
+      setErrorMsg("未能获取到歌单数据");
     } catch {
-      if (playlists.length === 0) {
-        setErrorMsg("网络请求异常，请稍后重试");
-      }
+      setErrorMsg("网络请求异常，请稍后重试");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // 1. 尝试从 sessionStorage 优先恢复上次验证过的最新歌单，杜绝刷新时由于打包旧快照造成的视觉跳变
+    let cacheFrame: number | undefined;
+    const fetchTimer = window.setTimeout(() => {
+      void loadNotionPlaylists();
+    }, 0);
     try {
       const cached = sessionStorage.getItem("ow_playlists_cache_v1");
       if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setPlaylists((prev) => {
-            if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
-              return parsed;
-            }
-            return prev;
+        const parsed: unknown = JSON.parse(cached);
+        if (isPlaylistCategoryArray(parsed) && parsed.length > 0) {
+          cacheFrame = requestAnimationFrame(() => {
+            if (hasFreshPlaylistsRef.current) return;
+            setPlaylists((prev) => {
+              if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
+                return parsed;
+              }
+              return prev;
+            });
           });
         }
       }
     } catch {}
 
-    // 2. 页面加载后立即在后台静默获取最新的实时歌单数据（SWR 机制，确保删歌/加歌秒级呈现）
-    loadNotionPlaylists();
-  }, []);
+    return () => {
+      window.clearTimeout(fetchTimer);
+      if (cacheFrame !== undefined) {
+        cancelAnimationFrame(cacheFrame);
+      }
+    };
+  }, [loadNotionPlaylists]);
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    void loadNotionPlaylists();
+  };
 
   const handlePlayAll = (playlist: PlaylistCategory) => {
     if (playlist.songs && playlist.songs.length > 0) {
@@ -164,7 +225,7 @@ export default function PlaylistClient({
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{errorMsg}</p>
         <button
           type="button"
-          onClick={loadNotionPlaylists}
+          onClick={handleRetry}
           className="mt-6 inline-flex items-center gap-1.5 rounded-xl border border-black/[0.08] bg-white px-4 py-2 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 dark:border-white/[0.08] dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
         >
           <RefreshCw className="h-3.5 w-3.5" />

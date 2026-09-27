@@ -904,13 +904,12 @@ function PostContentWrapperInternal({
       // 段落渲染：如果为空白占位段落（如 &nbsp; 或纯空白），渲染为标准高度的自然空行占位；图片等媒体元素必须正常保留并渲染
       p: ({
         children,
-        node,
         ...props
       }: {
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         if (isBlankParagraph(children)) {
           return <div aria-hidden="true" className="empty-placeholder h-4 select-none" />;
         }
@@ -920,20 +919,19 @@ function PostContentWrapperInternal({
       // 引用块渲染：普通引用（如名人名言、对话、副标题导言）保持极简高雅引用；带 [!NOTE] / [!TIP] 标识时渲染为 Note/Tip 提示卡片
       blockquote: ({
         children,
-        node,
         ...props
       }: {
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const text = getNodeText(children).trim();
         const alertConfig = getAlertConfig(text);
 
         // 普通引用（无 [!NOTE] 标识），保持 Anthony Fu 原生优雅极简引用样式（负边距悬挂线 -1.1em + 1em 呼吸回正 + 75% 优雅透光度）
         if (!alertConfig) {
           return (
-            <blockquote className="mt-4 mb-3 first:mt-0 border-l-4 border-[#d8d8d8] dark:border-[#7d7d7d50] -ml-2 sm:-ml-[1.1em] pl-3 sm:pl-[1em] text-[#555] dark:text-[#bbb] opacity-75 not-italic select-text font-sans">
+            <blockquote {...props} className="mt-4 mb-3 first:mt-0 border-l-4 border-[#d8d8d8] dark:border-[#7d7d7d50] -ml-2 sm:-ml-[1.1em] pl-3 sm:pl-[1em] text-[#555] dark:text-[#bbb] opacity-75 not-italic select-text font-sans">
               <div className="text-[15.5px] sm:text-[16px] leading-[1.65] [&>p]:mb-0 [&>p:not(:last-child)]:mb-2.5">
                 {children}
               </div>
@@ -969,13 +967,12 @@ function PostContentWrapperInternal({
 
       h1: ({
         children,
-        node,
         ...props
       }: {
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const id = slugifyHeading(getNodeText(children));
 
         return (
@@ -987,13 +984,12 @@ function PostContentWrapperInternal({
 
       h2: ({
         children,
-        node,
         ...props
       }: {
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const id = slugifyHeading(getNodeText(children));
 
         return (
@@ -1005,13 +1001,12 @@ function PostContentWrapperInternal({
 
       h3: ({
         children,
-        node,
         ...props
       }: {
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const id = slugifyHeading(getNodeText(children));
 
         return (
@@ -1023,13 +1018,12 @@ function PostContentWrapperInternal({
 
       h4: ({
         children,
-        node,
         ...props
       }: {
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const id = slugifyHeading(getNodeText(children));
 
         return (
@@ -1044,14 +1038,13 @@ function PostContentWrapperInternal({
       code: ({
         className,
         children,
-        node,
         ...props
       }: {
         className?: string;
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const match = /language-(\w+)/.exec(className || "");
         const codeString = String(children).replace(/\n$/, "");
         const isInline = !match && !codeString.includes("\n");
@@ -1078,14 +1071,13 @@ function PostContentWrapperInternal({
       img: ({
         src,
         alt,
-        node,
         ...props
       }: {
         src?: string;
         alt?: string;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const rawSrc = typeof src === "string" ? src : "";
         let optimizedSrc = rawSrc;
 
@@ -1135,14 +1127,13 @@ function PostContentWrapperInternal({
       a: ({
         href,
         children,
-        node,
         ...props
       }: {
         href?: string;
         children?: React.ReactNode;
-        node?: unknown;
         [key: string]: unknown;
       }) => {
+        delete props.node;
         const isExternal =
           href?.startsWith("http://") || href?.startsWith("https://");
 

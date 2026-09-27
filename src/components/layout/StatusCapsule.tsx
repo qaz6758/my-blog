@@ -1,10 +1,36 @@
 // components/layout/StatusCapsule.tsx
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Laptop, Circle, Music2 } from "lucide-react";
 import { useLiveStatus } from "@/hooks/useLiveStatus";
+
+let clockSnapshot = Date.now();
+let clockInterval: ReturnType<typeof setInterval> | null = null;
+const clockListeners = new Set<() => void>();
+
+function subscribeToClock(listener: () => void) {
+  clockListeners.add(listener);
+  if (clockListeners.size === 1) {
+    clockInterval = setInterval(() => {
+      clockSnapshot = Date.now();
+      clockListeners.forEach((callback) => callback());
+    }, 1000);
+  }
+
+  return () => {
+    clockListeners.delete(listener);
+    if (clockListeners.size === 0 && clockInterval) {
+      clearInterval(clockInterval);
+      clockInterval = null;
+    }
+  };
+}
+
+const subscribeToNothing = () => () => {};
+const getClockSnapshot = () => clockSnapshot;
+const getServerClockSnapshot = () => 0;
 
 // 根据软件名称自动匹配对应的图标 (Iconify / SimpleIcons 稳定 CDN)
 function getAppIconFallback(appName: string): string | null {
@@ -75,57 +101,37 @@ export function StatusCapsule({
   const musicCover = liveStatus.music?.cover || null;
   const musicIsPlaying = liveStatus.music?.isPlaying ?? false;
 
-  const displayTitle = isMusic
-    ? musicTitle
-    : liveStatus.app?.title || "Desktop";
-
-  const displayApp = isMusic
-    ? "MoeKoe Music"
-    : liveStatus.app?.name || "Offline";
-
   const isOnline = isMusic || hasApp;
 
   const musicCurrentTime = liveStatus.music?.currentTime || 0;
   const musicDuration = liveStatus.music?.duration || 0;
 
-  const [localProgress, setLocalProgress] = useState(0);
-  const [coverError, setCoverError] = useState(false);
+  const [coverError, setCoverError] = useState<{
+    cover: string | null;
+    failed: boolean;
+  } | null>(null);
+  const hasCoverError =
+    coverError?.cover === musicCover && coverError.failed;
 
-  React.useEffect(() => {
-    setCoverError(false);
-  }, [musicCover]);
-
-  // 实时跳动进度条逻辑
-  React.useEffect(() => {
-    if (!isMusic || musicDuration === 0) return;
-
-    // 每次拿到新的 API 数据时，先同步当前时间
-    // 假设如果数值很大（比如大于20000），则是毫秒级；否则是秒级
-    const isMs = musicDuration > 20000;
-    
-    // 如果有 lastSeenAt，为了追求极致精确，可以把服务器更新以来的时间差加上去
-    let exactCurrentTime = musicCurrentTime;
-    if (musicIsPlaying && liveStatus.lastSeenAt) {
-      const timeDiffMs = Date.now() - new Date(liveStatus.lastSeenAt).getTime();
-      if (timeDiffMs > 0 && timeDiffMs < 30000) { // 限制在合理范围内
-        exactCurrentTime += isMs ? timeDiffMs : Math.floor(timeDiffMs / 1000);
-      }
-    }
-    
-    setLocalProgress(exactCurrentTime);
-
-    if (!musicIsPlaying) return;
-
-    const interval = setInterval(() => {
-      setLocalProgress((prev) => {
-        const step = isMs ? 1000 : 1;
-        const next = prev + step;
-        return next > musicDuration ? musicDuration : next;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [musicCurrentTime, musicDuration, musicIsPlaying, isMusic, liveStatus.lastSeenAt]);
+  const clockNow = useSyncExternalStore(
+    isMusic && musicIsPlaying ? subscribeToClock : subscribeToNothing,
+    getClockSnapshot,
+    getServerClockSnapshot
+  );
+  const timeDiffMs = liveStatus.lastSeenAt
+    ? clockNow - new Date(liveStatus.lastSeenAt).getTime()
+    : 0;
+  const isMs = musicDuration > 20000;
+  const elapsedSinceUpdate =
+    musicIsPlaying && timeDiffMs > 0 && timeDiffMs < 30_000
+      ? isMs
+        ? timeDiffMs
+        : Math.floor(timeDiffMs / 1000)
+      : 0;
+  const localProgress = Math.min(
+    musicDuration,
+    musicCurrentTime + elapsedSinceUpdate
+  );
 
   const formatTime = (val: number) => {
     if (!val || val < 0) return "0:00";
@@ -169,12 +175,12 @@ export function StatusCapsule({
         <div className="mt-4 flex flex-col border border-black/[0.06] dark:border-white/[0.08] p-2.5">
           <div className="flex gap-3">
             <div className="h-11 w-11 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[20%]">
-              {musicCover && !coverError ? (
+              {musicCover && !hasCoverError ? (
                 <img
                   src={musicCover}
                   alt={`${musicTitle} cover`}
                   referrerPolicy="no-referrer"
-                  onError={() => setCoverError(true)}
+                  onError={() => setCoverError({ cover: musicCover, failed: true })}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -270,12 +276,12 @@ export function StatusCapsule({
             className="flex h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 items-center justify-center overflow-hidden grayscale-0 opacity-100 dark:grayscale dark:opacity-60 transition-all group-hover:grayscale-0 group-hover:opacity-100"
             style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
-            {isMusic && musicCover && !coverError ? (
+            {isMusic && musicCover && !hasCoverError ? (
               <img
                 src={musicCover}
                 alt="music cover"
                 referrerPolicy="no-referrer"
-                onError={() => setCoverError(true)}
+                onError={() => setCoverError({ cover: musicCover, failed: true })}
                 className="h-full w-full object-cover rounded-[1px]"
               />
             ) : isMusic ? (

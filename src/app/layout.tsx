@@ -249,7 +249,7 @@ export default function RootLayout({
       </head>
 
       <body
-        className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} min-h-screen w-full font-sans overflow-x-hidden antialiased`}
+        className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable} min-h-screen w-full font-sans overflow-x-hidden antialiased`}
       >
         <ThemeProvider>
           {/* 全局国际化 Provider */}

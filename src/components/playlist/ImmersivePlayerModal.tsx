@@ -11,7 +11,7 @@ import {
   Repeat1,
   X,
 } from "lucide-react";
-import { Song } from "@/components/playlist/SongList";
+import { getSongCover, Song } from "@/components/playlist/SongList";
 import { RepeatMode } from "@/components/playlist/MusicContext";
 import { NeatFluidBackground } from "@/components/playlist/NeatFluidBackground";
 import { getProxyImageUrl } from "@/lib/image-proxy";
@@ -95,12 +95,7 @@ export function ImmersivePlayerModal({
   const remainingTime = duration > currentTime ? duration - currentTime : 0;
   const currentVolumePercent = isMuted ? 0 : volume * 100;
 
-  const rawCover =
-    currentSong.cover_url ||
-    (currentSong as any).cover ||
-    (currentSong as any).picUrl ||
-    (currentSong as any).coverUrl ||
-    "";
+  const rawCover = getSongCover(currentSong);
   const activeCover =
     getProxyImageUrl(rawCover) ||
     "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
@@ -150,7 +145,7 @@ export function ImmersivePlayerModal({
                   alt={currentSong.title}
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    const target = e.target as HTMLImageElement;
+                    const target = e.currentTarget;
                     if (target.dataset.errorCount === "1") {
                       target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
                       return;
@@ -336,12 +331,7 @@ export function ImmersivePlayerModal({
                 {/* 右侧极简大喇叭 (Apple 官方同款高音量指示，点击设为最大音量) */}
                 <button
                   type="button"
-                  onClick={() => {
-                    const fakeEvent = {
-                      target: { value: "1" },
-                    } as React.ChangeEvent<HTMLInputElement>;
-                    onVolumeChange(fakeEvent);
-                  }}
+                  onClick={() => onAdjustVolume?.(1)}
                   className="hover:text-white transition-colors cursor-pointer shrink-0 p-1 -mr-1"
                   title="最大音量"
                 >

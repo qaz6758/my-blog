@@ -58,10 +58,11 @@ function isStatusExpired(lastSeenAt: string | null): boolean {
   return Date.now() - timestamp > 120_000;
 }
 
-function mapRow(row: any): LiveStatus {
+function mapRow(row: Record<string, unknown> | null): LiveStatus {
   if (!row) return DEFAULT_STATUS;
 
-  const lastSeenAt = row.last_seen_at ?? null;
+  const lastSeenAt =
+    typeof row.last_seen_at === "string" ? row.last_seen_at : null;
 
   if (isStatusExpired(lastSeenAt)) {
     return {
@@ -72,8 +73,11 @@ function mapRow(row: any): LiveStatus {
     };
   }
 
-  const isMusic = Boolean(row.music_title);
-  const isApp = Boolean(row.app_name);
+  const musicTitle =
+    typeof row.music_title === "string" ? row.music_title : null;
+  const appName = typeof row.app_name === "string" ? row.app_name : null;
+  const isMusic = Boolean(musicTitle);
+  const isApp = Boolean(appName);
 
   return {
     // 这里只要在线就视为 app 或 music，activity字段可以弱化
@@ -81,9 +85,10 @@ function mapRow(row: any): LiveStatus {
     lastSeenAt,
     music: isMusic
       ? {
-          title: row.music_title ?? null,
-          artist: row.music_artist ?? null,
-          cover: row.music_cover ?? null,
+          title: musicTitle,
+          artist:
+            typeof row.music_artist === "string" ? row.music_artist : null,
+          cover: typeof row.music_cover === "string" ? row.music_cover : null,
           currentTime: Number(row.music_current_time) || 0,
           duration: Number(row.music_duration) || 0,
           isPlaying: Boolean(row.music_is_playing),
@@ -91,9 +96,9 @@ function mapRow(row: any): LiveStatus {
       : null,
     app: isApp
       ? {
-          name: row.app_name ?? "Desktop",
-          title: row.app_title ?? null,
-          icon: row.app_icon ?? null,
+          name: appName ?? "Desktop",
+          title: typeof row.app_title === "string" ? row.app_title : null,
+          icon: typeof row.app_icon === "string" ? row.app_icon : null,
         }
       : null,
   };

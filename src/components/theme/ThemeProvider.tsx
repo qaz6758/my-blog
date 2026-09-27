@@ -3,6 +3,7 @@
 
 import React, {
   createContext,
+  startTransition,
   useContext,
   useEffect,
   useState,
@@ -35,6 +36,10 @@ function getServerMounted() {
   return false;
 }
 
+function isTheme(value: string | null): value is Theme {
+  return value === "light" || value === "dark";
+}
+
 /**
  * 严格判断当前交互运行环境是否为移动端设备
  * 结合指针粗细（触屏 pointer: coarse）与屏幕尺寸，准确分流 PC 与手机端
@@ -54,15 +59,16 @@ function getStoredTheme(): Theme | null {
 
   try {
     const fromLocal = localStorage.getItem(STORAGE_KEY);
-    if (fromLocal === "light" || fromLocal === "dark") {
+    if (isTheme(fromLocal)) {
       return fromLocal;
     }
 
     const cookieMatch = document.cookie.match(
       /(?:^|;\s*)theme=(light|dark)/
     );
-    if (cookieMatch) {
-      return cookieMatch[1] as Theme;
+    const fromCookie = cookieMatch?.[1];
+    if (fromCookie && isTheme(fromCookie)) {
+      return fromCookie;
     }
   } catch {}
 
@@ -97,6 +103,26 @@ function persistTheme(target: Theme) {
     localStorage.setItem(STORAGE_KEY, target);
     document.cookie = `theme=${target}; path=/; max-age=31536000; SameSite=Lax`;
   } catch {}
+}
+
+function applyThemeToDocument(newTheme: Theme) {
+  if (typeof document === "undefined") return;
+
+  const root = document.documentElement;
+  const backgroundColor = newTheme === "dark" ? "#050505" : "#ffffff";
+  const textColor = newTheme === "dark" ? "#e5e5e5" : "#222222";
+
+  root.classList.toggle("dark", newTheme === "dark");
+  root.classList.toggle("light", newTheme === "light");
+  root.style.colorScheme = newTheme === "dark" ? "only dark" : "only light";
+  root.style.backgroundColor = backgroundColor;
+  if (document.body) {
+    document.body.style.backgroundColor = backgroundColor;
+    document.body.style.color = textColor;
+  }
+
+  persistTheme(newTheme);
+  updateMetaColorScheme(newTheme);
 }
 
 function updateMetaColorScheme(newTheme: Theme) {
@@ -143,32 +169,8 @@ export function ThemeProvider({
    */
   const applyThemeDirect = useCallback((newTheme: Theme) => {
     if (typeof document === "undefined") return;
-
-    const root = document.documentElement;
-
-    if (newTheme === "dark") {
-      root.classList.add("dark");
-      root.classList.remove("light");
-      root.style.colorScheme = "only dark";
-      root.style.backgroundColor = "#050505";
-      if (document.body) {
-        document.body.style.backgroundColor = "#050505";
-        document.body.style.color = "#e5e5e5";
-      }
-    } else {
-      root.classList.remove("dark");
-      root.classList.add("light");
-      root.style.colorScheme = "only light";
-      root.style.backgroundColor = "#ffffff";
-      if (document.body) {
-        document.body.style.backgroundColor = "#ffffff";
-        document.body.style.color = "#222222";
-      }
-    }
-
+    applyThemeToDocument(newTheme);
     setThemeState(newTheme);
-    persistTheme(newTheme);
-    updateMetaColorScheme(newTheme);
   }, []);
 
   /*
@@ -178,8 +180,11 @@ export function ThemeProvider({
    */
   useEffect(() => {
     const current = getInitialTheme(initialTheme);
-    applyThemeDirect(current);
-  }, [initialTheme, applyThemeDirect]);
+    applyThemeToDocument(current);
+    if (current !== theme) {
+      startTransition(() => setThemeState(current));
+    }
+  }, [initialTheme, theme]);
 
   /*
    * ============================================================

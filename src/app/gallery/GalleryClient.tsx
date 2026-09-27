@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { GalleryImage } from "@/types/gallery";
 import { getGalleryImages } from "@/lib/gallery";
 import { supabase } from "@/lib/supabase";
+
+const subscribeToMount = () => () => {};
+const getMountSnapshot = () => true;
+const getServerMountSnapshot = () => false;
 
 function deduplicatePhotos(list: GalleryImage[]): GalleryImage[] {
   const seen = new Set<string>();
@@ -35,12 +40,13 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
     return deduplicatePhotos(source);
   });
   const [isGrid, setIsGrid] = useState(true);
-  const [activePhoto, setActivePhoto] = useState<GalleryImage | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [activePhotoId, setActivePhotoId] = useState<GalleryImage["id"] | null>(null);
+  const activePhoto = photos.find((photo) => photo.id === activePhotoId) ?? null;
+  const mounted = useSyncExternalStore(
+    subscribeToMount,
+    getMountSnapshot,
+    getServerMountSnapshot
+  );
 
   // 后台静默实时同步 Supabase 最新画廊照片 (免构建部署，即时响应增删改)
   useEffect(() => {
@@ -99,7 +105,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
     refreshPhotos();
 
     // 2. 订阅 Supabase Postgres 实时推送 (在 Supabase 控制台增删改时无需刷新网页即刻同步)
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
     try {
       channel = supabase
         .channel("realtime_photos_changes")
@@ -123,18 +129,11 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
     };
   }, []);
 
-  // 若弹窗中的照片在后台已被删除，则自动关闭弹窗
-  useEffect(() => {
-    if (activePhoto && !photos.some((p) => p.id === activePhoto.id)) {
-      setActivePhoto(null);
-    }
-  }, [photos, activePhoto]);
-
   // 键盘快捷键监听 (ESC 退出)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setActivePhoto(null);
+        setActivePhotoId(null);
       }
     };
     if (activePhoto) {
@@ -156,7 +155,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
   }, [activePhoto]);
 
   const handleOpenPhoto = (photo: GalleryImage) => {
-    setActivePhoto(photo);
+    setActivePhotoId(photo.id);
   };
 
   return (
@@ -273,7 +272,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center backdrop-blur-2xl bg-white/75 dark:bg-black/75 p-4 sm:p-10 select-none cursor-zoom-out"
-                onClick={() => setActivePhoto(null)}
+                onClick={() => setActivePhotoId(null)}
               >
                 {/* 核心大图展示区 (阻止冒泡，点击图片本身不关闭，点击图片外区域关闭) */}
                 <motion.div

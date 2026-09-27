@@ -153,10 +153,10 @@ export default async function Page({
 
   return (
     <DynamicPostReader
+      key={post.id}
       post={post}
       prevPost={prevPost}
       nextPost={nextPost}
     />
   );
 }
-

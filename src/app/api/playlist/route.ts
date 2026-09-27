@@ -10,12 +10,12 @@ export async function GET() {
     return NextResponse.json(
       { success: true, data }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("❌ Notion API 错误:", error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "未知错误",
+        error: error instanceof Error ? error.message : "未知错误",
       },
       { status: 500 }
     );

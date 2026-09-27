@@ -21,11 +21,9 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // 4. 图片加载与 CDN 优化策略
+  // Cloudflare Pages does not provide the Next.js image optimizer runtime.
   images: {
     unoptimized: true,
-    // 允许通过本地代理 / VPN（如 Clash/TUN 模式的 198.18.x.x 虚拟 IP）进行图片优化
-    dangerouslyAllowLocalIP: true,
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       // Supabase Storage 域名 (包含所有子域)
@@ -35,19 +33,7 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
-      {
-        protocol: "https",
-        hostname: "kupsztclcilcygstbuya.supabase.co",
-        port: "",
-        pathname: "/**",
-      },
       // Unsplash 图床
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        port: "",
-        pathname: "/**",
-      },
       {
         protocol: "https",
         hostname: "**.unsplash.com",

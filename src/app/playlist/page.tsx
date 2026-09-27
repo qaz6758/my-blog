@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { fetchPlaylists } from "@/lib/data";
 import PlaylistClient from "./PlaylistClient";
 import { PlaylistSkeleton } from "@/components/playlist/PlaylistSkeleton";
+import type { PlaylistCategory } from "@/components/playlist/Playlist";
 
 export const metadata = {
   title: "Playlist",
@@ -12,7 +13,7 @@ export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function PlaylistPage() {
-  let initialPlaylists: any[] = [];
+  let initialPlaylists: PlaylistCategory[] = [];
   try {
     initialPlaylists = await fetchPlaylists();
   } catch (err) {

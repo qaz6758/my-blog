@@ -14,9 +14,17 @@ export interface Song {
   artist: string;
   album?: string;
   cover_url: string;
+  cover?: string;
+  picUrl?: string;
+  coverUrl?: string;
   audio_url: string;
+  netease_id?: string | number;
   duration?: number | string;
   explicit?: boolean;
+}
+
+export function getSongCover(song: Song): string {
+  return song.cover_url || song.cover || song.picUrl || song.coverUrl || "";
 }
 
 interface SongListProps {
@@ -101,12 +109,7 @@ export function SongList({
                   {/* 封面 (32x32 Apple 标准微倒角) */}
                   <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-[5px] bg-neutral-800/40 dark:bg-white/[0.06] ring-1 ring-black/10 dark:ring-white/10">
                     {(() => {
-                      const rawCover =
-                        song.cover_url ||
-                        (song as any).cover ||
-                        (song as any).picUrl ||
-                        (song as any).coverUrl ||
-                        "";
+                      const rawCover = getSongCover(song);
 
                       let initialCover = rawCover || FALLBACK_SONG_COVER;
                       const isNetease = initialCover.includes("music.126.net");
@@ -131,7 +134,7 @@ export function SongList({
                           decoding="async"
                           referrerPolicy="no-referrer"
                           onError={(e) => {
-                            const target = e.target as HTMLImageElement;
+                            const target = e.currentTarget;
                             if (target.dataset.errorCount === "2") {
                               target.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
                               return;

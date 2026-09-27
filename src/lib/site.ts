@@ -68,7 +68,10 @@ export function validateSiteUrl(): { valid: boolean; error?: string } {
       return { valid: false, error: "Production site URL cannot be localhost" };
     }
     return { valid: true };
-  } catch (e: any) {
-    return { valid: false, error: e?.message || "Invalid SITE_URL" };
+  } catch (error) {
+    return {
+      valid: false,
+      error: error instanceof Error ? error.message : "Invalid SITE_URL",
+    };
   }
 }

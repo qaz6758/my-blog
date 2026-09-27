@@ -270,9 +270,7 @@ export function NeatFluidBackground({ coverUrl }: NeatFluidBackgroundProps) {
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    let timeoutId: NodeJS.Timeout;
-
-    timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       if (!canvasRef.current) return;
 
       try {

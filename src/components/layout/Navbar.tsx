@@ -1,7 +1,8 @@
 // components/layout/Navbar.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +19,18 @@ const NAV_LINKS = [
   { key: "nav.gallery" as const, name: "Gallery", href: "/gallery" },
   { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
 ];
+
+function isNavLinkActive(pathname: string, href: string) {
+  return pathname === href || (href !== "/" && pathname.startsWith(href));
+}
+
+function GitHubIcon({ className }: { className: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+    </svg>
+  );
+}
 
 function BrandLogo({ className = "h-9 w-9 sm:h-10 sm:w-10" }: { className?: string }) {
   return (
@@ -42,9 +55,11 @@ function BrandLogo({ className = "h-9 w-9 sm:h-10 sm:w-10" }: { className?: stri
         </svg>
         {/* 头像图片：圆形裁切，内嵌于墨圆之中 */}
         <div className="absolute inset-[3.2px] sm:inset-[3.8px] overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-900 shadow-xs">
-          <img
+          <Image
             src="/avatar.jpg"
             alt="Vince Ou"
+            fill
+            sizes="40px"
             className="h-full w-full object-cover"
           />
         </div>
@@ -93,7 +108,8 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
 
 export function Navbar() {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpenPath, setMobileMenuOpenPath] = useState<string | null>(null);
+  const mobileMenuOpen = mobileMenuOpenPath === pathname;
   const [showScrollTop, setShowScrollTop] = useState(false);
   const liveStatus = useLiveStatus();
   const { isDark } = useTheme();
@@ -101,11 +117,6 @@ export function Navbar() {
   const isOnline =
   (liveStatus.activity === "music" && liveStatus.music !== null) ||
   liveStatus.app !== null;
-
-  // 路由跳转时关闭移动端菜单
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   // Anthony Fu 原版：滚动超过 300px 显示右下角轻量回顶按钮
   useEffect(() => {
@@ -164,9 +175,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-6 lg:gap-7">
             <nav className="flex items-center gap-6 lg:gap-7 select-none">
               {NAV_LINKS.map((link) => {
-                const isActive =
-                  pathname === link.href ||
-                  (link.href !== "/" && pathname.startsWith(link.href));
+                const isActive = isNavLinkActive(pathname, link.href);
 
                 return (
                   <Link
@@ -195,9 +204,7 @@ export function Navbar() {
                   className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
                   aria-label="GitHub Profile"
                 >
-                  <svg className="h-[20px] w-[20px]" fill="currentColor" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                  </svg>
+                  <GitHubIcon className="h-[20px] w-[20px]" />
                 </a>
                 <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded bg-[#18181b] border border-white/10 text-white px-2 py-0.5 text-[11px] font-mono shadow-md whitespace-nowrap z-50">
                   GitHub
@@ -221,7 +228,11 @@ export function Navbar() {
 
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() =>
+                setMobileMenuOpenPath((openPath) =>
+                  openPath === pathname ? null : pathname,
+                )
+              }
               className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
               aria-label="切换菜单"
             >
@@ -280,9 +291,7 @@ export function Navbar() {
             
             <nav className="flex flex-col gap-3">
               {NAV_LINKS.map((link) => {
-                const isActive =
-                  pathname === link.href ||
-                  (link.href !== "/" && pathname.startsWith(link.href));
+                const isActive = isNavLinkActive(pathname, link.href);
 
                 return (
                   <motion.div
@@ -294,7 +303,7 @@ export function Navbar() {
                   >
                     <Link
                       href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() => setMobileMenuOpenPath(null)}
                       className="group relative flex items-center py-2 px-2 transition-colors cursor-pointer select-none"
                     >
                       <span className={`relative z-10 transition-colors ${
@@ -327,9 +336,7 @@ export function Navbar() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white transition-colors"
               >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                </svg>
+                <GitHubIcon className="h-4 w-4" />
                 <span>GitHub</span>
               </a>
             </div>

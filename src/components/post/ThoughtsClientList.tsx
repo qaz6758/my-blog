@@ -58,6 +58,10 @@ export function ThoughtsClientList({
     });
     return list.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
   });
+  const itemIdsKey = items
+    .map((item) => item.id)
+    .filter(Boolean)
+    .join("\0");
   const STORAGE_KEY = "ow_thoughts_reactions_v1";
 
   // 初始状态必须是干净的空对象（首屏与服务器 100% 对齐，彻底消灭水合警告）
@@ -80,6 +84,7 @@ export function ThoughtsClientList({
 
   // 1. 毫秒级后台静默获取最新 Notion 随想录（SWR 实时刷新，免部署）
   useEffect(() => {
+    let isCurrent = true;
     const workerUrl =
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
       "https://api.vinceou.site";
@@ -87,6 +92,7 @@ export function ThoughtsClientList({
     fetch(`${workerUrl}/api/thoughts`)
       .then((res) => res.json())
       .then((result) => {
+        if (!isCurrent) return;
         if (
           result?.success &&
           Array.isArray(result.data) &&
@@ -128,13 +134,20 @@ export function ThoughtsClientList({
           });
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch((error: unknown) => {
+        if (isCurrent) {
+          console.warn("[Thoughts] 后台随想同步失败:", error);
+        }
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [locale]);
 
   // 2. 初始化与文章变动时向 Supabase 批量同步真实评论数与真实点赞数
   useEffect(() => {
     async function fetchCountsAndLikes() {
-      const ids = items.map((item) => item.id).filter(Boolean);
+      const ids = itemIdsKey ? itemIdsKey.split("\0") : [];
       if (ids.length === 0) return;
 
       const [commentsRes, likesRes] = await Promise.all([
@@ -174,7 +187,7 @@ export function ThoughtsClientList({
     }
 
     fetchCountsAndLikes();
-  }, [items.length]);
+  }, [itemIdsKey]);
 
   // 3. Supabase Realtime 实时双向同步（跨设备、跨端点赞秒级广播）
   useEffect(() => {

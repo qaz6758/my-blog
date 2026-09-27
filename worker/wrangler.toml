@@ -2,6 +2,17 @@ name = "notion-api"
 main = "index.js"
 compatibility_date = "2024-09-01"
 
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 0.01
+
 [vars]
 NOTION_POSTS_DB_ID = "958002305c948374b96f0187a87dafcf"
 NOTION_THOUGHTS_DB_ID = "70c9f34b31154bd782dd24a9efba668a"

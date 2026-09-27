@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
@@ -41,6 +42,47 @@ export interface PostDetail {
   is_pinned?: boolean | null;
   inspiration?: string;
   inspiration_url?: string;
+  read_time?: number | null;
+}
+
+interface WorkerPost {
+  id: string;
+  slug?: string;
+  source_url?: string;
+  status?: string;
+}
+
+function isWorkerPost(value: unknown): value is WorkerPost {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof value.id === "string"
+  );
+}
+
+function isPostDetail(value: unknown): value is PostDetail {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof value.id === "string" &&
+    "title" in value &&
+    typeof value.title === "string"
+  );
+}
+
+function isThoughtMediaItem(value: unknown): value is ThoughtMediaItem {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof value.id === "string" &&
+    "title" in value &&
+    typeof value.title === "string" &&
+    "author" in value &&
+    typeof value.author === "string"
+  );
 }
 
 export interface DynamicPostReaderProps {
@@ -60,12 +102,17 @@ export function DynamicPostReader({
   prevPost,
   nextPost,
 }: DynamicPostReaderProps) {
+  const pathname = usePathname();
+  const isPostFallback = pathname?.startsWith("/posts/") ?? false;
+  const isThoughtFallback = pathname?.startsWith("/thoughts/") ?? false;
   // 数据由服务端注入，无需客户端 loading 等待；若无 initialPost 则客户端首屏展示仿真骨架屏
-  const [loading, setLoading] = useState(!initialPost);
+  const [loading, setLoading] = useState(
+    !initialPost && (isPostFallback || isThoughtFallback)
+  );
   const [post, setPost] = useState<PostDetail | null>(initialPost || null);
   const [thought, setThought] = useState<ThoughtMediaItem | null>(null);
   const [mode, setMode] = useState<"post" | "thought" | "404">(
-    initialPost ? "post" : "post"
+    initialPost || isPostFallback ? "post" : isThoughtFallback ? "thought" : "404"
   );
   // 鼠标悬停文章正文字体范围或目录自身时触发目录展开（Antfu 同款交互：严格限定正文列，两侧留白绝不触发）
   const [isArticleHovered, setIsArticleHovered] = useState(false);
@@ -158,7 +205,7 @@ export function DynamicPostReader({
 
   // 估算文章阅读耗时
   const readTime = useMemo(() => {
-    if (!displayContent) return (post as any)?.read_time || null;
+    if (!displayContent) return post?.read_time || null;
     return calculateReadTime(displayContent);
   }, [displayContent, post]);
 
@@ -183,19 +230,8 @@ function normalizeText(text: string): string {
       process.env.NEXT_PUBLIC_NOTION_WORKER_URL ||
       "https://api.vinceou.site";
 
-    // 1. 如果已有服务端直出的 initialPost，优先瞬间渲染（0 毫秒首屏，秒开无白屏）
+    // 1. 服务端文章已由 state initializer 渲染；这里只进行后台校验。
     if (initialPost) {
-      if (
-        !post ||
-        post.id !== initialPost.id ||
-        post.title !== initialPost.title ||
-        post.content !== initialPost.content
-      ) {
-        setPost(initialPost);
-        setMode("post");
-        setLoading(false);
-      }
-      
       // 开启 SWR 后台静默校验：短延时（300ms）执行，迅速校准后台修改，杜绝数秒后阅读时突兀跳变
       const rawId = String(initialPost.id || "").replace(/-/g, "");
       const cleanTargetId = rawId.length === 32 ? rawId : undefined;
@@ -240,21 +276,26 @@ function normalizeText(text: string): string {
 
     // 3. 兜底：没有 initialPost（例如客户端动态路由或 404 回退渲染）
     if (typeof window === "undefined") return;
-    const pathname = window.location.pathname;
-    const matchThought = pathname.match(/\/thoughts\/([^\/\?#]+)/);
-    const matchPost = pathname.match(/\/posts\/([^\/\?#]+)/);
+    const currentPath = window.location.pathname;
+    const matchThought = currentPath.match(/\/thoughts\/([^\/\?#]+)/);
+    const matchPost = currentPath.match(/\/posts\/([^\/\?#]+)/);
 
     if (matchThought) {
       const id = matchThought[1];
-      setMode("thought");
-      setLoading(true);
       fetch(`${workerUrl}/api/thoughts/${id}`)
         .then((res) => {
           if (!res.ok) throw new Error("Not found");
           return res.json();
         })
-        .then((data) => {
-          if (data?.success && data.data) {
+        .then((data: unknown) => {
+          if (
+            typeof data === "object" &&
+            data !== null &&
+            "success" in data &&
+            data.success === true &&
+            "data" in data &&
+            isThoughtMediaItem(data.data)
+          ) {
             setThought(data.data);
           } else {
             setThought(null);
@@ -264,16 +305,21 @@ function normalizeText(text: string): string {
         .finally(() => setLoading(false));
     } else if (matchPost) {
       const slug = decodeURIComponent(matchPost[1]);
-      setMode("post");
-      setLoading(true);
 
       // 动态检索 Notion 唯一数据源
       fetch(`${workerUrl}/api/posts`)
         .then((res) => res.json())
-        .then(async (result) => {
-          if (result?.success && Array.isArray(result.data)) {
-            const matched = result.data.find(
-              (p: any) =>
+        .then(async (result: unknown) => {
+          if (
+            typeof result === "object" &&
+            result !== null &&
+            "success" in result &&
+            result.success === true &&
+            "data" in result &&
+            Array.isArray(result.data)
+          ) {
+            const matched = result.data.filter(isWorkerPost).find(
+              (p) =>
                 p.slug === slug ||
                 p.id === slug ||
                 p.source_url === slug ||
@@ -289,8 +335,15 @@ function normalizeText(text: string): string {
                 matched.status?.includes("✅"))
             ) {
               const detailRes = await fetch(`${workerUrl}/api/posts/${matched.id}`);
-              const detailData = await detailRes.json();
-              if (detailData?.success && detailData.data) {
+              const detailData: unknown = await detailRes.json();
+              if (
+                typeof detailData === "object" &&
+                detailData !== null &&
+                "success" in detailData &&
+                detailData.success === true &&
+                "data" in detailData &&
+                isPostDetail(detailData.data)
+              ) {
                 setPost(detailData.data);
                 return;
               }
@@ -304,12 +357,8 @@ function normalizeText(text: string): string {
           setMode("404");
         })
         .finally(() => setLoading(false));
-    } else {
-      // 没有 initialPost 且不是 /thoughts 或 /posts 路由，直接 404
-      setLoading(false);
-      setMode("404");
     }
-  }, [initialPost]);
+  }, [initialPost, pathname]);
 
   return (
     <AnimatePresence>

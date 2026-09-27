@@ -48,7 +48,6 @@ export function TableOfContents({
   const propList = tocList || items;
   const [domList, setDomList] = useState<TocItem[]>([]);
   const [internalActiveId, setInternalActiveId] = useState<string>("");
-  const [readingProgress, setReadingProgress] = useState(0);
   const [isSelfHovered, setIsSelfHovered] = useState(false);
 
   // 点击平滑跳转锁定，严禁中间过渡项抢占高亮
@@ -176,34 +175,8 @@ export function TableOfContents({
       requestAnimationFrame(() => {
         ticking = false;
 
-        const articleEl = (
-          document.querySelector(".post-article") ||
-          document.querySelector("article")
-        ) as HTMLElement;
-
-        if (!articleEl) return;
-
-        // A. 计算文章阅读进度
         const scrollY = window.scrollY;
         const windowHeight = window.innerHeight;
-        const articleTop = articleEl.offsetTop;
-        const articleHeight = articleEl.offsetHeight;
-
-        let progress = 0;
-
-        if (scrollY < articleTop - windowHeight / 2) {
-          progress = 0;
-        } else if (scrollY > articleTop + articleHeight - windowHeight) {
-          progress = 100;
-        } else {
-          const scrolled = scrollY - articleTop + windowHeight / 2;
-          progress = Math.min(
-            100,
-            Math.max(0, (scrolled / articleHeight) * 100)
-          );
-        }
-
-        setReadingProgress(Math.round(progress));
 
         // B. 智能判定当前阅读标题
         // 用户点击跳转平滑滚动期间严格锁定，不执行判断

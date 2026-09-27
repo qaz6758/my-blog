@@ -15,6 +15,21 @@
 
 import { ThemeDriverParams } from "../types";
 
+type ViewTransition = {
+  ready: Promise<void>;
+  finished: Promise<void>;
+};
+
+type ViewTransitionDocument = Document & {
+  startViewTransition: (callback: () => void) => ViewTransition;
+};
+
+function supportsViewTransitions(
+  doc: Document
+): doc is ViewTransitionDocument {
+  return typeof Reflect.get(doc, "startViewTransition") === "function";
+}
+
 export function runThemeTransition(
   params: ThemeDriverParams,
   isMobile: boolean
@@ -120,26 +135,13 @@ function runDesktopRippleTransition({
 }: ThemeDriverParams): void {
   const root = document.documentElement;
 
-  const hasViewTransitions =
-    "startViewTransition" in document &&
-    typeof (
-      document as Document & { startViewTransition?: unknown }
-    ).startViewTransition === "function";
-
-  if (!hasViewTransitions) {
+  if (!supportsViewTransitions(document)) {
     applyThemeDirect(nextTheme);
     onComplete?.();
     return;
   }
 
   try {
-    const transitionDoc = document as Document & {
-      startViewTransition: (callback: () => void) => {
-        ready: Promise<void>;
-        finished: Promise<void>;
-      };
-    };
-
     // 1. 精确获取动画圆心坐标
     let x = options?.origin?.x;
     let y = options?.origin?.y;
@@ -151,20 +153,21 @@ function runDesktopRippleTransition({
     ) {
       const target =
         event?.currentTarget ||
-        (event?.target as HTMLElement)?.closest?.("button");
+        (event?.target instanceof Element
+          ? event.target.closest("button")
+          : null);
       if (target instanceof HTMLElement) {
         const rect = target.getBoundingClientRect();
         if (rect.width > 0 && rect.height > 0) {
           x = rect.left + rect.width / 2;
           y = rect.top + rect.height / 2;
         }
-      } else if (
-        event &&
-        typeof (event as any).clientX === "number" &&
-        ((event as any).clientX > 0 || (event as any).clientY > 0)
-      ) {
-        x = (event as any).clientX;
-        y = (event as any).clientY;
+      } else if (event?.nativeEvent) {
+        const { clientX, clientY } = event.nativeEvent;
+        if (clientX > 0 || clientY > 0) {
+          x = clientX;
+          y = clientY;
+        }
       }
     }
 
@@ -264,7 +267,7 @@ function runDesktopRippleTransition({
 
     const watchdog = setTimeout(cleanup, 500);
 
-    const transition = transitionDoc.startViewTransition(() => {
+    const transition = document.startViewTransition(() => {
       applyThemeDirect(nextTheme);
     });
 

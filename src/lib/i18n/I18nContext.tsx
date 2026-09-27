@@ -1,9 +1,34 @@
 // src/lib/i18n/I18nContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  createContext,
+  startTransition,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Locale, SUPPORTED_LOCALES, DICTIONARIES, TranslationKey } from "./locales";
 import * as OpenCC from "opencc-js";
+
+const dictionaries: Record<Locale, Readonly<Record<TranslationKey, string>>> =
+  DICTIONARIES;
+
+function isLocale(value: string | null): value is Locale {
+  return value !== null && SUPPORTED_LOCALES.some((locale) => locale.id === value);
+}
+
+function createOpenccConverter(): (text: string) => string {
+  try {
+    return OpenCC.Converter({ from: "cn", to: "tw" });
+  } catch {
+    return (text) => text;
+  }
+}
+
+const openccConverter = createOpenccConverter();
 
 interface I18nContextType {
   locale: Locale;
@@ -18,8 +43,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   // 同步读取 blocking script 已注入的 data-locale 属性，确保首帧即为正确语言（零闪跳）
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof document !== "undefined") {
-      const dataLocale = document.documentElement.getAttribute("data-locale") as Locale;
-      if (dataLocale && SUPPORTED_LOCALES.some((l) => l.id === dataLocale)) {
+      const dataLocale = document.documentElement.getAttribute("data-locale");
+      if (isLocale(dataLocale)) {
         return dataLocale;
       }
     }
@@ -31,10 +56,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     try {
       // 若 blocking script 未执行（极端情况），从 localStorage 再次读取
-      const saved = localStorage.getItem("blog_lang") as Locale;
-      if (saved && SUPPORTED_LOCALES.some((l) => l.id === saved)) {
+      const saved = localStorage.getItem("blog_lang");
+      if (isLocale(saved)) {
         if (saved !== locale) {
-          setLocaleState(saved);
+          startTransition(() => setLocaleState(saved));
         }
         document.documentElement.lang = saved;
       } else {
@@ -43,7 +68,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-  }, []);
+  }, [locale]);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
@@ -52,15 +77,6 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.lang = newLocale;
     } catch {
       // ignore
-    }
-  }, []);
-
-  // 繁体中文 OpenCC 转换器实例（缓存）
-  const openccConverter = useMemo(() => {
-    try {
-      return OpenCC.Converter({ from: "cn", to: "tw" });
-    } catch {
-      return (s: string) => s;
     }
   }, []);
 
@@ -73,14 +89,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       }
       return text;
     },
-    [locale, openccConverter]
+    [locale]
   );
 
   // 字典取词
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>): string => {
-      const dict = DICTIONARIES[locale] || DICTIONARIES["en"];
-      let value: string = (dict as any)[key] || (DICTIONARIES["en"] as any)[key] || key;
+      const dict = dictionaries[locale] ?? dictionaries.en;
+      let value = dict[key] || dictionaries.en[key] || key;
 
       if (params) {
         Object.entries(params).forEach(([paramKey, paramVal]) => {
@@ -105,15 +121,15 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
-export function useI18n() {
+export function useI18n(): I18nContextType {
   const ctx = useContext(I18nContext);
   if (!ctx) {
     // 降级兜底，避免非 Provider 下报错
     return {
-      locale: "en" as Locale,
+      locale: "en",
       setLocale: () => {},
       t: (key: TranslationKey, params?: Record<string, string | number>) => {
-        let val: string = (DICTIONARIES["en"] as any)[key] || key;
+        let val = dictionaries.en[key] || key;
         if (params) {
           Object.entries(params).forEach(([pk, pv]) => {
             val = val.replace(new RegExp(`\\{${pk}\\}`, "g"), String(pv));

@@ -1,7 +1,7 @@
 // components/playlist/MusicPlayer.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,7 +14,7 @@ import {
   Repeat1,
   X,
 } from "lucide-react";
-import { Song } from "@/components/playlist/SongList";
+import { getSongCover, Song } from "@/components/playlist/SongList";
 import { RepeatMode } from "@/components/playlist/MusicContext";
 import { ImmersivePlayerModal } from "@/components/playlist/ImmersivePlayerModal";
 import { preloadSongCoverColors } from "@/components/playlist/NeatFluidBackground";
@@ -22,6 +22,10 @@ import { getProxyImageUrl } from "@/lib/image-proxy";
 
 const FALLBACK_COVER =
   "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80";
+
+const subscribeToClient = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 function resolveMusicCover(url?: string, size = 120) {
   if (!url) return FALLBACK_COVER;
@@ -39,7 +43,7 @@ function handleMusicCoverError(
   originalUrl?: string,
   size = 120
 ) {
-  const target = e.target as HTMLImageElement;
+  const target = e.currentTarget;
   
   if (target.dataset.errorCount === "2") {
     // Stop the infinite loop, show a transparent pixel or do nothing
@@ -111,26 +115,21 @@ export function MusicPlayer({
   onSelectSong,
   formatTime,
 }: MusicPlayerProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeToClient,
+    getClientSnapshot,
+    getServerSnapshot
+  );
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [volumeToast, setVolumeToast] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [collapsedDeltaX, setCollapsedDeltaX] = useState(0);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // 预提取并缓存当前播放歌曲的流体背景主色调，确保全屏展开时 0 延迟秒开真实色彩
   useEffect(() => {
     if (!currentSong) return;
-    const raw =
-      currentSong.cover_url ||
-      (currentSong as any).cover ||
-      (currentSong as any).picUrl ||
-      (currentSong as any).coverUrl ||
-      "";
+    const raw = getSongCover(currentSong);
     const cover = getProxyImageUrl(raw);
     if (cover) {
       preloadSongCoverColors(cover);
@@ -179,15 +178,21 @@ export function MusicPlayer({
   // 播放新歌时自动唤醒展示
   useEffect(() => {
     if (isPlaying) {
-      setIsDismissed(false);
-      setIsCrtCollapsing(false);
+      const frame = requestAnimationFrame(() => {
+        setIsDismissed(false);
+        setIsCrtCollapsing(false);
+      });
+      return () => cancelAnimationFrame(frame);
     }
   }, [isPlaying, currentSong?.id]);
 
   // 点击外部收起弹层
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (listRef.current && !listRef.current.contains(e.target as Node)) {
+      if (
+        listRef.current &&
+        (!(e.target instanceof Node) || !listRef.current.contains(e.target))
+      ) {
         setShowPlaylist(false);
       }
     };
@@ -207,13 +212,14 @@ export function MusicPlayer({
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {}
 
-    pressStartTimeRef.current = Date.now();
+    pressStartTimeRef.current = e.timeStamp;
     wasLongPressRef.current = false;
     setIsPressing(true);
 
-    const updateLoop = () => {
-      if (!pressStartTimeRef.current) return;
-      const elapsed = Date.now() - pressStartTimeRef.current;
+    const updateLoop = (timestamp: number) => {
+      const startTime = pressStartTimeRef.current;
+      if (startTime === null) return;
+      const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / LONG_PRESS_MS, 1);
       setPressProgress(progress);
 
@@ -241,8 +247,8 @@ export function MusicPlayer({
       pressAnimFrameRef.current = null;
     }
 
-    if (pressStartTimeRef.current) {
-      const elapsed = Date.now() - pressStartTimeRef.current;
+    if (pressStartTimeRef.current !== null) {
+      const elapsed = e.timeStamp - pressStartTimeRef.current;
       if (!wasLongPressRef.current && elapsed < 400) {
         setShowPlaylist(false);
         setTimeout(() => {
@@ -401,11 +407,7 @@ export function MusicPlayer({
                       >
                         <div className="flex items-center gap-2.5 min-w-0 pr-2">
                           {(() => {
-                            const raw =
-                              song.cover_url ||
-                              (song as any).cover ||
-                              (song as any).picUrl ||
-                              "";
+                            const raw = getSongCover(song);
                             return (
                               <img
                                 src={resolveMusicCover(raw, 120)}
@@ -489,11 +491,7 @@ export function MusicPlayer({
             >
               <div className="relative h-[44px] w-[44px] sm:h-[48px] sm:w-[48px] rounded-full overflow-hidden bg-black p-[2px] ring-1 ring-white/20 shadow-none flex items-center justify-center">
                 {(() => {
-                  const raw =
-                    currentSong.cover_url ||
-                    (currentSong as any).cover ||
-                    (currentSong as any).picUrl ||
-                    "";
+                  const raw = getSongCover(currentSong);
                   return (
                     <img
                       src={resolveMusicCover(raw, 120)}
@@ -538,11 +536,7 @@ export function MusicPlayer({
                   title="点击展开全屏大屏沉浸界面"
                 >
                   {(() => {
-                    const raw =
-                      currentSong.cover_url ||
-                      (currentSong as any).cover ||
-                      (currentSong as any).picUrl ||
-                      "";
+                    const raw = getSongCover(currentSong);
                     return (
                       <img
                         src={resolveMusicCover(raw, 120)}
@@ -671,11 +665,7 @@ export function MusicPlayer({
                   title="展开全屏大屏沉浸界面"
                 >
                   {(() => {
-                    const raw =
-                      currentSong.cover_url ||
-                      (currentSong as any).cover ||
-                      (currentSong as any).picUrl ||
-                      "";
+                    const raw = getSongCover(currentSong);
                     return (
                       <img
                         src={resolveMusicCover(raw, 120)}
