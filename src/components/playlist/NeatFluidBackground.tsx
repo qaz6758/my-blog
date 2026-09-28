@@ -4,6 +4,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NeatGradient } from "@firecms/neat";
 
+import { getProxyImageUrl } from "@/lib/image-proxy";
+
 interface NeatFluidBackgroundProps {
   coverUrl: string;
 }
@@ -32,10 +34,7 @@ function getCORSImageUrl(url: string): string {
   if (trimmed.startsWith("data:")) return trimmed;
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    if (trimmed.includes("wsrv.nl")) {
-      return trimmed.includes("w=") ? trimmed : `${trimmed}&w=64&h=64&output=jpg`;
-    }
-    return `https://wsrv.nl/?url=${encodeURIComponent(trimmed)}&w=64&h=64&output=jpg`;
+    return getProxyImageUrl(trimmed);
   }
   return trimmed;
 }

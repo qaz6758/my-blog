@@ -13,12 +13,7 @@ export function getProxyImageUrl(url?: string | null): string {
 
   const normalized = trimmed.replace(/&amp;/g, '&');
 
-  // 网易云音乐直连常常会因客户端防盗链或网络 TLS 握手重置导致 net::ERR_CONNECTION_CLOSED
-  // 通过全球 CDN wsrv.nl (Cloudflare 边缘缓存节点) 自动剥离 Referer 并分发，彻底消除连接被关闭报错
-  if (normalized.includes('126.net') || normalized.includes('163.com')) {
-    if (normalized.includes('wsrv.nl') || normalized.includes('weserv.nl')) return normalized;
-    return `https://wsrv.nl/?url=${encodeURIComponent(normalized)}&af`;
-  }
-
+  // 统一使用自建优选节点分发，破除防盗链并确保国内高连通率
+  // 彻底抛弃被墙/不稳定的 wsrv.nl
   return `https://cdn.vinceou.site/img/?url=${encodeURIComponent(normalized)}`;
 }
