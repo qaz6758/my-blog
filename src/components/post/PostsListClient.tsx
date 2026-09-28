@@ -244,7 +244,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
                         key={post.id}
                         href={targetLink}
                         prefetch={true}
-                        className="group relative flex flex-wrap items-baseline gap-2 px-3 sm:px-4 py-2 -mx-3 sm:-mx-4 text-left rounded-lg transition-colors duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.03] slide-enter"
+                        className="group relative flex flex-wrap items-baseline gap-2 py-2 text-left transition-colors duration-150 slide-enter"
                         style={{ "--enter-stage": Math.min(postStage, 20) } as React.CSSProperties}
                       >
                         <span className="text-[16px] sm:text-[18px] font-sans font-normal leading-snug text-neutral-600 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors duration-150">

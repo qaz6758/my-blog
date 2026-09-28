@@ -56,11 +56,9 @@ export function SongList({
   return (
     <div className="w-full select-none antialiased" onMouseLeave={() => setHoveredIndex(null)}>
       {/* ===================== 表头：与下方数据列 100% 垂直像素级对齐 ===================== */}
-      <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-neutral-400  border-black/[0.08] dark:border-white/[0.08]">
+      <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-neutral-400">
         {/* 歌曲列 (包含与下方序号、封面对应占位，使“歌曲”精准对齐歌名) */}
         <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3">
-          <span className="w-5 text-center font-mono shrink-0">#</span>
-          <span className="w-8 shrink-0 text-center"></span>
           <span>歌曲</span>
         </div>
         {/* 艺人列 */}
@@ -69,6 +67,9 @@ export function SongList({
         <div className="hidden md:block md:w-[24%] pl-2 pr-3">专辑</div>
         {/* 时长列 */}
         <div className="flex-1 text-right pr-2">时长</div>
+
+        {/* 表头底部分隔线：左右起点与内容严格垂直对齐，杜绝向外凸出 */}
+        <div className="absolute bottom-0 left-3 right-3 sm:left-4 sm:right-4 h-[1px] bg-black/[0.06] dark:bg-white/[0.08] pointer-events-none" />
       </div>
 
       {/* ===================== Apple Music 原生曲目列表 ===================== */}
@@ -91,20 +92,12 @@ export function SongList({
                 onMouseEnter={() => setHoveredIndex(index)}
                 className={`relative z-10 group flex items-center px-3 sm:px-4 py-2.5 text-[13.5px] leading-none transition-colors duration-150 cursor-pointer ${
                   isCurrent
-                    ? "bg-black text-white dark:bg-white dark:text-black shadow-none rounded-lg"
-                    : "text-neutral-900 dark:text-neutral-200 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] rounded-lg px-3 sm:px-4"
+                    ? "bg-transparent shadow-none"
+                    : "text-neutral-900 dark:text-neutral-200"
                 }`}
               >
                 {/* 1. 歌曲列 (序号 + 封面 + 歌名) */}
                 <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 min-w-0 pr-3">
-                  {/* 序号 (统一使用 tabular-nums 保证数字与中文绝对对齐) */}
-                  <span
-                    className={`w-5 text-center tabular-nums text-xs font-medium shrink-0 ${
-                      isCurrent ? "text-white/90 dark:text-black/90" : "text-neutral-400 dark:text-neutral-400"
-                    }`}
-                  >
-                    {trackIndex}
-                  </span>
 
                   {/* 封面 (32x32 Apple 标准微倒角) */}
                   <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-[5px] bg-neutral-800/40 dark:bg-white/[0.06] ring-1 ring-black/10 dark:ring-white/10">
@@ -164,9 +157,9 @@ export function SongList({
                       }`}
                     >
                       {isCurrent && isPlaying ? (
-                        <Pause className="h-3 w-3 fill-white text-white dark:fill-black dark:text-black" />
+                        <Pause className="h-3 w-3 fill-white text-white" />
                       ) : (
-                        <Play className="h-3 w-3 fill-white text-white dark:fill-black dark:text-black ml-0.5" />
+                        <Play className="h-3 w-3 fill-white text-white ml-0.5" />
                       )}
                     </div>
                   </div>
@@ -176,7 +169,7 @@ export function SongList({
                     <span
                       className={`truncate font-medium text-[13.5px] ${
                         isCurrent
-                          ? "text-white dark:text-black font-black"
+                          ? "text-neutral-900 dark:text-white font-bold"
                           : "text-neutral-900 dark:text-white"
                       }`}
                     >
@@ -187,7 +180,7 @@ export function SongList({
                       <span
                         className={`shrink-0 rounded-[2px] px-1 py-0.2 text-[9px] font-bold ${
                           isCurrent
-                            ? "bg-white/25 text-white dark:bg-black/25 dark:text-black"
+                            ? "bg-black/10 text-neutral-700 dark:bg-white/15 dark:text-neutral-200"
                             : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
                         }`}
                       >
@@ -201,7 +194,7 @@ export function SongList({
                 <div
                   className={`w-[30%] sm:w-[28%] md:w-[28%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
                     isCurrent
-                      ? "text-white/90 dark:text-black/90 font-bold"
+                      ? "text-neutral-700 dark:text-neutral-300 font-semibold"
                       : "text-neutral-500 dark:text-neutral-400"
                   }`}
                 >
@@ -212,7 +205,7 @@ export function SongList({
                 <div
                   className={`hidden md:block md:w-[24%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
                     isCurrent
-                      ? "text-white/80 dark:text-black/80 font-bold"
+                      ? "text-neutral-700 dark:text-neutral-300 font-semibold"
                       : "text-neutral-500 dark:text-neutral-400"
                   }`}
                 >
@@ -224,7 +217,7 @@ export function SongList({
                   <span
                     className={`tabular-nums text-xs sm:text-[13px] ${
                       isCurrent
-                        ? "text-white dark:text-black font-bold"
+                        ? "text-neutral-700 dark:text-neutral-300 font-bold"
                         : "text-neutral-400 dark:text-neutral-400"
                     }`}
                   >
@@ -233,9 +226,9 @@ export function SongList({
                 </div>
               </div>
 
-              {/* 纯平直贯通底部分隔线 (与表头完全融合对齐，无弯角) */}
-              {index < songs.length - 1 && !isCurrent && hoveredIndex !== index && (
-                <div className="absolute bottom-0 left-4 right-4 h-[1px] bg-black/[0.04] dark:bg-white/[0.05] pointer-events-none" />
+              {/* 纯平直贯通底部分隔线 (常驻显示，层次分明) */}
+              {index < songs.length - 1 && (
+                <div className="absolute bottom-0 left-3 right-3 sm:left-4 sm:right-4 h-[1px] bg-black/[0.06] dark:bg-white/[0.08] pointer-events-none" />
               )}
             </div>
           );
