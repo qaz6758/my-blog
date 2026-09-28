@@ -188,10 +188,10 @@ export function Playlist({
 
             {activePlaylist && (
               <div>
-                {/* Hero 头部排版 (手机端左右并排，PC 端完全保持原样) */}
-                <div className="mb-4 md:mb-7 flex flex-row items-start md:items-stretch gap-4 sm:gap-6 md:gap-10 pt-1 pb-2">
-                  {/* 左侧封面：移动端小尺寸，PC 端保持大尺寸 */}
-                  <div className="relative aspect-square w-32 sm:w-44 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 border-2 border-black dark:border-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)]">
+                {/* Hero 头部排版 (手机端与 PC 端完全一致的 Stretch 上下完美对齐) */}
+                <div className="mb-4 md:mb-7 flex flex-row items-stretch gap-4 sm:gap-6 md:gap-10 pt-1 pb-2">
+                  {/* 左侧封面：适度放大手机端尺寸，确保高度足以包裹右侧所有内容 */}
+                  <div className="relative aspect-square w-36 sm:w-44 md:w-60 lg:w-64 shrink-0 overflow-hidden rounded-none bg-neutral-100 dark:bg-neutral-900 border-2 border-black dark:border-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)]">
                     {(() => {
                       const rawHeroCover =
                         activePlaylist.cover ||
@@ -230,7 +230,7 @@ export function Playlist({
                     })()}
                   </div>
 
-                  {/* 右侧信息排版 */}
+                  {/* 右侧信息排版 (利用 justify-between 让上下自动贴边对齐) */}
                   <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 md:py-1">
                     {/* 上部区块 */}
                     <div className="pt-0 md:pt-4">
@@ -245,39 +245,26 @@ export function Playlist({
                       </p>
                     </div>
 
-                    {/* 下部区块：简介描述 + PC端播放按钮 */}
-                    <div className="mt-2.5 md:mt-0">
+                    {/* 下部区块：简介描述 + 播放按钮 */}
+                    <div className="flex flex-col items-start mt-2">
                       <p className="text-[12px] md:text-[13px] leading-[1.6] md:leading-[1.65] text-neutral-500 dark:text-neutral-400 max-w-[540px]">
-                        {activePlaylist.description || activePlaylist.curatorNote || `戴上耳机，把日常频率调轻一点。`}
+                        {activePlaylist.description || activePlaylist.curatorNote || `日常反复循环的旋律记录。`}
                       </p>
 
-                      {/* PC 端专属播放按钮 (仅在 md 及以上屏幕显示，位置完全不变) */}
-                      <div className="hidden md:flex mt-5 items-center">
+                      {/* 播放按钮 */}
+                      <div className="flex mt-2.5 md:mt-5 items-center">
                         <button
                           type="button"
                           onClick={() => onPlayAll(activePlaylist)}
-                          className="inline-flex items-center justify-center gap-2 rounded-none border-2 border-black dark:border-white bg-transparent text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)] active:shadow-[2px_2px_0_0_rgba(0,0,0,1)] dark:active:shadow-[2px_2px_0_0_rgba(255,255,255,1)] active:translate-x-[2px] active:translate-y-[2px] px-8 py-2.5 text-[14px] font-bold uppercase tracking-widest transition-all cursor-pointer select-none leading-none"
+                          className="inline-flex items-center justify-center gap-1.5 md:gap-2 rounded-none border-2 border-black dark:border-white bg-transparent text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)] active:shadow-[2px_2px_0_0_rgba(0,0,0,1)] dark:active:shadow-[2px_2px_0_0_rgba(255,255,255,1)] active:translate-x-[2px] active:translate-y-[2px] px-5 py-2 md:px-8 md:py-2.5 text-[12px] md:text-[14px] font-bold uppercase tracking-widest transition-all cursor-pointer select-none leading-none"
                           style={{ transitionDuration: "var(--realm-motion-duration)" }}
                         >
-                          <Play className="h-3.5 w-3.5 fill-current shrink-0" />
+                          <Play className="h-3 w-3 md:h-3.5 md:w-3.5 fill-current shrink-0" />
                           <span className="leading-none flex items-center tracking-widest">PLAY</span>
                         </button>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                {/* 手机端专属播放按钮：位于封面下方整行靠左 (仅在 md 以下小屏显示) */}
-                <div className="flex md:hidden mb-5 items-center">
-                  <button
-                    type="button"
-                    onClick={() => onPlayAll(activePlaylist)}
-                    className="inline-flex items-center justify-center gap-2 rounded-none border-2 border-black dark:border-white bg-transparent text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] dark:shadow-[4px_4px_0_0_rgba(255,255,255,1)] active:shadow-[2px_2px_0_0_rgba(0,0,0,1)] dark:active:shadow-[2px_2px_0_0_rgba(255,255,255,1)] active:translate-x-[2px] active:translate-y-[2px] px-6 py-2 text-[13px] font-bold uppercase tracking-widest transition-all cursor-pointer select-none leading-none"
-                    style={{ transitionDuration: "var(--realm-motion-duration)" }}
-                  >
-                    <Play className="h-3.5 w-3.5 fill-current shrink-0" />
-                    <span className="leading-none flex items-center tracking-widest">PLAY</span>
-                  </button>
                 </div>
 
                 {/* 曲目列表表格 */}

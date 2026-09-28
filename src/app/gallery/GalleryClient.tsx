@@ -24,21 +24,7 @@ function deduplicatePhotos(list: GalleryImage[]): GalleryImage[] {
 }
 
 export default function GalleryClient({ photos: initialPhotos = [] }: { photos: GalleryImage[] }) {
-  const [photos, setPhotos] = useState<GalleryImage[]>(() => {
-    let source = initialPhotos;
-    if (typeof window !== "undefined") {
-      try {
-        const cached = sessionStorage.getItem("ow_gallery_photos_v1");
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            source = parsed;
-          }
-        }
-      } catch {}
-    }
-    return deduplicatePhotos(source);
-  });
+  const [photos, setPhotos] = useState<GalleryImage[]>(() => deduplicatePhotos(initialPhotos));
   const [isGrid, setIsGrid] = useState(true);
   const [activePhotoId, setActivePhotoId] = useState<GalleryImage["id"] | null>(null);
   const activePhoto = photos.find((photo) => photo.id === activePhotoId) ?? null;
@@ -159,8 +145,8 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
   };
 
   return (
-    <div className="w-full px-5 pt-24 sm:pt-28 pb-20 select-none">
-      {/* 顶部视图切换按钮 (与左侧 Logo 严格左对齐，距左边缘 20px) */}
+    <div className="w-full px-6 sm:px-8 pt-24 sm:pt-28 pb-20 select-none">
+      {/* 顶部视图切换按钮 (与左侧 Logo 严格左对齐) */}
       <div className="mb-4 flex items-center">
         <button
           onClick={() => setIsGrid(!isGrid)}

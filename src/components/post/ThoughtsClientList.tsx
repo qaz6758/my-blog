@@ -273,7 +273,7 @@ export function ThoughtsClientList({
   return (
     <div className="w-full">
       {/* 顶部标题：响应多语言切换 */}
-      <header className="mb-8 pl-1">
+      <header className="mb-8">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-3xl font-sans">
             {isEn ? "Thoughts" : "思考"}

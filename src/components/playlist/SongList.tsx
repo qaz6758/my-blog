@@ -58,11 +58,11 @@ export function SongList({
       {/* ===================== 表头：与下方数据列 100% 垂直像素级对齐 ===================== */}
       <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-neutral-400">
         {/* 歌曲列 (包含与下方序号、封面对应占位，使“歌曲”精准对齐歌名) */}
-        <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3">
+        <div className="flex-1 sm:flex-none sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3">
           <span>歌曲</span>
         </div>
-        {/* 艺人列 */}
-        <div className="w-[30%] sm:w-[28%] md:w-[28%] pl-2 pr-3">艺人</div>
+        {/* 艺人列 (移动端隐藏，合并到歌曲名下方) */}
+        <div className="hidden sm:block sm:w-[28%] md:w-[28%] pl-2 pr-3">艺人</div>
         {/* 专辑列 */}
         <div className="hidden md:block md:w-[24%] pl-2 pr-3">专辑</div>
         {/* 时长列 */}
@@ -96,8 +96,8 @@ export function SongList({
                     : "text-neutral-900 dark:text-neutral-200"
                 }`}
               >
-                {/* 1. 歌曲列 (序号 + 封面 + 歌名) */}
-                <div className="w-[45%] sm:w-[42%] md:w-[40%] flex items-center gap-3 min-w-0 pr-3">
+                {/* 1. 歌曲列 (序号 + 封面 + 歌名/艺人) */}
+                <div className="flex-1 sm:flex-none sm:w-[42%] md:w-[40%] flex items-center gap-3 min-w-0 pr-3">
 
                   {/* 封面 (32x32 Apple 标准微倒角) */}
                   <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-[5px] bg-neutral-800/40 dark:bg-white/[0.06] ring-1 ring-black/10 dark:ring-white/10">
@@ -164,35 +164,46 @@ export function SongList({
                     </div>
                   </div>
 
-                  {/* 歌名 */}
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span
-                      className={`truncate font-medium text-[13.5px] ${
-                        isCurrent
-                          ? "text-neutral-900 dark:text-white font-bold"
-                          : "text-neutral-900 dark:text-white"
-                      }`}
-                    >
-                      {song.title}
-                    </span>
-
-                    {song.explicit && (
+                  {/* 标题与手机端次级艺名 */}
+                  <div className="flex flex-col min-w-0 justify-center">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <span
-                        className={`shrink-0 rounded-[2px] px-1 py-0.2 text-[9px] font-bold ${
+                        className={`truncate font-medium text-[13.5px] ${
                           isCurrent
-                            ? "bg-black/10 text-neutral-700 dark:bg-white/15 dark:text-neutral-200"
-                            : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                            ? "text-neutral-900 dark:text-white font-bold"
+                            : "text-neutral-900 dark:text-white"
                         }`}
                       >
-                        E
+                        {song.title}
                       </span>
-                    )}
+
+                      {song.explicit && (
+                        <span
+                          className={`shrink-0 rounded-[2px] px-1 py-0.2 text-[9px] font-bold ${
+                            isCurrent
+                              ? "bg-black/10 text-neutral-700 dark:bg-white/15 dark:text-neutral-200"
+                              : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                          }`}
+                        >
+                          E
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* 仅在手机端显示于歌名下方的艺人 */}
+                    <span className={`sm:hidden truncate text-[11px] mt-0.5 ${
+                      isCurrent 
+                        ? "text-neutral-700 dark:text-neutral-300 font-medium" 
+                        : "text-neutral-500 dark:text-neutral-400"
+                    }`}>
+                      {song.artist || "未知歌手"}
+                    </span>
                   </div>
                 </div>
 
-                {/* 2. 艺人列 */}
+                {/* 2. 艺人列 (移动端隐藏) */}
                 <div
-                  className={`w-[30%] sm:w-[28%] md:w-[28%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
+                  className={`hidden sm:block sm:w-[28%] md:w-[28%] truncate pl-2 pr-3 text-xs sm:text-[13px] ${
                     isCurrent
                       ? "text-neutral-700 dark:text-neutral-300 font-semibold"
                       : "text-neutral-500 dark:text-neutral-400"
