@@ -58,15 +58,15 @@ export function SongList({
       {/* ===================== 表头：与下方数据列 100% 垂直像素级对齐 ===================== */}
       <div className="relative flex items-center px-3 sm:px-4 py-2.5 text-xs font-normal text-neutral-400 dark:text-neutral-400">
         {/* 歌曲列 (包含与下方序号、封面对应占位，使“歌曲”精准对齐歌名) */}
-        <div className="flex-1 sm:flex-none sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3">
+        <div className="flex-1 sm:flex-none sm:w-[42%] md:w-[40%] flex items-center gap-3 pr-3 min-w-0">
           <span>歌曲</span>
         </div>
         {/* 艺人列 (移动端隐藏，合并到歌曲名下方) */}
         <div className="hidden sm:block sm:w-[28%] md:w-[28%] pl-2 pr-3">艺人</div>
         {/* 专辑列 */}
         <div className="hidden md:block md:w-[24%] pl-2 pr-3">专辑</div>
-        {/* 时长列 */}
-        <div className="flex-1 text-right pr-2">时长</div>
+        {/* 时长列 (移动端紧凑自适应，绝不与歌名平分剩余空间) */}
+        <div className="shrink-0 sm:flex-1 text-right pr-2">时长</div>
 
         {/* 表头底部分隔线：左右起点与内容严格垂直对齐，杜绝向外凸出 */}
         <div className="absolute bottom-0 left-3 right-3 sm:left-4 sm:right-4 h-[1px] bg-black/[0.06] dark:bg-white/[0.08] pointer-events-none" />
@@ -165,7 +165,7 @@ export function SongList({
                   </div>
 
                   {/* 标题与手机端次级艺名 */}
-                  <div className="flex flex-col min-w-0 justify-center">
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span
                         className={`truncate font-medium text-[13.5px] ${
@@ -223,8 +223,8 @@ export function SongList({
                   {song.album || song.title}
                 </div>
 
-                {/* 4. 时长列 */}
-                <div className="flex-1 text-right pr-2">
+                {/* 4. 时长列 (移动端紧凑靠右，绝不抢占歌名空间) */}
+                <div className="shrink-0 sm:flex-1 text-right pr-2">
                   <span
                     className={`tabular-nums text-xs sm:text-[13px] ${
                       isCurrent
