@@ -165,9 +165,9 @@ function startRealtime() {
     )
     .subscribe((status, err) => {
       if (status === "SUBSCRIBED") {
-        console.log("🟢 [LiveStatus] 实时通道已建立");
+        console.debug("🟢 [LiveStatus] 实时通道已建立");
       } else if (status === "CHANNEL_ERROR") {
-        console.warn("⚠️ [LiveStatus] 通道错误:", err?.message || err);
+        console.debug("ℹ️ [LiveStatus] 通道重连中:", err?.message || err);
       }
     });
 
