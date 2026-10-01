@@ -262,7 +262,7 @@ export function StatusCapsule({
   // 默认胶囊模式 (极轻量刻痕，去 SaaS 化)
   return (
     <div
-      className="relative shrink-0 select-none"
+      className={`relative shrink-0 select-none ${isHovered ? 'status-expanded' : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -285,7 +285,7 @@ export function StatusCapsule({
                 className="h-full w-full object-cover rounded-[1px]"
               />
             ) : isMusic ? (
-              <Music2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-pulse text-neutral-900 dark:text-white" />
+              <Music2 className={`h-3 w-3 sm:h-3.5 sm:w-3.5 text-neutral-900 dark:text-white ${musicIsPlaying ? "animate-pulse" : ""}`} />
             ) : hasApp && (liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)) ? (
               <img
                 src={liveStatus.app!.icon || getAppIconFallback(liveStatus.app!.name)!}
@@ -365,15 +365,15 @@ export function StatusCapsule({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute left-0 top-full z-50 mt-1.5 w-[220px] sm:w-[240px] manga-panel p-3.5 shadow-sm"
+              className="absolute left-0 top-full z-50 mt-1.5 w-[260px] sm:w-[280px] manga-panel p-4 shadow-sm"
             >
               <div className="flex items-center justify-between mb-3 border-b border-black/[0.04] dark:border-white/[0.04] pb-2">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-400">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 dark:text-neutral-400">
                   LIVE DESK
                 </span>
-                <span className="flex items-center gap-1 text-[9px] font-mono text-neutral-500 dark:text-neutral-400">
+                <span className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
                   <span
-                    className={`h-1 w-1 rounded-none ${
+                    className={`h-1.5 w-1.5 rounded-none ${
                       isOnline ? "bg-neutral-800 dark:bg-white" : "bg-neutral-300 dark:bg-neutral-700"
                     }`}
                   />
@@ -384,8 +384,8 @@ export function StatusCapsule({
               {/* 音乐卡片 (横向版画风格) */}
               {isMusic && (
                 <div className="flex flex-col">
-                  <div className="flex gap-3">
-                    <div className="h-10 w-10 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[10%]">
+                  <div className="flex gap-3.5">
+                    <div className="h-14 w-14 shrink-0 overflow-hidden border border-black/[0.04] dark:border-white/10 grayscale-[10%]">
                       {musicCover ? (
                         <img
                           src={musicCover}
@@ -394,25 +394,25 @@ export function StatusCapsule({
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-black/[0.02] dark:bg-white/[0.02]">
-                          <Music2 className="h-3.5 w-3.5 text-neutral-400" />
+                          <Music2 className="h-4 w-4 text-neutral-400" />
                         </div>
                       )}
                     </div>
 
                     <div className="flex min-w-0 flex-1 flex-col justify-center">
-                      <div className="truncate text-xs font-bold text-neutral-900 dark:text-neutral-100">
+                      <div className="truncate font-sans text-sm font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
                         {musicTitle}
                       </div>
-                      <div className="mt-0.5 truncate text-[10px] font-serif text-neutral-500 dark:text-neutral-400">
+                      <div className="mt-0.5 truncate font-sans text-[11px] text-neutral-500 dark:text-neutral-400">
                         {musicArtist}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-2.5 flex items-center gap-2">
-                    <div className="flex h-2 items-end gap-[2px]">
+                  <div className="mt-3.5 flex items-center gap-2.5">
+                    <div className="flex h-2.5 items-end gap-[2px]">
                       <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-1.5 animate-pulse" : "h-0.5"}`} />
-                      <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-2 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
+                      <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-2.5 animate-pulse [animation-delay:120ms]" : "h-0.5"}`} />
                       <span className={`w-[2px] bg-neutral-800 dark:bg-white ${musicIsPlaying ? "h-1 animate-pulse [animation-delay:240ms]" : "h-0.5"}`} />
                     </div>
 
@@ -423,7 +423,7 @@ export function StatusCapsule({
                       />
                     </div>
 
-                    <span className="text-[9px] font-mono text-neutral-400 dark:text-neutral-400">
+                    <span className="text-[10px] font-mono text-neutral-400 dark:text-neutral-400">
                       {formatTime(localProgress)}
                     </span>
                   </div>

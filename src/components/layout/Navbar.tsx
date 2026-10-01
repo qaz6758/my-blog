@@ -153,10 +153,10 @@ export function Navbar() {
         {/* 顶部通透全延展容器 (与下方正文主体的 px-6 sm:px-8 保持绝对像素对齐) */}
         <div className="relative mx-auto flex h-full w-full items-center justify-end px-6 sm:px-8">
           {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (移动端与主体对齐: left-6 sm:left-8，PC大屏维持边缘 left-5) ===================== */}
-          <div className="flex items-center gap-3 absolute xl:fixed left-6 sm:left-8 xl:left-5 top-3.5 sm:top-5 z-50">
+          <div className="flex items-start gap-3 absolute xl:fixed left-6 sm:left-8 xl:left-5 top-3.5 sm:top-5 z-50">
             <Link
               href="/"
-              className="group flex items-center shrink-0 cursor-pointer select-none transition-transform duration-300 ease-out hover:scale-105 active:scale-95"
+              className="flex items-start shrink-0 cursor-pointer select-none"
               aria-label="回到首页"
               title="Vince Ou"
             >
@@ -165,7 +165,7 @@ export function Navbar() {
 
             {/* 实时状态胶囊：仅在有状态信息（在线）时展示 */}
             {isOnline && (
-              <div className="hidden sm:flex items-center">
+              <div className="hidden sm:flex items-start mt-1.5">
                 <StatusCapsule />
               </div>
             )}
