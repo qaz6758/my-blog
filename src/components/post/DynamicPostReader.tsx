@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { ArrowLeft, ArrowRight, Lightbulb } from "lucide-react";
 import { motion, AnimatePresence, type Transition } from "framer-motion";
@@ -14,15 +13,6 @@ import { useI18n } from "@/lib/i18n/I18nContext";
 import { calculateReadTime, formatDate } from "@/lib/utils";
 
 import { PostContentWrapper } from "@/components/post/PostContentWrapper";
-
-const CommentSection = dynamic(
-  () =>
-    import("@/components/post/CommentSection").then((m) => m.CommentSection),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
 
 export interface PostDetail {
   id: string;
@@ -373,11 +363,11 @@ function normalizeText(text: string): string {
           className="relative min-h-screen w-full flex flex-col justify-between"
         >
           {/* 左侧固定 TOC 骨架：保持占位空间，但不预置图标（无标题文章 100% 隐藏，杜绝闪烁跳变） */}
-          <aside className="hidden xl:block fixed top-[88px] left-5 w-44 pointer-events-none opacity-40 select-none" />
+          <aside className="hidden xl:block fixed top-[88px] left-8 w-44 pointer-events-none opacity-40 select-none" />
 
           {/* 正文版心骨架 */}
-          <main className="relative z-10 px-6 pt-24 pb-20 sm:px-8 sm:pt-28 flex-1">
-            <div className="mx-auto w-full max-w-[65ch]">
+          <main className="relative z-10 px-6 pt-24 pb-28 sm:pb-36 lg:pb-40 sm:px-8 sm:pt-28 flex-1">
+            <div className="mx-auto w-full max-w-[620px]">
               {/* 标题与日期占位 */}
               <div className="mb-8">
                 <div className="h-10 sm:h-11 bg-neutral-200/80 dark:bg-neutral-800/80 rounded-md w-4/5 animate-pulse" />
@@ -415,12 +405,12 @@ function normalizeText(text: string): string {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={SMOOTH_TRANSITION}
-          className="relative min-h-screen w-full flex flex-col items-center justify-between"
+          className="relative w-full flex flex-col items-center"
         >
-          {/* Grid 居中贴边布局 (100% 严格对称大局观：左边 Logo 与目录 20px，右边导航栏 20px，中间正文绝对居中，65ch 黄金阅读宽度) */}
-          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,65ch)_1fr] px-5 pt-[88px]">
+          {/* Grid 居中贴边布局 (100% 严格对称大局观：左边 Logo 与目录 32px，右边导航栏 32px，中间正文绝对居中，620px 与页脚严格同轴垂直对齐) */}
+          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,620px)_1fr] px-6 sm:px-8 pt-[88px]">
             
-            {/* 左侧：目录 (其最左侧与顶部 Logo 严格同轴对齐，距最左侧 20px，距 Logo 底部 28px 呼吸留白) */}
+            {/* 左侧：目录 (其最左侧与顶部 Logo 严格同轴对齐，距最左侧 32px，距 Logo 底部 28px 呼吸留白) */}
             <div className="hidden xl:block relative">
               <aside
                 className="sticky top-[88px] w-[220px] 2xl:w-[280px] flex flex-col"
@@ -436,9 +426,9 @@ function normalizeText(text: string): string {
               </aside>
             </div>
 
-            {/* 中间：正文主阅读列 (绝对居中，65ch 黄金聚拢阅读宽，距屏幕两边留白绝对均等) */}
+            {/* 中间：正文主阅读列 (绝对居中，620px 黄金阅读宽，与全站页脚严格垂直同轴对齐，距屏幕两边留白绝对均等，与页脚建立通透呼吸感) */}
             <main
-              className="relative z-10 w-full max-w-[65ch] mx-auto min-w-0 pb-20 pt-3 sm:pt-4"
+              className="relative z-10 w-full max-w-[620px] mx-auto min-w-0 pb-28 sm:pb-36 lg:pb-40 pt-3 sm:pt-4"
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
             >
@@ -501,7 +491,7 @@ function normalizeText(text: string): string {
               </article>
 
               {/* 返回文章列表 cd .. (Anthony Fu 同款经典风格) */}
-              <div className="mt-10 sm:mt-12 mb-4">
+              <div className="mt-12 sm:mt-16 mb-0">
                 <Link
                   href="/posts"
                   className="group inline-flex items-center gap-1.5 font-mono text-[14px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer select-none"
@@ -513,51 +503,44 @@ function normalizeText(text: string): string {
                 </Link>
               </div>
 
-              {/* 上下一篇导航 */}
-              <div>
-                {(prevPost || nextPost) && (
-                  <nav className="my-16 grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-black/[0.08] dark:border-white/[0.08] pt-8">
-                    {prevPost ? (
-                      <Link
-                         href={`/posts/${prevPost.slug || prevPost.source_url || prevPost.id}`}
-                         className="group flex flex-col gap-2 text-left transition-colors"
-                       >
-                         <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
-                           <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
-                           {globalLocale === "zh-TW" ? "上一篇" : globalLocale === "en" ? "Previous" : globalLocale === "ja" ? "前の記事" : globalLocale === "ko" ? "이전 글" : "上一篇"}
-                         </span>
-                         <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
-                           {globalLocale === "zh-TW" ? convertText(prevPost.title) : prevPost.title}
-                         </span>
-                       </Link>
-                    ) : (
-                      <div />
-                    )}
+              {/* 上下一篇导航 (自然收束，与页脚建立舒适的呼吸留白) */}
+              {(prevPost || nextPost) && (
+                <nav className="mt-12 sm:mt-16 pt-8 border-t border-black/[0.08] dark:border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {prevPost ? (
+                    <Link
+                       href={`/posts/${prevPost.slug || prevPost.source_url || prevPost.id}`}
+                       className="group flex flex-col gap-2 text-left transition-colors"
+                     >
+                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
+                         <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                         {globalLocale === "zh-TW" ? "上一篇" : globalLocale === "en" ? "Previous" : globalLocale === "ja" ? "前の記事" : globalLocale === "ko" ? "이전 글" : "上一篇"}
+                       </span>
+                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
+                         {globalLocale === "zh-TW" ? convertText(prevPost.title) : prevPost.title}
+                       </span>
+                     </Link>
+                  ) : (
+                    <div />
+                  )}
 
-                    {nextPost ? (
-                      <Link
-                         href={`/posts/${nextPost.slug || nextPost.source_url || nextPost.id}`}
-                         className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
-                       >
-                         <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">
-                           {globalLocale === "zh-TW" ? "下一篇" : globalLocale === "en" ? "Next" : globalLocale === "ja" ? "次の記事" : globalLocale === "ko" ? "다음 글" : "下一篇"}
-                           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                         </span>
-                         <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
-                           {globalLocale === "zh-TW" ? convertText(nextPost.title) : nextPost.title}
-                         </span>
-                       </Link>
-                    ) : (
-                      <div />
-                    )}
-                  </nav>
-                )}
-              </div>
-
-              {/* 评论区 */}
-              <div className="mt-20">
-                <CommentSection postId={String(post.id)} locale={globalLocale} />
-              </div>
+                  {nextPost ? (
+                    <Link
+                       href={`/posts/${nextPost.slug || nextPost.source_url || nextPost.id}`}
+                       className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
+                     >
+                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">
+                         {globalLocale === "zh-TW" ? "下一篇" : globalLocale === "en" ? "Next" : globalLocale === "ja" ? "次の記事" : globalLocale === "ko" ? "다음 글" : "下一篇"}
+                         <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                       </span>
+                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
+                         {globalLocale === "zh-TW" ? convertText(nextPost.title) : nextPost.title}
+                       </span>
+                     </Link>
+                  ) : (
+                    <div />
+                  )}
+                </nav>
+              )}
             </main>
 
             {/* 右侧：空白占位，确保正文绝对居中 */}
@@ -575,7 +558,7 @@ function normalizeText(text: string): string {
           transition={SMOOTH_TRANSITION}
           className="relative min-h-screen w-full bg-transparent px-4 pt-24 pb-16 sm:px-8 lg:px-12 antialiased flex flex-col justify-between"
         >
-          <main className="mx-auto w-full max-w-[65ch]">
+          <main className="mx-auto w-full max-w-[620px]">
             <ThoughtDetailClient item={thought} />
           </main>
         </motion.div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { formatRelativeTime, sanitizeWebsiteUrl } from "@/lib/utils";
-import { Loader2, CornerDownRight, LogOut, CheckCircle2 } from "lucide-react";
+import { Loader2, CornerDownRight, LogOut } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { DICTIONARIES, type Locale, type TranslationKey } from "@/lib/i18n/locales";
@@ -14,7 +14,6 @@ import { DICTIONARIES, type Locale, type TranslationKey } from "@/lib/i18n/local
 
 interface Comment {
   id: string | number;
-  post_id?: string | number;
   thought_id?: string | number;
   author?: string | null;
   user_name?: string | null;
@@ -28,8 +27,7 @@ interface Comment {
 type CommentPayload = Record<string, string | null>;
 
 interface CommentSectionProps {
-  postId?: string | number;
-  thoughtId?: string | number;
+  thoughtId: string | number;
   onCommentAdded?: () => void;
   locale?: Locale;
 }
@@ -60,7 +58,7 @@ function normalizeComment(row: Comment): Comment {
 // Avatar Component
 // ─────────────────────────────────────────────
 
-function Avatar({ name, src, size = 28 }: { name?: string | null; src?: string | null; size?: number }) {
+function Avatar({ name, src, size = 32 }: { name?: string | null; src?: string | null; size?: number }) {
   const [err, setErr] = useState(false);
   const safe = (name || "?").trim() || "?";
   const letter = safe.charAt(0).toUpperCase();
@@ -73,7 +71,7 @@ function Avatar({ name, src, size = 28 }: { name?: string | null; src?: string |
         width={size}
         height={size}
         onError={() => setErr(true)}
-        className="rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10 shrink-0"
+        className="rounded-full object-cover shrink-0"
         style={{ width: size, height: size }}
       />
     );
@@ -81,36 +79,11 @@ function Avatar({ name, src, size = 28 }: { name?: string | null; src?: string |
 
   return (
     <div
-      className="flex shrink-0 items-center justify-center rounded-full ring-1 ring-black/10 dark:ring-white/10 text-white font-medium select-none"
-      style={{ width: size, height: size, background: avatarBg(safe), fontSize: size * 0.44 }}
+      className="flex shrink-0 items-center justify-center rounded-full text-white font-medium select-none"
+      style={{ width: size, height: size, background: avatarBg(safe), fontSize: size * 0.4 }}
     >
       {letter}
     </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// OAuth Button
-// ─────────────────────────────────────────────
-
-function OAuthBtn({
-  label, icon, onClick, loading,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-  loading?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={loading}
-      className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors duration-200 disabled:opacity-40 cursor-pointer select-none"
-    >
-      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : icon}
-      <span>{label}</span>
-    </button>
   );
 }
 
@@ -120,7 +93,7 @@ function OAuthBtn({
 
 function IconGitHub() {
   return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-[15px] w-[15px] fill-current" aria-hidden>
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z" />
     </svg>
   );
@@ -128,20 +101,11 @@ function IconGitHub() {
 
 function IconGoogle() {
   return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-[15px] w-[15px]" aria-hidden>
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z" />
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23Z" />
       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62Z" />
       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53Z" />
-    </svg>
-  );
-}
-
-function IconEmail() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.5]" aria-hidden>
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="m2 7 10 7 10-7" />
     </svg>
   );
 }
@@ -152,17 +116,16 @@ function IconEmail() {
 
 interface GuestDraft {
   name: string;
-  email: string;
 }
 
-const GUEST_KEY = "blog_guest_v2";
+const GUEST_KEY = "blog_guest_minimal";
 
 function loadGuest(): GuestDraft {
   try {
     const v = localStorage.getItem(GUEST_KEY);
     if (v) return JSON.parse(v);
   } catch {}
-  return { name: "", email: "" };
+  return { name: "" };
 }
 
 function saveGuest(g: GuestDraft) {
@@ -174,7 +137,6 @@ function saveGuest(g: GuestDraft) {
 // ─────────────────────────────────────────────
 
 export function CommentSection({
-  postId,
   thoughtId,
   onCommentAdded,
   locale: propLocale,
@@ -200,28 +162,17 @@ export function CommentSection({
     [currentLocale]
   );
 
-  const targetTable = thoughtId ? "thought_comments" : "comments";
-  const targetIdField = thoughtId ? "thought_id" : "post_id";
-  const targetId = String(thoughtId ?? postId ?? "");
+  const targetId = String(thoughtId ?? "");
   const insertComment = (payload: CommentPayload) =>
-    thoughtId
-      ? supabase
-          .from("thought_comments")
-          .insert([payload])
-          .select("id,thought_id,user_name,user_avatar,author,website,content,created_at")
-          .single()
-      : supabase
-          .from("comments")
-          .insert([payload])
-          .select("id,post_id,author,user_avatar,website,content,created_at")
-          .single();
+    supabase
+      .from("thought_comments")
+      .insert([payload])
+      .select("id,thought_id,user_name,user_avatar,author,website,content,created_at")
+      .single();
 
   // ── Auth ──
   const [session, setSession] = useState<Session | null>(null);
-  const [authLoading, setAuthLoading] = useState<"github" | "google" | "email" | null>(null);
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [magicEmail, setMagicEmail] = useState("");
-  const [magicSent, setMagicSent] = useState(false);
+  const [authLoading, setAuthLoading] = useState<"github" | "google" | null>(null);
 
   // ── Comments ──
   const [comments, setComments] = useState<Comment[]>([]);
@@ -232,9 +183,8 @@ export function CommentSection({
 
   // ── Guest fallback (when not OAuth'd) ──
   const [guest, setGuest] = useState<GuestDraft>(() =>
-    typeof window === "undefined" ? { name: "", email: "" } : loadGuest()
+    typeof window === "undefined" ? { name: "" } : loadGuest()
   );
-  const [guestMode, setGuestMode] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -255,17 +205,11 @@ export function CommentSection({
         return;
       }
 
-      const result = thoughtId
-        ? await supabase
-            .from("thought_comments")
-            .select("id,thought_id,user_name,user_avatar,author,website,content,created_at")
-            .eq("thought_id", targetId)
-            .order("created_at", { ascending: false })
-        : await supabase
-            .from("comments")
-            .select("id,post_id,author,user_avatar,website,content,created_at")
-            .eq("post_id", targetId)
-            .order("created_at", { ascending: false });
+      const result = await supabase
+        .from("thought_comments")
+        .select("id,thought_id,user_name,user_avatar,author,website,content,created_at")
+        .eq("thought_id", targetId)
+        .order("created_at", { ascending: false });
 
       if (!active) return;
       if (result.error) {
@@ -281,16 +225,16 @@ export function CommentSection({
     return () => {
       active = false;
     };
-  }, [thoughtId, targetId]);
+  }, [targetId]);
 
   // 4. Realtime subscription
   useEffect(() => {
     if (!targetId) return;
     const ch = supabase
-      .channel(`cs-${targetTable}-${targetId}`)
+      .channel(`cs-thought_comments-${targetId}`)
       .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: targetTable,
-        filter: `${targetIdField}=eq.${targetId}`,
+        event: "INSERT", schema: "public", table: "thought_comments",
+        filter: `thought_id=eq.${targetId}`,
       }, (payload) => {
         const c = payload.new as Comment;
         setComments(prev => prev.some(x => String(x.id) === String(c.id)) ? prev : [c, ...prev]);
@@ -298,7 +242,7 @@ export function CommentSection({
       })
       .subscribe();
     return () => { supabase.removeChannel(ch).catch(() => {}); };
-  }, [targetTable, targetIdField, targetId, onCommentAdded]);
+  }, [targetId, onCommentAdded]);
 
   // ── OAuth actions ──
   const signInWith = async (provider: "github" | "google") => {
@@ -310,20 +254,8 @@ export function CommentSection({
     setAuthLoading(null);
   };
 
-  const sendMagicLink = async () => {
-    if (!magicEmail.trim()) return;
-    setAuthLoading("email");
-    await supabase.auth.signInWithOtp({
-      email: magicEmail.trim(),
-      options: { emailRedirectTo: window.location.href },
-    });
-    setAuthLoading(null);
-    setMagicSent(true);
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
-    setGuestMode(false);
   };
 
   // ── Submit with smart schema tolerance ──
@@ -332,9 +264,7 @@ export function CommentSection({
     const text = content.trim();
     if (!text) { setError(ct("comments.empty_error")); return; }
 
-    // Determine author info
     let author = "";
-    let email: string | null = null;
     let website: string | null = null;
     let userAvatarUrl: string | null = null;
 
@@ -342,29 +272,22 @@ export function CommentSection({
       const user: User = session.user;
       const meta = user.user_metadata;
       author = meta?.full_name || meta?.user_name || meta?.name || user.email?.split("@")[0] || ct("comments.anonymous");
-      email = user.email ?? null;
       website = meta?.html_url || null;
       userAvatarUrl = meta?.avatar_url || null;
-    } else if (guestMode) {
-      author = guest.name.trim() || ct("comments.guest");
-      email = guest.email.trim() || null;
-      saveGuest({ name: guest.name.trim(), email: guest.email.trim() });
     } else {
-      setError(ct("comments.auth_required"));
-      return;
+      author = guest.name.trim() || ct("comments.guest");
+      saveGuest({ name: guest.name.trim() });
     }
 
     setSubmitting(true);
     try {
-      // 基础完整 Payload
       const payload: CommentPayload = {
-        [targetIdField]: targetId,
+        thought_id: targetId,
         author,
         user_name: author,
         content: text,
       };
 
-      if (email) payload.email = email;
       if (website) payload.website = sanitizeWebsiteUrl(website);
       if (userAvatarUrl) {
         payload.user_avatar = userAvatarUrl;
@@ -374,10 +297,8 @@ export function CommentSection({
         payload.user_id = session.user.id;
       }
 
-      // 智能插入与 Schema 容错重试机制
       let result = await insertComment(payload);
 
-      // 如果提示缺少 user_name 或 user_avatar 等非必须列，自动裁剪重试
       if (result.error) {
         const errMsg = result.error.message || "";
         const fallbackPayload = { ...payload };
@@ -386,7 +307,6 @@ export function CommentSection({
         if (errMsg.includes("user_avatar")) delete fallbackPayload.user_avatar;
         if (errMsg.includes("avatar_url")) delete fallbackPayload.avatar_url;
         if (errMsg.includes("website")) delete fallbackPayload.website;
-        if (errMsg.includes("email")) delete fallbackPayload.email;
         if (errMsg.includes("author") && !fallbackPayload.user_name) fallbackPayload.user_name = author;
 
         result = await insertComment(fallbackPayload);
@@ -407,7 +327,6 @@ export function CommentSection({
     }
   };
 
-  // ── Derived ──
   const user = session?.user ?? null;
   const userAvatar = user?.user_metadata?.avatar_url ?? null;
   const userName = user
@@ -415,200 +334,93 @@ export function CommentSection({
     : null;
 
   return (
-    <div className="w-full space-y-8 mt-4">
-      {/* ── Section title ── */}
-      <div className="flex items-center gap-2.5 pb-2">
-        <span className="text-sm font-medium tracking-tight text-neutral-900 dark:text-neutral-100">{ct("comments.title")}</span>
-        <span className="text-xs font-mono text-neutral-400 dark:text-neutral-500">({comments.length})</span>
-      </div>
+    <div className="w-full mt-8">
+      {/* ── Comment Input Area ── */}
+      <div className="group relative">
+        <textarea
+          ref={textareaRef}
+          rows={3}
+          value={content}
+          onChange={(e) => {
+            setContent(e.target.value);
+            if (error) setError("");
+          }}
+          placeholder={ct("comments.placeholder")}
+          className="w-full resize-none bg-transparent border-none p-0 text-[14px] leading-relaxed text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-0"
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        />
 
-      {/* ── Auth bar ── */}
-      {!user && !guestMode ? (
-        <div className="space-y-3 p-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">{ct("comments.join")}</span>
-            <button
-              type="button"
-              onClick={() => setGuestMode(true)}
-              className="text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
-            >
-              {ct("comments.guest_tab")}
-            </button>
-          </div>
-
-          {!showEmailForm ? (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <OAuthBtn
-                label={ct("comments.github")}
-                icon={<IconGitHub />}
-                onClick={() => signInWith("github")}
-                loading={authLoading === "github"}
-              />
-              <OAuthBtn
-                label={ct("comments.google")}
-                icon={<IconGoogle />}
-                onClick={() => signInWith("google")}
-                loading={authLoading === "google"}
-              />
-              <OAuthBtn
-                label={ct("comments.email_login")}
-                icon={<IconEmail />}
-                onClick={() => setShowEmailForm(true)}
-              />
-            </div>
-          ) : magicSent ? (
-            <div className="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400 py-1">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-              <span>{ct("comments.magic_sent", { email: magicEmail })}</span>
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 mt-1 border-t border-black/5 dark:border-white/5 opacity-40 focus-within:opacity-100 hover:opacity-100 transition-opacity">
+          {user ? (
+            <div className="flex items-center gap-2.5">
+              <Avatar name={userName ?? ct("comments.anonymous")} src={userAvatar} size={20} />
+              <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">{userName}</span>
               <button
                 type="button"
-                onClick={() => { setMagicSent(false); setShowEmailForm(false); }}
-                className="ml-2 text-neutral-500 hover:underline cursor-pointer"
+                onClick={signOut}
+                className="text-xs text-neutral-400 hover:text-rose-500 transition-colors"
+                title={ct("comments.sign_out")}
               >
-                {ct("comments.back")}
+                <LogOut className="h-[14px] w-[14px]" />
               </button>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="flex items-center gap-3">
               <input
-                type="email"
-                value={magicEmail}
-                onChange={e => setMagicEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-48 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
-                onKeyDown={e => e.key === "Enter" && sendMagicLink()}
+                type="text"
+                value={guest.name}
+                onChange={e => setGuest(g => ({ ...g, name: e.target.value }))}
+                placeholder={ct("comments.name_placeholder")}
+                className="w-28 bg-transparent border-none p-0 text-[13px] text-neutral-800 dark:text-neutral-200 placeholder:text-neutral-400 focus:outline-none focus:ring-0"
               />
-              <OAuthBtn
-                label={ct("comments.send_link")}
-                icon={<IconEmail />}
-                onClick={sendMagicLink}
-                loading={authLoading === "email"}
-              />
-              <button
-                type="button"
-                onClick={() => setShowEmailForm(false)}
-                className="text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer ml-2"
-              >
-                {ct("comments.cancel")}
-              </button>
+              <span className="text-neutral-200 dark:text-neutral-800 select-none">|</span>
+              <div className="flex items-center gap-2.5">
+                <button type="button" onClick={() => signInWith("github")} disabled={authLoading === "github"} className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
+                  {authLoading === "github" ? <Loader2 className="h-[15px] w-[15px] animate-spin" /> : <IconGitHub />}
+                </button>
+                <button type="button" onClick={() => signInWith("google")} disabled={authLoading === "google"} className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors">
+                  {authLoading === "google" ? <Loader2 className="h-[15px] w-[15px] animate-spin" /> : <IconGoogle />}
+                </button>
+              </div>
             </div>
           )}
-        </div>
-      ) : null}
 
-      {/* ── Guest identity fields ── */}
-      {guestMode && !user && (
-        <div className="flex flex-wrap items-center gap-4 p-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">{ct("comments.name")}</span>
-            <input
-              value={guest.name}
-              onChange={e => setGuest(g => ({ ...g, name: e.target.value }))}
-              placeholder={ct("comments.name_placeholder")}
-              maxLength={40}
-              className="w-28 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">{ct("comments.email")}</span>
-            <input
-              type="email"
-              value={guest.email}
-              onChange={e => setGuest(g => ({ ...g, email: e.target.value }))}
-              placeholder={ct("comments.email_optional")}
-              maxLength={100}
-              className="w-32 border-x-0 border-t-0 border-b border-black/10 dark:border-white/10 bg-transparent pb-0.5 text-xs text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 focus:border-neutral-900 dark:focus:border-white focus:outline-none focus:ring-0 shadow-none transition-colors"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => setGuestMode(false)}
-            className="ml-auto text-xs text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
-          >
-            {ct("comments.account_tab")}
-          </button>
-        </div>
-      )}
-
-      {/* ── Logged-in identity bar ── */}
-      {user && (
-        <div className="flex items-center gap-2.5 px-2 py-1">
-          <Avatar name={userName ?? ct("comments.anonymous")} src={userAvatar} size={22} />
-          <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">{userName}</span>
-          <span className="text-[11px] text-neutral-400 dark:text-neutral-500">{ct("comments.logged_in")}</span>
-          <button
-            type="button"
-            onClick={signOut}
-            className="ml-auto flex items-center gap-1 text-[11px] text-neutral-400 hover:text-rose-500 transition-colors cursor-pointer"
-            title={ct("comments.sign_out")}
-          >
-            <LogOut className="h-3 w-3" />
-            <span>{ct("comments.sign_out")}</span>
-          </button>
-        </div>
-      )}
-
-      {/* ── Comment input ── */}
-      {(user || guestMode) && (
-        <div className="space-y-2.5">
-          <div className="border-x-0 border-t-0 border-b border-black/[0.08] dark:border-white/[0.08] bg-transparent focus-within:border-black/30 dark:focus-within:border-white/30 p-2 transition-colors">
-            <textarea
-              ref={textareaRef}
-              rows={3}
-              value={content}
-              onChange={e => {
-                setContent(e.target.value);
-                if (error) setError("");
-              }}
-              placeholder={ct("comments.placeholder")}
-              maxLength={1000}
-              className="w-full resize-none border-none outline-none focus:outline-none focus:ring-0 shadow-none bg-transparent text-[13.5px] leading-relaxed text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-300 dark:placeholder:text-neutral-700"
-              onKeyDown={e => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-            />
-          </div>
-
-          {error && <p className="text-xs text-rose-500 font-medium px-2">{error}</p>}
-
-          <div className="flex items-center justify-between pt-1 px-2">
-            <span className="text-[11px] text-neutral-400 dark:text-neutral-600">{ct("comments.shortcut_hint")}</span>
+          <div className="flex items-center gap-3">
+            {error && <span className="text-[12px] text-rose-500">{error}</span>}
             <button
               type="button"
               onClick={handleSubmit}
               disabled={submitting || !content.trim()}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white disabled:opacity-30 transition-colors cursor-pointer select-none"
+              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white disabled:opacity-30 transition-colors cursor-pointer select-none"
             >
-              {submitting ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <CornerDownRight className="h-3 w-3" />
-              )}
-              <span>{submitting ? ct("comments.sending") : ct("comments.send")}</span>
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CornerDownRight className="h-4 w-4" />}
+              <span>{ct("comments.send")}</span>
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ── Comments list ── */}
-      <div className="space-y-6 pt-2">
+      <div className="space-y-8 pt-10">
         {commentsLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {[1, 2].map(i => (
-              <div key={i} className="flex gap-3 animate-pulse">
-                <div className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/5 shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-2.5 w-20 rounded bg-black/5 dark:bg-white/5" />
-                  <div className="h-2.5 w-3/4 rounded bg-black/5 dark:bg-white/5" />
+              <div key={i} className="flex gap-4 animate-pulse">
+                <div className="h-8 w-8 rounded-full bg-black/5 dark:bg-white/5 shrink-0" />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-3 w-24 rounded bg-black/5 dark:bg-white/5" />
+                  <div className="h-3 w-3/4 rounded bg-black/5 dark:bg-white/5" />
                 </div>
               </div>
             ))}
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-xs text-neutral-400 dark:text-neutral-600 py-6 text-center">
+          <p className="text-[13px] text-neutral-400 dark:text-neutral-600 py-4 text-center select-none">
             {ct("comments.empty")}
           </p>
         ) : (
@@ -617,29 +429,29 @@ export function CommentSection({
             const avatarSrc = comment.user_avatar || comment.avatar_url || null;
 
             return (
-              <div key={comment.id} className="flex gap-3 text-left">
-                <Avatar name={authorName} src={avatarSrc} size={28} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 mb-1">
+              <div key={comment.id} className="group flex gap-4 text-left">
+                <Avatar name={authorName} src={avatarSrc} size={32} />
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="flex items-center gap-2.5 mb-1.5">
                     {comment.website ? (
                       <a
                         href={sanitizeWebsiteUrl(comment.website) ?? "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-semibold text-neutral-800 hover:text-neutral-950 dark:text-neutral-200 dark:hover:text-white transition-colors"
+                        className="text-[13px] font-medium text-neutral-800 hover:text-neutral-950 dark:text-neutral-200 dark:hover:text-white transition-colors"
                       >
                         {authorName}
                       </a>
                     ) : (
-                      <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                      <span className="text-[13px] font-medium text-neutral-800 dark:text-neutral-200">
                         {authorName}
                       </span>
                     )}
-                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                    <span className="text-[11px] text-neutral-400 dark:text-neutral-500 tabular-nums">
                       {formatRelativeTime(comment.created_at, currentLocale)}
                     </span>
                   </div>
-                  <p className="text-[13px] leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap break-words">
+                  <p className="text-[14px] leading-relaxed text-neutral-600 dark:text-neutral-300 whitespace-pre-wrap break-words">
                     {currentLocale === "zh-TW" ? convertText(comment.content) : comment.content}
                   </p>
                 </div>

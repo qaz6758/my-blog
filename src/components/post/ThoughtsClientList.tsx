@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, MessageSquare, Star, ArrowRightCircle } from "lucide-react";
+import { Heart, MessageSquare, Star, ArrowRightCircle, ExternalLink } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
@@ -331,42 +331,80 @@ export function ThoughtsClientList({
                   )}
                 </>
               ) : (
-                <div className="mb-4 rounded-lg border border-black/[0.05] bg-black/[0.02] p-3 sm:p-3.5 dark:border-white/[0.05] dark:bg-white/[0.02] flex flex-row-reverse gap-3.5 sm:gap-4">
+                <div className="mb-4 flex gap-3.5 sm:gap-4 mt-2">
                   {item.posterUrl && (
-                    <div className="w-16 sm:w-20 shrink-0 self-start">
-                      <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
-                        <img
-                          src={item.posterUrl}
-                          alt={item.title}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
+                    <div className="w-[60px] sm:w-[72px] shrink-0 mt-1">
+                      {item.sourceUrl ? (
+                        <a
+                          href={item.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group/poster relative block aspect-[3/4] w-full overflow-hidden rounded-[4px] bg-neutral-100 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer"
+                          title={`${item.title} (${isEn ? "Open detail" : "点击查看详情页"})`}
+                        >
+                          <img
+                            src={item.posterUrl}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover/poster:scale-105"
+                          />
+                        </a>
+                      ) : (
+                        <Link
+                          href={`/thoughts/${item.id}`}
+                          className="group/poster block aspect-[3/4] w-full overflow-hidden rounded-[4px] bg-neutral-100 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer"
+                          title={item.title}
+                        >
+                          <img
+                            src={item.posterUrl}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover/poster:scale-105"
+                          />
+                        </Link>
+                      )}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
-                      {item.type} {item.year ? `· ${item.year}` : ""}
-                    </div>
-                    <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
-                      {item.title}
+                    <h2 className="text-[14px] sm:text-[15px] font-medium text-neutral-900 dark:text-neutral-100 tracking-tight leading-snug">
+                      {item.sourceUrl ? (
+                        <a
+                          href={item.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline transition-colors"
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        <Link href={`/thoughts/${item.id}`} className="hover:underline">
+                          {item.title}
+                        </Link>
+                      )}
                     </h2>
-                    <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-neutral-400 line-clamp-3 text-justify">
-                      {item.description}
-                    </p>
-                    {(item.rating || item.tags || item.sourceUrl) && (
-                      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+                    
+                    {(item.year || item.rating || item.tags) && (
+                      <div className="mt-0.5 text-[12px] text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-1.5">
+                        {item.year && <span className="font-mono">{item.year}</span>}
+                        {item.year && item.rating && <span className="opacity-40 font-mono">/</span>}
                         {item.rating && (
-                          <span className="inline-flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-current" />
-                            {item.rating}
+                          <span className="flex items-center gap-0.5 font-mono">
+                            {item.rating} 
+                            <Star className="h-2.5 w-2.5 fill-current opacity-80 mb-[1px]" />
                           </span>
                         )}
-                        {item.tags && <span>· {item.tags}</span>}
-                        {item.sourceUrl && (
-                          <span className="truncate">· {item.sourceUrl}</span>
+                        {(item.year || item.rating) && item.tags && (
+                          <span className="opacity-40 font-mono">/</span>
+                        )}
+                        {item.tags && (
+                          <span className="text-[12px] text-neutral-500 dark:text-neutral-400">
+                            {item.tags}
+                          </span>
                         )}
                       </div>
                     )}
+                    
+                    <p className="mt-1.5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-600 dark:text-neutral-400 line-clamp-3 text-justify">
+                      {item.description}
+                    </p>
                   </div>
                 </div>
               )}

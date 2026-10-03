@@ -150,10 +150,10 @@ export function Navbar() {
       <header 
         className="absolute inset-x-0 top-0 z-40 h-16 sm:h-[72px] bg-transparent select-none"
       >
-        {/* 顶部通透全延展容器 (与下方正文主体的 px-6 sm:px-8 保持绝对像素对齐) */}
+        {/* 顶部通透全延展容器 (左右视口间距 px-6 sm:px-8 保持绝对像素对齐与对称) */}
         <div className="relative mx-auto flex h-full w-full items-center justify-end px-6 sm:px-8">
-          {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (移动端与主体对齐: left-6 sm:left-8，PC大屏维持边缘 left-5) ===================== */}
-          <div className="flex items-start gap-3 absolute xl:fixed left-6 sm:left-8 xl:left-5 top-3.5 sm:top-5 z-50">
+          {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (与右侧视口间距 px-6 sm:px-8 严格对称对齐) ===================== */}
+          <div className="flex items-start gap-3 absolute xl:fixed left-6 sm:left-8 top-3.5 sm:top-5 z-50">
             <Link
               href="/"
               className="flex items-start shrink-0 cursor-pointer select-none"

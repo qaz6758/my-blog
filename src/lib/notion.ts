@@ -715,22 +715,44 @@ export async function fetchThoughtsFromNotion(): Promise<NotionThoughtItem[]> {
       }
       const title = getText(findProp(p, 'Title', '标题', 'Name')) || '';
       const content = getText(findProp(p, 'Content', 'Description', '内容', '正文')) || title;
-      const tags = getText(findProp(p, 'Tags', '标签'));
+      const tagsList = getMultiSelect(findProp(p, 'Tags', '标签'));
+      const tags = tagsList.length > 0 ? tagsList.join(', ') : getText(findProp(p, 'Tags', '标签'));
       const type = getSelect(findProp(p, 'Type', '类型')) || 'NOTE';
+      const action = getSelect(findProp(p, 'Action', '动态')) || getText(findProp(p, 'Action', '动态')) || '';
+      const ratingNum = getNumber(findProp(p, 'Rating', '评分'));
+      const rating = ratingNum !== null ? String(ratingNum) : (getText(findProp(p, 'Rating', '评分')) || undefined);
+      const yearNum = getNumber(findProp(p, 'Year', '年份'));
+      const year = yearNum ? String(yearNum) : new Date(rawDate).getFullYear().toString();
+
+      const posterProp = findProp(p, 'Poster', '封面', '海报', 'Cover', 'Photo', 'Image', '图片');
+      let posterUrl = getUrl(posterProp);
+      if (!posterUrl && posterProp?.type === 'files') {
+        const files = asRecords(posterProp.files);
+        if (files.length > 0) {
+          const first = files[0];
+          const raw =
+            readString(readRecord(first, 'file')?.url) ||
+            readString(readRecord(first, 'external')?.url);
+          if (raw) posterUrl = getProxyImageUrl(raw);
+        }
+      }
+      if (!posterUrl) {
+        posterUrl = getCover(page);
+      }
 
       items.push({
         id: pageId,
         author: 'Vince Ou',
-        action: getText(findProp(p, 'Action', '动态')) || '',
+        action,
         time: rawDate,
         type,
-        year: new Date(rawDate).getFullYear().toString(),
+        year,
         title,
         description: content,
-        rating: getText(findProp(p, 'Rating', '评分')),
+        rating,
         tags,
-        sourceUrl: getUrl(findProp(p, 'SourceUrl', '链接')),
-        posterUrl: getUrl(findProp(p, 'Poster', '封面')),
+        sourceUrl: getUrl(findProp(p, 'SourceUrl', '链接', 'URL', '网址', '来源网址', '详情链接', '豆瓣链接')),
+        posterUrl,
         likes: 0,
         upvotes: 0,
         replies: 0,

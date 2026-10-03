@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Heart, MessageSquare, Star, ArrowLeft } from "lucide-react";
+import { Heart, MessageSquare, Star, ArrowLeft, ExternalLink } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
@@ -240,44 +240,75 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             )}
           </>
         ) : (
-          <div className="mb-4 rounded-lg border border-black/[0.05] bg-black/[0.02] p-3 sm:p-3.5 dark:border-white/[0.05] dark:bg-white/[0.02] flex flex-row-reverse gap-3.5 sm:gap-4">
+          <div className="mb-4 flex gap-3.5 sm:gap-4 mt-2">
             {thoughtItem.posterUrl && (
-              <div className="w-16 sm:w-20 shrink-0 self-start">
-                <div className="aspect-[3/4] w-full overflow-hidden rounded-md bg-neutral-200 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10">
-                  <img
-                    src={thoughtItem.posterUrl}
-                    alt={displayTitle}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+              <div className="w-[60px] sm:w-[72px] shrink-0 mt-1">
+                {thoughtItem.sourceUrl ? (
+                  <a
+                    href={thoughtItem.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/poster relative block aspect-[3/4] w-full overflow-hidden rounded-[4px] bg-neutral-100 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer"
+                    title={`${displayTitle} (${isEn ? "Open detail" : "点击查看详情页"})`}
+                  >
+                    <img
+                      src={thoughtItem.posterUrl}
+                      alt={displayTitle}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover/poster:scale-105"
+                    />
+                  </a>
+                ) : (
+                  <div className="block aspect-[3/4] w-full overflow-hidden rounded-[4px] bg-neutral-100 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10 shadow-sm">
+                    <img
+                      src={thoughtItem.posterUrl}
+                      alt={displayTitle}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
               </div>
             )}
             
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-mono tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
-                {thoughtItem.type} {thoughtItem.year ? `· ${thoughtItem.year}` : ""}
-              </div>
-              <h2 className="mt-0.5 text-[15px] font-bold text-neutral-900 dark:text-neutral-100 tracking-tight">
-                {displayTitle}
+              <h2 className="text-[14px] sm:text-[15px] font-medium text-neutral-900 dark:text-neutral-100 tracking-tight leading-snug">
+                {thoughtItem.sourceUrl ? (
+                  <a
+                    href={thoughtItem.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline transition-colors"
+                  >
+                    {displayTitle}
+                  </a>
+                ) : (
+                  displayTitle
+                )}
               </h2>
-              <p className="mt-1 text-[13px] leading-relaxed text-neutral-700 dark:text-neutral-400 whitespace-pre-line text-justify">
-                {displayDesc}
-              </p>
               
-              {(thoughtItem.rating || thoughtItem.tags || thoughtItem.sourceUrl) && (
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+              {(thoughtItem.year || thoughtItem.rating || thoughtItem.tags) && (
+                <div className="mt-0.5 text-[12px] text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-1.5">
+                  {thoughtItem.year && <span className="font-mono">{thoughtItem.year}</span>}
+                  {thoughtItem.year && thoughtItem.rating && <span className="opacity-40 font-mono">/</span>}
                   {thoughtItem.rating && (
-                    <span className="inline-flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-current" />
-                      {thoughtItem.rating}
+                    <span className="flex items-center gap-0.5 font-mono">
+                      {thoughtItem.rating} 
+                      <Star className="h-2.5 w-2.5 fill-current opacity-80 mb-[1px]" />
                     </span>
                   )}
-                  {thoughtItem.tags && <span>· {thoughtItem.tags}</span>}
-                  {thoughtItem.sourceUrl && (
-                    <span className="truncate">· {thoughtItem.sourceUrl}</span>
+                  {(thoughtItem.year || thoughtItem.rating) && thoughtItem.tags && (
+                    <span className="opacity-40 font-mono">/</span>
+                  )}
+                  {thoughtItem.tags && (
+                    <span className="text-[12px] text-neutral-500 dark:text-neutral-400">
+                      {thoughtItem.tags}
+                    </span>
                   )}
                 </div>
               )}
+              
+              <p className="mt-1.5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-600 dark:text-neutral-400 whitespace-pre-line text-justify">
+                {displayDesc}
+              </p>
             </div>
           </div>
         )}

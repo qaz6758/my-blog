@@ -203,7 +203,7 @@ export function PostsListClient({ initialPosts = [] }: PostsListClientProps) {
         <h1 className="text-[40px] sm:text-[48px] [font-family:Georgia,serif] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 select-none leading-tight">
           {isEn ? "Posts" : "随笔"}
         </h1>
-        <p className="mt-2 text-[14px] sm:text-[15px] [font-family:Georgia,serif] italic text-neutral-500 dark:text-neutral-400">
+        <p className="mt-2 text-[14px] sm:text-[15px] [font-family:Georgia,serif] italic text-neutral-500 dark:text-neutral-400 inline-block [transform:skewX(-14deg)] origin-left">
           {isEn ? "Things worth remembering in life" : "那些值得记录的人生"}
         </p>
       </div>

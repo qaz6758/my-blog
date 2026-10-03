@@ -287,7 +287,7 @@ export function TableOfContents({
       aria-label="文章目录大纲"
       onMouseEnter={() => setIsSelfHovered(true)}
       onMouseLeave={() => setIsSelfHovered(false)}
-      className={`fixed left-6 top-24 z-30 hidden xl:block w-[220px] select-none ${className}`}
+      className={`fixed left-6 sm:left-8 top-24 z-30 hidden xl:block w-[220px] select-none ${className}`}
     >
       <div className="flex flex-col items-start">
         {/* 顶部 ≡ 锚点按钮 (严格对齐下方目录文字左侧基准线) */}
