@@ -57,13 +57,13 @@ export function parseLrc(
     ? parseInt(offsetMatch[1], 10) / 1000
     : 0;
 
-  const translationMap = new Map<number, string>();
+  const translations: Array<{ time: number; text: string }> = [];
   const extractedCredits: string[] = [];
   if (tlrcStr && typeof tlrcStr === "string") {
     for (const line of parseAmllLrc(tlrcStr)) {
       const text = line.words.map((word) => word.word).join("").trim();
       const time = line.startTime / 1000 - lrcGlobalOffsetSec;
-      if (text) translationMap.set(Math.round(time * 10) / 10, text);
+      if (text) translations.push({ time, text });
     }
   }
 
@@ -119,11 +119,24 @@ export function parseLrc(
       finalTimedSourceLine.trim()
     );
 
+  const usedTranslations = new Set<number>();
   const lines: LyricLine[] = parsed.flatMap((line, idx) => {
     const text = line.words.map((word) => word.word).join("").trim();
     if (!text) return [];
 
     const time = line.startTime / 1000 - timeOffsetSec;
+    let translationIndex = -1;
+    let nearestTranslationDelta = 0.75;
+    translations.forEach((translation, candidateIndex) => {
+      if (usedTranslations.has(candidateIndex)) return;
+      const delta = Math.abs(translation.time - time);
+      if (delta <= nearestTranslationDelta) {
+        nearestTranslationDelta = delta;
+        translationIndex = candidateIndex;
+      }
+    });
+    if (translationIndex >= 0) usedTranslations.add(translationIndex);
+
     const nextLine = parsed[idx + 1];
     const isUnspecifiedLastEnd =
       idx === parsed.length - 1 &&
@@ -165,7 +178,7 @@ export function parseLrc(
       id: idx,
       time,
       text,
-      trText: translationMap.get(Math.round(time * 10) / 10),
+      trText: translationIndex >= 0 ? translations[translationIndex].text : undefined,
       endTime,
       words,
     }];
@@ -185,6 +198,38 @@ export function parseLrc(
 function parseKrc(krc: string): LyricResult {
   const yrc = krc.replace(/<(\d+,\d+,\d+)>/g, "($1)");
   return parseLrc("", "", yrc);
+}
+
+function mergeTranslationsByTime(
+  lyrics: LyricResult,
+  translationSource: LyricResult
+): LyricResult {
+  const candidates = translationSource.lines.filter((line) => line.trText);
+  const usedCandidates = new Set<number>();
+  const lines = lyrics.lines.map((line) => {
+    if (line.trText) return line;
+
+    let bestIndex = -1;
+    let bestDelta = 1.25;
+    candidates.forEach((candidate, index) => {
+      if (usedCandidates.has(index)) return;
+      const delta = Math.abs(candidate.time - line.time);
+      if (delta <= bestDelta) {
+        bestDelta = delta;
+        bestIndex = index;
+      }
+    });
+
+    if (bestIndex < 0) return line;
+    usedCandidates.add(bestIndex);
+    return { ...line, trText: candidates[bestIndex].trText };
+  });
+
+  return {
+    ...lyrics,
+    lines,
+    hasTranslation: lines.some((line) => Boolean(line.trText)),
+  };
 }
 
 async function decodeKugouKrc(content: string): Promise<string> {
@@ -310,7 +355,10 @@ export async function fetchSongLyrics(song: Song): Promise<LyricResult | null> {
         const data = await res.json();
         if (typeof data?.krc === "string" && data.krc) {
           const krcText = await decodeKugouKrc(data.krc);
-          const result = parseKrc(krcText);
+          const parsedKrc = parseKrc(krcText);
+          const result = fallbackResult
+            ? mergeTranslationsByTime(parsedKrc, fallbackResult)
+            : parsedKrc;
           if (result.lines.length && result.hasWordTimings) {
             return cacheAndReturn(result);
           }
