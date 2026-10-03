@@ -342,7 +342,7 @@ export async function fetchSongLyrics(song: Song): Promise<LyricResult | null> {
     }
   }
 
-  // 4. Use community Kugou KRC as a word-timed fallback when metadata is available.
+  // 4. Use community Kugou KRC sources as word-timed fallbacks when metadata is available.
   if (song.title?.trim() && song.artist?.trim()) {
     try {
       const params = new URLSearchParams({
@@ -353,14 +353,44 @@ export async function fetchSongLyrics(song: Song): Promise<LyricResult | null> {
       const res = await fetch(`/api/lyrics?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
+        let result: LyricResult | null = null;
         if (typeof data?.krc === "string" && data.krc) {
           const krcText = await decodeKugouKrc(data.krc);
           const parsedKrc = parseKrc(krcText);
-          const result = fallbackResult
+          result = fallbackResult
             ? mergeTranslationsByTime(parsedKrc, fallbackResult)
             : parsedKrc;
           if (result.lines.length && result.hasWordTimings) {
             return cacheAndReturn(result);
+          }
+        }
+
+        if (data?.conceptAvailable) {
+          const conceptParams = new URLSearchParams({
+            provider: "kugou-concept",
+            title: song.title,
+            artist: song.artist,
+          });
+          if (typeof data?.hash === "string") {
+            conceptParams.set("hash", data.hash);
+          }
+          const conceptResponse = await fetch(`/api/lyrics?${conceptParams.toString()}`);
+          if (conceptResponse.ok) {
+            const conceptData = await conceptResponse.json();
+            if (typeof conceptData?.krc === "string" && conceptData.krc) {
+              const conceptKrcText = await decodeKugouKrc(conceptData.krc);
+              const parsedConceptKrc = parseKrc(conceptKrcText);
+              const conceptResult = fallbackResult
+                ? mergeTranslationsByTime(parsedConceptKrc, fallbackResult)
+                : parsedConceptKrc;
+              if (conceptResult.lines.length && conceptResult.hasWordTimings) {
+                return cacheAndReturn(conceptResult);
+              }
+            }
+          } else {
+            console.warn(
+              `[Lyrics] Kugou Concept KRC fallback returned ${conceptResponse.status}`
+            );
           }
         }
       }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getOptionalRequestContext } from "@cloudflare/next-on-pages";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -6,12 +7,34 @@ export const runtime = "edge";
 const KUGOU_HEADERS = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
 };
+const KUGOU_LITE_APP_ID = "3116";
+const KUGOU_LITE_CLIENT_VERSION = "11440";
+
+declare global {
+  interface CloudflareEnv {
+    KUGOU_CONCEPT_COOKIE?: string;
+  }
+}
+
+function getKugouConceptCookie(): string | null {
+  const cookie =
+    getOptionalRequestContext()?.env.KUGOU_CONCEPT_COOKIE ||
+    process.env.KUGOU_CONCEPT_COOKIE ||
+    "";
+  const trimmedCookie = cookie.trim();
+  if (!trimmedCookie) return null;
+  if (/[\r\n]/.test(trimmedCookie)) {
+    console.error("[Lyrics] KUGOU_CONCEPT_COOKIE contains invalid line breaks");
+    return null;
+  }
+  return trimmedCookie;
+}
 
 function normalizeMatchText(value: string): string {
   return value.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]/gu, "");
 }
 
-async function fetchKugouKrc(title: string, artist: string): Promise<string | null> {
+async function fetchKugouSongHash(title: string, artist: string): Promise<string | null> {
   const keyword = `${title} ${artist}`.trim();
   const searchUrl = new URL("https://mobilecdn.kugou.com/api/v3/search/song");
   searchUrl.search = new URLSearchParams({
@@ -45,8 +68,10 @@ async function fetchKugouKrc(title: string, artist: string): Promise<string | nu
       targetArtist.includes(candidateArtist)
     );
   });
-  if (!match?.hash) return null;
+  return match?.hash || null;
+}
 
+async function fetchKugouKrc(hash: string): Promise<string | null> {
   const lyricSearchUrl = new URL("https://lyrics.kugou.com/search");
   lyricSearchUrl.search = new URLSearchParams({
     ver: "1",
@@ -54,7 +79,7 @@ async function fetchKugouKrc(title: string, artist: string): Promise<string | nu
     client: "pc",
     keyword: "",
     duration: "",
-    hash: match.hash,
+    hash,
     album_audio_id: "",
   }).toString();
   const candidateResponse = await fetch(lyricSearchUrl, {
@@ -88,6 +113,62 @@ async function fetchKugouKrc(title: string, artist: string): Promise<string | nu
   });
   if (!downloadResponse.ok) {
     throw new Error(`Kugou lyric download failed: ${downloadResponse.status}`);
+  }
+
+  const downloadData = await downloadResponse.json() as { content?: string };
+  return downloadData.content || null;
+}
+
+async function fetchKugouConceptKrc(
+  hash: string | null,
+  title: string,
+  artist: string,
+  cookie: string
+): Promise<string | null> {
+  const lyricSearchUrl = new URL("https://lyrics.kugou.com/v1/search");
+  lyricSearchUrl.search = new URLSearchParams({
+    album_audio_id: "0",
+    appid: KUGOU_LITE_APP_ID,
+    clientver: KUGOU_LITE_CLIENT_VERSION,
+    duration: "0",
+    hash: hash || "",
+    keyword: hash ? "" : `${title} ${artist}`,
+    lrctxt: "1",
+    man: "no",
+  }).toString();
+
+  const headers = { ...KUGOU_HEADERS, Cookie: cookie };
+  const candidateResponse = await fetch(lyricSearchUrl, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!candidateResponse.ok) {
+    throw new Error(`Kugou Concept lyric search failed: ${candidateResponse.status}`);
+  }
+
+  const candidateData = await candidateResponse.json() as {
+    candidates?: Array<{ id?: string | number; accesskey?: string }>;
+  };
+  const candidate = candidateData.candidates?.find(
+    (item) => item.id !== undefined && item.accesskey
+  );
+  if (!candidate?.id || !candidate.accesskey) return null;
+
+  const downloadUrl = new URL("https://lyrics.kugou.com/download");
+  downloadUrl.search = new URLSearchParams({
+    ver: "1",
+    client: "android",
+    id: String(candidate.id),
+    accesskey: candidate.accesskey,
+    fmt: "krc",
+    charset: "utf8",
+  }).toString();
+  const downloadResponse = await fetch(downloadUrl, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!downloadResponse.ok) {
+    throw new Error(`Kugou Concept lyric download failed: ${downloadResponse.status}`);
   }
 
   const downloadData = await downloadResponse.json() as { content?: string };
@@ -143,9 +224,26 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      const krc = await fetchKugouKrc(title, artist);
+      const hash = await fetchKugouSongHash(title, artist);
+      const conceptCookie = getKugouConceptCookie();
+      let krc: string | null = null;
+      if (hash) {
+        try {
+          krc = await fetchKugouKrc(hash);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : "Error fetching Kugou lyrics";
+          console.warn("[Lyrics] Standard Kugou KRC lookup failed:", msg);
+          if (!conceptCookie) throw err;
+        }
+      }
       return NextResponse.json(
-        { success: true, provider: "kugou", krc },
+        {
+          success: true,
+          provider: "kugou",
+          krc,
+          hash,
+          conceptAvailable: Boolean(conceptCookie),
+        },
         {
           headers: {
             "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
@@ -155,6 +253,42 @@ export async function GET(req: NextRequest) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Error fetching Kugou lyrics";
       return NextResponse.json({ success: false, error: msg }, { status: 502 });
+    }
+  }
+
+  if (provider === "kugou-concept") {
+    const rawHash = searchParams.get("hash")?.trim() || "";
+    const hash = /^[\da-f]{32}$/i.test(rawHash) ? rawHash : null;
+    const title = searchParams.get("title")?.trim() || "";
+    const artist = searchParams.get("artist")?.trim() || "";
+    if (!hash && (!title || !artist || title.length > 200 || artist.length > 200)) {
+      return NextResponse.json(
+        { success: false, error: "Kugou Concept lyrics require a valid song hash or title and artist" },
+        { status: 400 }
+      );
+    }
+
+    const cookie = getKugouConceptCookie();
+    if (!cookie) {
+      return NextResponse.json(
+        { success: false, error: "Kugou Concept lyrics are not configured" },
+        { status: 503, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+
+    try {
+      const krc = await fetchKugouConceptKrc(hash, title, artist, cookie);
+      return NextResponse.json(
+        { success: true, provider: "kugou-concept", krc },
+        { headers: { "Cache-Control": "private, no-store" } }
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error fetching Kugou Concept lyrics";
+      console.error("[Lyrics] Kugou Concept fallback failed:", msg);
+      return NextResponse.json(
+        { success: false, error: "Kugou Concept lyrics request failed" },
+        { status: 502, headers: { "Cache-Control": "no-store" } }
+      );
     }
   }
 

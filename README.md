@@ -84,6 +84,18 @@ Notion 负责内容，Supabase 负责动态数据，其余部分尽可能保持�
 
 部署包含评论、随想点赞的版本前，请先备份数据库，并在 Supabase Dashboard 的 SQL Editor 中执行 [安全迁移](./supabase/migrations/20260927203000_harden_public_blog_data.sql)。迁移会收紧公开表权限和 RLS、限制点赞 RPC，并将已有评论邮箱与用户 ID 移至不可由 `anon` / `authenticated` 访问的 `blog_private` schema；公开评论记录中的这两项会被清空。不要把 `blog_private` schema 加入 Supabase 的 API exposed schemas。
 
+## 酷狗概念版歌词回退
+
+逐词歌词会依次尝试现有歌词源、免登录酷狗 KRC，以及可选的酷狗概念版 KRC 回退。概念版回退需要有效的概念版登录 Cookie；在 Cloudflare Pages 项目设置中将 `KUGOU_CONCEPT_COOKIE` 配置为 Secret。此凭证只由 `/api/lyrics` 服务端读取，不要使用 `NEXT_PUBLIC_` 前缀、提交到仓库或发送给浏览器。概念版 Cookie 与普通酷狗客户端凭证不通用；接口为非官方社区方案，凭证可能失效，且不保证每首歌都有逐词歌词。
+
+在 Windows 本机获取凭证时，先确保已安装 Node.js 和 Git，在项目根目录运行：
+
+```bash
+npm run kugou:login
+```
+
+首次运行会从固定版本的社区 KuGouMusicApi 下载登录组件及其依赖到用户系统目录，自动打开本机二维码页面。使用酷狗概念版扫码并确认后，工具会把凭证写入项目根目录的 `.env.local`，不会打印凭证。完成后将该值作为 Cloudflare Pages Secret `KUGOU_CONCEPT_COOKIE` 配置，再重新构建部署。此工具会在本机运行社区开源代码；请只在信任该社区项目的前提下运行。
+
 ---
 
 ## Structure
@@ -120,6 +132,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 NOTION_API_KEY=your-notion-api-key
 NOTION_POSTS_DB_ID=your-posts-database-id
 NOTION_THOUGHTS_DB_ID=your-thoughts-database-id
+
+# Optional: raw Cookie string from a logged-in Kugou Concept account.
+# Keep this value private and do not commit it.
+KUGOU_CONCEPT_COOKIE=
 ```
 
 生产构建：
