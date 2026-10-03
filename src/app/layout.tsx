@@ -45,15 +45,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${siteConfig.name}'s Blog`,
-    template: `%s | ${siteConfig.name}'s Blog`,
+    default: siteConfig.name,
+    template: `%s - ${siteConfig.name}`,
   },
   description: siteConfig.description,
   alternates: {
     canonical: "./",
   },
   openGraph: {
-    title: `${siteConfig.name}'s Blog`,
+    title: siteConfig.name,
     description: siteConfig.description,
     url: siteUrl("/"),
     siteName: siteConfig.name,
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name}'s Blog`,
+    title: siteConfig.name,
     description: siteConfig.description,
     images: ["/og-cover.png"],
   },

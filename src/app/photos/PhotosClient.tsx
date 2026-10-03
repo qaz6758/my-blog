@@ -23,7 +23,7 @@ function deduplicatePhotos(list: GalleryImage[]): GalleryImage[] {
   });
 }
 
-export default function GalleryClient({ photos: initialPhotos = [] }: { photos: GalleryImage[] }) {
+export default function PhotosClient({ photos: initialPhotos = [] }: { photos: GalleryImage[] }) {
   const [photos, setPhotos] = useState<GalleryImage[]>(() => deduplicatePhotos(initialPhotos));
   const [isGrid, setIsGrid] = useState(true);
   const [activePhotoId, setActivePhotoId] = useState<GalleryImage["id"] | null>(null);
@@ -34,7 +34,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
     getServerMountSnapshot
   );
 
-  // 后台静默实时同步 Supabase 最新画廊照片 (免构建部署，即时响应增删改)
+  // 后台静默实时同步 Supabase 最新相册照片 (免构建部署，即时响应增删改)
   useEffect(() => {
     let isSubscribed = true;
 
@@ -83,14 +83,14 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
           });
         }
       } catch (err) {
-        console.warn("[Gallery] 客户端后台静默同步照片失败:", err);
+        console.warn("[Photos] 客户端后台静默同步照片失败:", err);
       }
     };
 
-    // 1. 进入画廊即刻在后台静默抓取最新数据
+    // 1. 进入页面即刻在后台静默抓取最新数据
     refreshPhotos();
 
-    // 2. 订阅 Supabase Postgres 实时推送 (在 Supabase 控制台增删改时无需刷新网页即刻同步)
+    // 2. 订阅 Supabase Postgres 实时推送
     let channel: RealtimeChannel | null = null;
     try {
       channel = supabase
@@ -104,7 +104,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
         )
         .subscribe();
     } catch (e) {
-      console.warn("[Gallery] 实时频道订阅异常:", e);
+      console.warn("[Photos] 实时频道订阅异常:", e);
     }
 
     return () => {
@@ -152,7 +152,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
           onClick={() => setIsGrid(!isGrid)}
           className="p-1 text-neutral-500 dark:text-neutral-400 opacity-40 hover:opacity-100 transition-opacity cursor-pointer focus:outline-none"
           title={isGrid ? "切换为原比例瀑布流" : "切换为等方网格"}
-          aria-label="Toggle gallery layout"
+          aria-label="Toggle photo layout"
         >
           {isGrid ? (
             // 4 宫格网格图标 (Anthony Fu 同款 i-ri-grid-line)
@@ -205,7 +205,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
             >
               <Image
                 src={photo.thumbnailUrl || photo.url}
-                alt={photo.title || "Gallery image"}
+                alt={photo.title || "Photo"}
                 fill
                 className="object-cover transition-opacity duration-300 group-hover:opacity-90"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -231,7 +231,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
             >
               <Image
                 src={photo.thumbnailUrl || photo.url}
-                alt={photo.title || "Gallery image"}
+                alt={photo.title || "Photo"}
                 width={photo.width || 800}
                 height={photo.height || 800}
                 className="w-full h-auto object-cover transition-opacity duration-300 group-hover:opacity-90"
@@ -246,7 +246,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
       )}
 
       {/* ========================================================
-          全屏 Lightbox 弹窗：点击图片展开，点击图片以外区域关闭 (PC 与移动端统一)
+          全屏 Lightbox 弹窗：点击图片展开，点击图片以外区域关闭
           ======================================================== */}
       {mounted &&
         createPortal(
@@ -260,7 +260,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
                 className="fixed inset-0 z-[9999] flex h-screen w-screen items-center justify-center backdrop-blur-2xl bg-white/75 dark:bg-black/75 p-4 sm:p-10 select-none cursor-zoom-out"
                 onClick={() => setActivePhotoId(null)}
               >
-                {/* 核心大图展示区 (阻止冒泡，点击图片本身不关闭，点击图片外区域关闭) */}
+                {/* 核心大图展示区 */}
                 <motion.div
                   key={activePhoto.id}
                   initial={{ opacity: 0, scale: 0.98 }}
@@ -272,7 +272,7 @@ export default function GalleryClient({ photos: initialPhotos = [] }: { photos: 
                 >
                   <img
                     src={activePhoto.hdUrl || activePhoto.url}
-                    alt={activePhoto.title || "Gallery photo"}
+                    alt={activePhoto.title || "Photo"}
                     className="max-h-[88vh] max-w-[90vw] object-contain shadow-2xl dark:shadow-black/80 rounded-none select-none"
                   />
                 </motion.div>

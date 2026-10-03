@@ -17,7 +17,7 @@ import { useMusic } from "@/components/playlist/MusicContext";
 const NAV_LINKS = [
   { key: "nav.posts" as const, name: "Blog", href: "/posts" },
   { key: "nav.playlist" as const, name: "Playlist", href: "/playlist" },
-  { key: "nav.gallery" as const, name: "Gallery", href: "/gallery" },
+  { key: "nav.photos" as const, name: "Photos", href: "/photos" },
   { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
 ];
 

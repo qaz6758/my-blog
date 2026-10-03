@@ -80,7 +80,7 @@ export function HeroSection() {
               {t("hero.p7_quote")}
             </span>
             {`${t("hero.p7_post")}${space}${t("hero.p8_1")}`}
-            <TextLink href="/gallery">{t("hero.p8_gallery")}</TextLink>
+            <TextLink href="/photos">{t("hero.p8_gallery")}</TextLink>
             {t("hero.p8_2")}
             <TextLink href="/playlist">{t("hero.p8_playlist")}</TextLink>
             {t("hero.p8_3")}

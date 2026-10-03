@@ -7,6 +7,7 @@ import {
   PostDetail,
 } from '@/components/post/DynamicPostReader';
 import { siteUrl } from '@/lib/site';
+import { siteConfig } from '@/config/site';
 
 export const dynamicParams = true;
 export const revalidate = 10;

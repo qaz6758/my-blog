@@ -17,6 +17,7 @@ export const DICTIONARIES = {
     "nav.home": "首页",
     "nav.posts": "随笔",
     "nav.thoughts": "随想录",
+    "nav.photos": "相册",
     "nav.gallery": "相册",
     "nav.playlist": "歌单",
 
@@ -113,6 +114,7 @@ export const DICTIONARIES = {
     "nav.home": "首頁",
     "nav.posts": "文章",
     "nav.thoughts": "思考",
+    "nav.photos": "相簿",
     "nav.gallery": "畫廊",
     "nav.playlist": "歌單",
 
@@ -209,9 +211,10 @@ export const DICTIONARIES = {
     "nav.home": "Home",
     "nav.posts": "Posts",
     "nav.thoughts": "Thoughts",
-    "nav.gallery": "Gallery",
+    "nav.photos": "Photos",
+    "nav.gallery": "Photos",
     "nav.playlist": "Playlists",
-
+    
     "hero.p1": "Hey! I'm {name}, a beginner who loves music and tinkering with websites.",
     "hero.p2": "I've always felt that what's hardest to deal with is rarely the outside world, but myself. Ideas spark out of nowhere and new things constantly catch my attention, yet when it comes to turning them into reality, my ability, experience, and execution often fall short.",
     "hero.p3": "That gap can be frustrating at times, and make me feel like sharing nothing at all.",
@@ -222,7 +225,7 @@ export const DICTIONARIES = {
     "hero.p7_quote": "“Break and rebuild, a continuous cycle to become truly oneself,”",
     "hero.p7_post": " I will keep tinkering with open-source projects and recording what's worth keeping.",
     "hero.p8_1": "You can check out what I've captured in my ",
-    "hero.p8_gallery": "Photo Gallery",
+    "hero.p8_gallery": "Photos",
     "hero.p8_2": ", listen to what I've been enjoying in my ",
     "hero.p8_playlist": "Curated Playlists",
     "hero.p8_3": ", or drop by my ",
@@ -242,7 +245,7 @@ export const DICTIONARIES = {
     "footer.about_me": "About Me",
     "footer.about_project": "About Project",
     "footer.more": "More",
-    "footer.gallery": "Photo Gallery",
+    "footer.gallery": "Photos",
     "footer.playlist": "Playlists",
     "footer.thoughts": "Thoughts",
     "footer.contact": "Contact",
@@ -305,6 +308,7 @@ export const DICTIONARIES = {
     "nav.home": "ホーム",
     "nav.posts": "記事",
     "nav.thoughts": "つぶやき",
+    "nav.photos": "写真",
     "nav.gallery": "ギャラリー",
     "nav.playlist": "プレイリスト",
 
@@ -401,6 +405,7 @@ export const DICTIONARIES = {
     "nav.home": "홈",
     "nav.posts": "글",
     "nav.thoughts": "생각",
+    "nav.photos": "사진",
     "nav.gallery": "갤러리",
     "nav.playlist": "재생목록",
 
