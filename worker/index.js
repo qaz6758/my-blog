@@ -54,7 +54,12 @@ const worker = {
         return await handleGetPlaylists(env);
       }
 
-      // 6. 默认健康检查
+      // 6. 获取歌词: GET /api/lyrics?id=...
+      if (pathname === "/api/lyrics" || pathname === "/lyrics" || pathname === "/api/lyric") {
+        return await handleGetLyrics(url, env);
+      }
+
+      // 7. 默认健康检查
       return jsonResponse({
         status: "ok",
         message: "VinceOu Blog Notion Realtime API Gateway is running!",
@@ -702,6 +707,10 @@ async function handleGetPlaylists(env) {
     const cleanCover = rawCover
       ? rawCover.split("?")[0] + "?param=800y800"
       : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80";
+    const audioUrl = getUrl(findProp(p, "AudioUrl", "Audio", "音频"));
+    const neteaseMatch = (audioUrl || "").match(/(\d+)\.mp3/);
+    const neteaseId = getText(findProp(p, "NeteaseId", "NetEase_ID", "网易云ID", "ID")) || (neteaseMatch ? neteaseMatch[1] : undefined);
+    const lyricUrl = getUrl(findProp(p, "LyricUrl", "Lyric_Url", "LrcUrl", "歌词链接", "歌词"));
     return {
       id: page.id,
       playlistKey: getText(findProp(p, "Playlist_Key", "PlaylistKey", "Playlist")),
@@ -709,9 +718,11 @@ async function handleGetPlaylists(env) {
       artist: getText(findProp(p, "Artist", "Singer", "歌手")) || "未知歌手",
       album: getText(findProp(p, "Album", "专辑")),
       duration: getText(findProp(p, "Duration", "时长")) || "03:30",
-      audio_url: getUrl(findProp(p, "AudioUrl", "Audio", "音频")),
+      audio_url: audioUrl,
       cover_url: cleanCover,
       order: getNumber(findProp(p, "Order", "序号", "No")),
+      netease_id: neteaseId,
+      lyric_url: lyricUrl,
     };
   });
 
@@ -759,6 +770,171 @@ async function handleGetPlaylists(env) {
       "Cache-Control": "public, max-age=15, s-maxage=30, stale-while-revalidate=60",
     }
   );
+}
+
+async function handleGetLyrics(url, env) {
+  const id = url.searchParams.get("id") || url.searchParams.get("netease_id");
+  const customUrl = url.searchParams.get("url");
+  const provider = url.searchParams.get("provider");
+
+  if (customUrl) {
+    try {
+      const res = await fetch(customUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+      if (!res.ok) {
+        return jsonResponse({ success: false, error: "Failed to fetch custom LRC" }, 502);
+      }
+      const lrc = await res.text();
+      return jsonResponse(
+        { success: true, lrc, tlyric: "" },
+        200,
+        { "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400" }
+      );
+    } catch (err) {
+      return jsonResponse({ success: false, error: err.message }, 500);
+    }
+  }
+
+  if (provider === "kugou") {
+    const title = (url.searchParams.get("title") || "").trim();
+    const artist = (url.searchParams.get("artist") || "").trim();
+    if (!title || !artist || title.length > 200 || artist.length > 200) {
+      return jsonResponse(
+        { success: false, error: "Kugou lyrics require a valid title and artist" },
+        400
+      );
+    }
+
+    try {
+      const krc = await fetchKugouKrc(title, artist);
+      return jsonResponse(
+        { success: true, provider: "kugou", krc },
+        200,
+        { "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400" }
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error fetching Kugou lyrics";
+      return jsonResponse({ success: false, error: message }, 502);
+    }
+  }
+
+  if (id && /^\d+$/.test(id)) {
+    try {
+      const neteaseUrl = `https://music.163.com/api/song/lyric?id=${id}&lv=1&kv=1&tv=-1`;
+      const res = await fetch(neteaseUrl, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Referer: "https://music.163.com",
+        },
+      });
+      if (!res.ok) {
+        return jsonResponse({ success: false, error: "NetEase API error" }, 502);
+      }
+      const data = await res.json();
+      const lrc = data?.lrc?.lyric || "";
+      const tlyric = data?.tlyric?.lyric || "";
+      return jsonResponse(
+        {
+          success: true,
+          id,
+          lrc,
+          tlyric,
+          isInstrumental: data?.nolyric === true || (lrc && lrc.includes("纯音乐，请欣赏")),
+        },
+        200,
+        { "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400" }
+      );
+    } catch (err) {
+      return jsonResponse({ success: false, error: err.message }, 500);
+    }
+  }
+
+  return jsonResponse({ success: false, error: "Missing song 'id' or 'url' query parameter" }, 400);
+}
+
+function normalizeLyricMatchText(value) {
+  return value.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]/gu, "");
+}
+
+async function fetchKugouKrc(title, artist) {
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+  };
+  const searchUrl = new URL("https://mobilecdn.kugou.com/api/v3/search/song");
+  searchUrl.search = new URLSearchParams({
+    format: "json",
+    keyword: `${title} ${artist}`,
+    page: "1",
+    pagesize: "20",
+    showtype: "1",
+  }).toString();
+  const searchResponse = await fetch(searchUrl, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!searchResponse.ok) {
+    throw new Error(`Kugou song search failed: ${searchResponse.status}`);
+  }
+
+  const searchData = await searchResponse.json();
+  const targetTitle = normalizeLyricMatchText(title);
+  const targetArtist = normalizeLyricMatchText(artist);
+  const match = searchData?.data?.info?.find((song) => {
+    if (!song?.hash || !song?.songname || !song?.singername) return false;
+    const candidateTitle = normalizeLyricMatchText(song.songname);
+    const candidateArtist = normalizeLyricMatchText(song.singername);
+    return candidateTitle === targetTitle && (
+      candidateArtist === targetArtist ||
+      candidateArtist.includes(targetArtist) ||
+      targetArtist.includes(candidateArtist)
+    );
+  });
+  if (!match?.hash) return null;
+
+  const lyricSearchUrl = new URL("https://lyrics.kugou.com/search");
+  lyricSearchUrl.search = new URLSearchParams({
+    ver: "1",
+    man: "yes",
+    client: "pc",
+    keyword: "",
+    duration: "",
+    hash: match.hash,
+    album_audio_id: "",
+  }).toString();
+  const candidateResponse = await fetch(lyricSearchUrl, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!candidateResponse.ok) {
+    throw new Error(`Kugou lyric search failed: ${candidateResponse.status}`);
+  }
+
+  const candidateData = await candidateResponse.json();
+  const candidate = candidateData?.candidates?.find(
+    (item) => item?.id !== undefined && item?.accesskey
+  );
+  if (!candidate?.id || !candidate.accesskey) return null;
+
+  const downloadUrl = new URL("https://lyrics.kugou.com/download");
+  downloadUrl.search = new URLSearchParams({
+    ver: "1",
+    client: "pc",
+    id: String(candidate.id),
+    accesskey: candidate.accesskey,
+    fmt: "krc",
+    charset: "utf8",
+  }).toString();
+  const downloadResponse = await fetch(downloadUrl, {
+    headers,
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!downloadResponse.ok) {
+    throw new Error(`Kugou lyric download failed: ${downloadResponse.status}`);
+  }
+
+  const downloadData = await downloadResponse.json();
+  return typeof downloadData?.content === "string" ? downloadData.content : null;
 }
 
 function jsonResponse(body, status = 200, extraHeaders = {}) {

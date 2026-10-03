@@ -85,6 +85,7 @@ interface MusicPlayerProps {
   onPrev: () => void;
   onNext: () => void;
   onSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSeekTime?: (time: number) => void;
   onVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAdjustVolume?: (delta: number) => void;
   onToggleMute: () => void;
@@ -109,6 +110,7 @@ export function MusicPlayer({
   onPrev,
   onNext,
   onSeek,
+  onSeekTime,
   onVolumeChange,
   onAdjustVolume,
   onToggleMute,
@@ -214,6 +216,7 @@ export function MusicPlayer({
         onPrev={onPrev}
         onNext={onNext}
         onSeek={onSeek}
+        onSeekTime={onSeekTime}
         onVolumeChange={onVolumeChange}
         onAdjustVolume={onAdjustVolume}
         onToggleMute={onToggleMute}

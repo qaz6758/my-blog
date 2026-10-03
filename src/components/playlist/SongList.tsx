@@ -21,6 +21,8 @@ export interface Song {
   netease_id?: string | number;
   duration?: number | string;
   explicit?: boolean;
+  lyric_url?: string;
+  lyric?: string;
 }
 
 export function getSongCover(song: Song): string {

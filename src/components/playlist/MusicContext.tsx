@@ -226,6 +226,13 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleSeekTime = (seconds: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = seconds;
+      setCurrentTime(seconds);
+    }
+  };
+
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
     setVolume(value);
@@ -291,6 +298,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       {/* 原生持久化音频驱动（始终常驻，由 audioRef 直接控制，避免 React 属性 diff 打断播放管线） */}
       <audio
         ref={audioRef}
+        data-music-audio
         preload="auto"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
@@ -339,6 +347,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
           onPrev={handlePrev}
           onNext={handleNext}
           onSeek={handleSeek}
+          onSeekTime={handleSeekTime}
           onVolumeChange={handleVolumeChange}
           onAdjustVolume={handleAdjustVolume}
           onToggleMute={handleToggleMute}

@@ -528,3 +528,62 @@ hr.divider {
   border: none;
   border-top: 1px solid #7d7d7d4d;
 }
+
+.amll-lyric-player {
+  --lyric-line-padding-x: 0.5rem;
+  --amll-lp-line-padding-x: 0.5rem;
+  --amll-lp-line-width-aspect: 0.9;
+  --amll-lp-hover-bg-color: transparent;
+}
+
+.amll-lyric-player .FmKaba_interludeDots {
+  left: 0 !important;
+  justify-content: flex-start !important;
+  gap: 0.45em !important;
+}
+
+.amll-lyric-player .FmKaba_interludeDots > span {
+  width: 0.38em !important;
+  height: 0.38em !important;
+  border-radius: 50% !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 8px rgb(255 255 255 / 60%) !important;
+}
+
+.amll-lyric-player .FmKaba_bottomLine {
+  font-size: var(--amll-lp-font-size, clamp(26px, 3.2vw, 42px)) !important;
+  opacity: 0.65 !important;
+  line-height: 1.55 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em !important;
+}
+
+.amll-lyric-player .FmKaba_lyricLineWrapper:hover,
+.amll-lyric-player .FmKaba_lyricLineWrapper:active {
+  background: transparent !important;
+}
+
+.amll-lyric-player
+  .FmKaba_lyricLineWrapper:hover
+  .FmKaba_lyricLine,
+.amll-lyric-player
+  .FmKaba_lyricLineWrapper:active
+  .FmKaba_lyricLine {
+  opacity: 1 !important;
+  filter: brightness(1.35) drop-shadow(0 0 14px rgb(255 255 255 / 50%)) !important;
+  transform-origin: left center;
+  transition:
+    filter 0.22s ease-out,
+    opacity 0.22s ease-out !important;
+}
+
+.amll-lyric-player
+  .FmKaba_lyricLineWrapper:hover
+  .FmKaba_lyricSubLine,
+.amll-lyric-player
+  .FmKaba_lyricLineWrapper:active
+  .FmKaba_lyricSubLine {
+  opacity: 0.88 !important;
+  color: rgb(255 255 255 / 95%) !important;
+  transition: opacity 0.22s ease-out !important;
+}
