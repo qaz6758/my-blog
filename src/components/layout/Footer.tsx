@@ -63,7 +63,7 @@ export function Footer() {
         {/* 站点构建信息与实用工具整合为紧凑的一行 */}
         <div className="text-xs opacity-50 font-sans flex items-center gap-2.5 flex-wrap pt-0.5">
           <span>Powered by Next.js & React</span>
-          <span className="select-none opacity-40">·</span>
+          
           <a
             href="/sitemap.xml"
             target="_blank"
@@ -73,7 +73,7 @@ export function Footer() {
           >
             sitemap
           </a>
-          <span className="select-none opacity-40">·</span>
+         
 
           {/* 背景效果控制（恢复用户原本的高辨识度精致微型线框开关） */}
           <div className="flex items-center gap-1.5">
