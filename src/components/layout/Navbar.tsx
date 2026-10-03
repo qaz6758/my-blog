@@ -12,6 +12,7 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import { StatusCapsule } from "@/components/layout/StatusCapsule";
 import { useLiveStatus } from "@/hooks/useLiveStatus";
 import { useI18n } from "@/lib/i18n/I18nContext";
+import { useMusic } from "@/components/playlist/MusicContext";
 
 const NAV_LINKS = [
   { key: "nav.posts" as const, name: "Blog", href: "/posts" },
@@ -118,6 +119,8 @@ export function Navbar() {
   (liveStatus.activity === "music" && liveStatus.music !== null) ||
   liveStatus.app !== null;
 
+  const { currentSong } = useMusic();
+
   // Anthony Fu 原版：滚动超过 300px 显示右下角轻量回顶按钮
   useEffect(() => {
     const handleScroll = () => {
@@ -139,8 +142,12 @@ export function Navbar() {
         title="Scroll to top"
         aria-label="Scroll to top"
         onClick={scrollToTop}
-        className={`fixed right-3 bottom-3 z-40 flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-500/20 dark:hover:bg-neutral-400/20 transition duration-300 cursor-pointer print:hidden ${
-          showScrollTop ? "opacity-30 hover:opacity-100" : "opacity-0 pointer-events-none"
+        className={`fixed right-3 z-50 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-500/20 dark:hover:bg-neutral-400/20 transition-all duration-300 cursor-pointer print:hidden ${
+          currentSong
+            ? "bottom-[calc(92px+env(safe-area-inset-bottom,0px))] sm:bottom-3"
+            : "bottom-[calc(14px+env(safe-area-inset-bottom,0px))] sm:bottom-3"
+        } ${
+          showScrollTop ? "opacity-60 hover:opacity-100 dark:opacity-75 dark:hover:opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         <ArrowUp className="h-4 w-4" />

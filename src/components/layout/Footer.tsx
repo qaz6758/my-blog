@@ -5,9 +5,12 @@ import React from "react";
 import { siteConfig } from "@/config/site";
 import { useSeasonalEffect } from "@/hooks/useSeasonalEffect";
 import { useI18n } from "@/lib/i18n/I18nContext";
+import { useMusic } from "@/components/playlist/MusicContext";
+
 export function Footer() {
   const { enabled, activeSeason, toggleEnabled } = useSeasonalEffect();
   const { t } = useI18n();
+  const { currentSong } = useMusic();
 
   // 当前季节标签（随自然节气自动流转）
   const SEASON_MAP = {
@@ -19,7 +22,13 @@ export function Footer() {
   const seasonTitle = SEASON_MAP[activeSeason] || "Silent First Snow";
 
   return (
-    <footer className="relative w-full select-none bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pt-8 sm:pt-10 pb-10 sm:pb-12">
+    <footer
+      className={`relative w-full select-none bg-transparent text-neutral-600 dark:text-neutral-400 mt-auto px-6 sm:px-8 pt-8 sm:pt-10 transition-[padding] duration-300 ${
+        currentSong
+          ? "pb-[140px] sm:pb-16"
+          : "pb-10 sm:pb-12"
+      }`}
+    >
 
       {/* 居中短横线分割线：处于正文与页脚上下空间的绝对正中心，与全站 max-w-[620px] 严格同心对齐 (50px 黄金规格) */}
       <div className="relative z-10 mx-auto w-full max-w-[620px] flex justify-center mb-8 sm:mb-10">
