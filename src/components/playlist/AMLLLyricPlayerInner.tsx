@@ -84,8 +84,15 @@ export function AMLLLyricPlayerInner({
     player.setAlignAnchor(LayoutAlignAnchor.Center);
     // 黄金比例 0.38：上方留白 38% 供上一句优雅虚化淡出，下方留白 62% 沉浸展现后续歌词与律动
     player.setAlignPosition(0.38);
-    player.setEnableSpring(true);
-    player.setEnableBlur(true);
+    const motionQuery = window.matchMedia(
+      "(max-width: 767px), (prefers-reduced-motion: reduce)"
+    );
+    const updateMotionMode = () => {
+      player.setEnableSpring(!motionQuery.matches);
+      player.setEnableBlur(!motionQuery.matches);
+    };
+    updateMotionMode();
+    motionQuery.addEventListener("change", updateMotionMode);
     player.setEnableScale(true);
     player.setWordFadeWidth(0.5);
 
@@ -133,6 +140,7 @@ export function AMLLLyricPlayerInner({
 
     return () => {
       ro.disconnect();
+      motionQuery.removeEventListener("change", updateMotionMode);
       player.removeEventListener("line-click", handleLineClick);
       player.dispose();
       playerRef.current = null;
@@ -146,8 +154,6 @@ export function AMLLLyricPlayerInner({
   useEffect(() => {
     const player = playerRef.current;
     if (!player) return;
-
-    player.setLyricLines(amllLines);
 
     // 将剥离出的制作信息（作词/作曲等）注入 Apple Music 官方底栏（歌词滑至底部时显现）
     const bottomEl = player.getBottomLineElement();
@@ -169,7 +175,9 @@ export function AMLLLyricPlayerInner({
     }
 
     player.onResize();
-    player.rebuildLyricView();
+    const audio = document.querySelector<HTMLAudioElement>("[data-music-audio]");
+    const initialTime = audio ? Math.round(audio.currentTime * 1000) : 0;
+    player.setLyricLines(amllLines, initialTime);
   }, [amllLines, lyricsData.credits]);
 
   // Drive AMLL from the persistent audio element's media clock.
