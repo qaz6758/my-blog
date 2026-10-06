@@ -8,6 +8,8 @@ import React, {
   useRef,
   useEffect,
   useEffectEvent,
+  useCallback,
+  useMemo,
 } from "react";
 import { Song } from "@/components/playlist/SongList";
 import dynamic from "next/dynamic";
@@ -87,42 +89,32 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   }, [currentSong, playlistSongs]);
 
   // ⚡ 核心无感切歌管线：直接调度原生音频驱动，避免定时器与 React DOM 冲突
-  const performSeamlessSwitch = (targetSong: Song, newPlaylist?: Song[]) => {
-    if (newPlaylist && newPlaylist.length > 0) {
-      setPlaylistSongs(newPlaylist);
-    }
-    const audio = audioRef.current;
-    setCurrentSong(targetSong);
-    setCurrentTime(0);
-
-    if (audio) {
-      const targetVol = isMuted ? 0 : volume;
-      audio.volume = targetVol;
-      if (audio.src !== targetSong.audio_url) {
-        audio.src = targetSong.audio_url;
-        audio.load();
+  const performSeamlessSwitch = useCallback(
+    (targetSong: Song, newPlaylist?: Song[]) => {
+      if (newPlaylist && newPlaylist.length > 0) {
+        setPlaylistSongs(newPlaylist);
       }
-      audio.currentTime = 0;
-      audio.play().catch((err) => {
-        console.warn("[Audio Play] 播放启动拦截:", err);
-      });
-    }
-  };
+      const audio = audioRef.current;
+      setCurrentSong(targetSong);
+      setCurrentTime(0);
 
-  const playSong = (song: Song, playlist?: Song[]) => {
-    if (currentSong?.id === song.id) {
-      togglePlay();
-      return;
-    }
-    performSeamlessSwitch(song, playlist);
-  };
+      if (audio) {
+        const targetVol = isMuted ? 0 : volume;
+        audio.volume = targetVol;
+        if (audio.src !== targetSong.audio_url) {
+          audio.src = targetSong.audio_url;
+          audio.load();
+        }
+        audio.currentTime = 0;
+        audio.play().catch((err) => {
+          console.warn("[Audio Play] 播放启动拦截:", err);
+        });
+      }
+    },
+    [isMuted, volume]
+  );
 
-  const playAll = (songs: Song[]) => {
-    if (!songs || songs.length === 0) return;
-    performSeamlessSwitch(songs[0], songs);
-  };
-
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     if (!currentSong) return;
     const audio = audioRef.current;
     if (!audio) return;
@@ -132,19 +124,32 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     } else {
       audio.pause();
     }
-  };
+  }, [currentSong, isMuted, volume]);
 
-  const toggleShuffle = () => {
+  const playSong = useCallback((song: Song, playlist?: Song[]) => {
+    if (currentSong?.id === song.id) {
+      togglePlay();
+      return;
+    }
+    performSeamlessSwitch(song, playlist);
+  }, [currentSong, performSeamlessSwitch, togglePlay]);
+
+  const playAll = useCallback((songs: Song[]) => {
+    if (!songs || songs.length === 0) return;
+    performSeamlessSwitch(songs[0], songs);
+  }, [performSeamlessSwitch]);
+
+  const toggleShuffle = useCallback(() => {
     setIsShuffle((prev) => !prev);
-  };
+  }, []);
 
-  const toggleRepeat = () => {
+  const toggleRepeat = useCallback(() => {
     setRepeatMode((prev) => {
       if (prev === "off") return "all";
       if (prev === "all") return "one";
       return "off";
     });
-  };
+  }, []);
 
   const handleNext = () => {
     if (!playlistSongs.length || !currentSong) return;
@@ -254,14 +259,14 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     setIsMuted(nextVal === 0);
   };
 
-  const closePlayer = () => {
+  const closePlayer = useCallback(() => {
     setIsPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
     setCurrentSong(null);
-  };
+  }, []);
 
   const formatTime = (time: number) => {
     if (!Number.isFinite(time) || time < 0) return "00:00";
@@ -270,21 +275,38 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const musicContextValue = useMemo<MusicContextType>(
+    () => ({
+      currentSong,
+      playlistSongs,
+      isPlaying,
+      isShuffle,
+      repeatMode,
+      playSong,
+      playAll,
+      togglePlay,
+      toggleShuffle,
+      toggleRepeat,
+      closePlayer,
+    }),
+    [
+      currentSong,
+      playlistSongs,
+      isPlaying,
+      isShuffle,
+      repeatMode,
+      playSong,
+      playAll,
+      togglePlay,
+      toggleShuffle,
+      toggleRepeat,
+      closePlayer,
+    ]
+  );
+
   return (
     <MusicContext.Provider
-      value={{
-        currentSong,
-        playlistSongs,
-        isPlaying,
-        isShuffle,
-        repeatMode,
-        playSong,
-        playAll,
-        togglePlay,
-        toggleShuffle,
-        toggleRepeat,
-        closePlayer,
-      }}
+      value={musicContextValue}
     >
       {children}
 

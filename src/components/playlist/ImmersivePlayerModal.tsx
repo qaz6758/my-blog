@@ -129,7 +129,7 @@ export function ImmersivePlayerModal({
           {/* ================= 3. Apple 官方同款排版引擎容器 (严格单轴等宽全链路对齐) ================= */}
           <article className="relative z-10 flex-1 w-full flex items-center justify-center px-6 sm:px-8 py-2 overflow-y-auto sm:overflow-y-visible">
             <div
-              data-testid="lyrics-controls"
+              data-testid="playback-controls"
               className="w-full max-w-[270px] sm:max-w-[460px] md:max-w-[520px] flex flex-col items-center gap-y-3.5 sm:gap-y-5 md:gap-y-6 mx-auto"
             >
               {/* 巨幅专辑封面 (自适应视口比例，移动端不撑破视口 + 唱片圆角 + 深度投影) */}

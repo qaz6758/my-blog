@@ -120,6 +120,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 NOTION_API_KEY=your-notion-api-key
 NOTION_POSTS_DB_ID=your-posts-database-id
 NOTION_THOUGHTS_DB_ID=your-thoughts-database-id
+
 ```
 
 生产构建：
