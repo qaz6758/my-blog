@@ -3,20 +3,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { Heart, MessageSquare, Star, ArrowLeft, ExternalLink } from "lucide-react";
+import { Heart, Star, ArrowLeft, ExternalLink } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
-
-const CommentSection = dynamic(
-  () =>
-    import("@/components/post/CommentSection").then((m) => m.CommentSection),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
 
 const STORAGE_KEY = "ow_thoughts_reactions_v1";
 
@@ -26,7 +16,6 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
   // 1. 独立管理互动状态与 SWR 最新数据
   const [thoughtItem, setThoughtItem] = useState<ThoughtMediaItem>(item);
   const [likes, setLikes] = useState(item.likes || 0);
-  const [commentCount, setCommentCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
   // SWR：毫秒级后台静默获取 Notion 最新随想录改动，支持免重新部署即时生效
@@ -92,27 +81,20 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
 
   const isNote = item.type.toUpperCase() === "NOTE";
 
-  // 2. 初始化时向 Supabase 获取该文章的真实评论总数与真实点赞数
+  // 2. 初始化时向 Supabase 获取该文章的真实点赞数
   useEffect(() => {
-    async function fetchCommentCountAndLikes() {
-      const [commentRes, likesRes] = await Promise.all([
-        supabase
-          .from("thought_comments")
-          .select("*", { count: "exact", head: true })
-          .eq("thought_id", item.id),
-        supabase
-          .from("thoughts")
-          .select("likes")
-          .eq("id", item.id)
-          .maybeSingle(),
-      ]);
+    async function fetchLikes() {
+      const { data } = await supabase
+        .from("thoughts")
+        .select("likes")
+        .eq("id", item.id)
+        .maybeSingle();
 
-      if (commentRes.count !== null) setCommentCount(commentRes.count);
-      if (likesRes.data && typeof likesRes.data.likes === "number") {
-        setLikes(likesRes.data.likes);
+      if (data && typeof data.likes === "number") {
+        setLikes(data.likes);
       }
     }
-    fetchCommentCountAndLikes();
+    fetchLikes();
   }, [item.id]);
 
   // 3. Supabase Realtime 实时监听当前随想录点赞变动
@@ -315,7 +297,7 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
 
         <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
 
-        {/* 顶部互动栏（支持点击 + 与 Supabase 评论数与点赞数联动） */}
+        {/* 顶部互动栏（支持点击 + 与 Supabase 点赞数联动） */}
         <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-neutral-400 select-none">
           <button
             type="button"
@@ -330,21 +312,8 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
             <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-current" : ""}`} />
             <span>{Math.max(likes, isLiked ? 1 : 0)}</span>
           </button>
-
-          <div className="flex items-center gap-1.5 opacity-80">
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span>{commentCount}</span>
-          </div>
         </div>
       </article>
-
-      <div className="my-10 h-[1px] w-full border-t border-dashed border-black/[0.08] dark:border-white/[0.08]" />
-
-      {/* 评论区：发布新评论时同步递增计数 */}
-      <CommentSection
-        thoughtId={item.id}
-        onCommentAdded={() => setCommentCount((prev) => prev + 1)}
-      />
     </>
   );
 }

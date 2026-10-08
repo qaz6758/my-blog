@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, MessageSquare, Star, ArrowRightCircle, ExternalLink } from "lucide-react";
+import { Heart, Star, ArrowRightCircle, ExternalLink } from "lucide-react";
 import { ThoughtMediaItem, formatThoughtDate, getThoughtTimestamp, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n/I18nContext";
@@ -144,29 +144,16 @@ export function ThoughtsClientList({
     };
   }, [locale]);
 
-  // 2. 初始化与文章变动时向 Supabase 批量同步真实评论数与真实点赞数
+  // 2. 初始化与文章变动时向 Supabase 批量同步真实点赞数
   useEffect(() => {
-    async function fetchCountsAndLikes() {
+    async function fetchLikes() {
       const ids = itemIdsKey ? itemIdsKey.split("\0") : [];
       if (ids.length === 0) return;
 
-      const [commentsRes, likesRes] = await Promise.all([
-        supabase
-          .from("thought_comments")
-          .select("thought_id")
-          .in("thought_id", ids),
-        supabase
-          .from("thoughts")
-          .select("id, likes")
-          .in("id", ids),
-      ]);
-
-      const counts: Record<string, number> = {};
-      if (commentsRes.data && !commentsRes.error) {
-        commentsRes.data.forEach((row: { thought_id: string }) => {
-          counts[row.thought_id] = (counts[row.thought_id] || 0) + 1;
-        });
-      }
+      const likesRes = await supabase
+        .from("thoughts")
+        .select("id, likes")
+        .in("id", ids);
 
       const cloudLikes: Record<string, number> = {};
       if (likesRes.data && !likesRes.error) {
@@ -180,13 +167,12 @@ export function ThoughtsClientList({
       setItems((prev) =>
         prev.map((item) => ({
           ...item,
-          replies: counts[item.id] !== undefined ? counts[item.id] : (item.replies || 0),
           likes: cloudLikes[item.id] !== undefined ? cloudLikes[item.id] : (item.likes || 0),
         }))
       );
     }
 
-    fetchCountsAndLikes();
+    fetchLikes();
   }, [itemIdsKey]);
 
   // 3. Supabase Realtime 实时双向同步（跨设备、跨端点赞秒级广播）
@@ -433,12 +419,6 @@ export function ThoughtsClientList({
                     {/* 保证只要红心亮起，数字保底绝对是真实累计数！ */}
                     <span>{Math.max(item.likes || 0, reaction.liked ? 1 : 0)}</span>
                   </button>
-
-                  {/* 实时评论数 */}
-                  <div className="flex items-center gap-1.5 opacity-80">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    <span>{item.replies}</span>
-                  </div>
                 </div>
 
                 {/* 查看入口 */}
