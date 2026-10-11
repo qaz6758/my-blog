@@ -313,12 +313,9 @@ flowchart TD
 - **推荐方案**：
   - **方案 A（用户引导）**：国内宣传与友情链接建议直接采用优选域名 `https://cdn.vinceou.site`；
   - **方案 B（双域名解析）**：若 DNS 服务商支持国内/国外分流解析，可将国内线路直接 CNAME 指向优选域名；
-  - **方案 C（清除手机缓存）**：手机先开启飞行模式 5 秒重置基站 DNS 缓存，再直接访问 `https://cdn.vinceou.site`。
-
-#### 2. `.env.production` 凭据纳入版本库追踪
-- **现象与影响**：Commit `c40081c` 中为了让 GitHub CI 能构建 sitemap，将 `.env.production` 提交到了 GitHub 仓库。
-- **根本原因**：Cloudflare Workers Builds 在构建 Next.js 页面时需要预读取 `NEXT_PUBLIC_SUPABASE_URL`。
-- **推荐方案**：在 Cloudflare Dashboard 的 **Workers & Pages ➔ my-blog ➔ Settings ➔ Builds ➔ Build variables** 中将 `NEXT_PUBLIC_SUPABASE_URL` 和 `NEXT_PUBLIC_SUPABASE_ANON_KEY` 配入构建环境变量中，后续从 Git 中移除该文件。
+#### 2. `.env.production` 凭据纳入版本库追踪（✅ 已彻底解决）
+- **处理经过**：通过在 `src/lib/supabase.ts` 中设置默认公共回退常量，彻底解除了构建时对本地 `.env.production` 文件的硬依赖。随后执行 `git rm --cached .env.production`，恢复 `.gitignore` 规则，并在 Commit `828b613` 中验证通过。
+- **当前状态**：Git 仓库中已无任何凭证泄漏；Cloudflare Workers Builds 自动化流水线已在干净环境中成功构建并上线（版本 `afa24ff5`）。
 
 ### 🟢 P2 级别（稳定性与运维优化）
 - **Supabase CLI 迁移历史同步**：未来有明确数据库维护窗口时，可通过 CLI link 项目并同步 `schema_migrations`。
