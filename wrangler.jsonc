@@ -10,6 +10,10 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "routes": [
+    { "pattern": "vinceou.site", "custom_domain": true },
+    { "pattern": "www.vinceou.site", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true
   }
