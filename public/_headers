@@ -7,6 +7,8 @@
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   X-XSS-Protection: 1; mode=block
   Cross-Origin-Opener-Policy: same-origin
+  # 默认针对 HTML 页面与路由：每次请求向边缘服务器协商验证，确保发布后手机端即时获取最新页面，杜绝本地死缓存
+  Cache-Control: public, max-age=0, must-revalidate
 
 # Next.js 打包构建出的带 Hash 静态资产 (永久不可变强缓存，秒开加速)
 /_next/static/*
@@ -16,16 +18,16 @@
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
+# 表情包静态资源 (1周缓存 + 1天平滑过期)
+/emotes/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
 # 静态媒体与图片资源 (1天缓存 + 7天平滑过期刷新)
 /images/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
 /favicon.ico
   Cache-Control: public, max-age=86400
-
-# HTML 页面与数据文件 (每次请求即时向边缘验证，确保发新内容时用户秒级获取最新版)
-/*.html
-  Cache-Control: public, max-age=0, must-revalidate
 
 /robots.txt
   Cache-Control: public, max-age=3600, must-revalidate

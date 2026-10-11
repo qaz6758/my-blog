@@ -1,4 +1,4 @@
-﻿// src/app/error.tsx
+// src/app/error.tsx
 "use client";
 
 import React, { useEffect } from "react";
@@ -14,6 +14,15 @@ export default function ErrorBoundary({
 }) {
   useEffect(() => {
     console.error("[Runtime Error Boundary caught]:", error);
+    // 部署新版本后若客户端命中已废弃的旧 chunk 哈希，自动刷新获取最新资源
+    if (
+      typeof window !== "undefined" &&
+      (error?.message?.includes("Loading chunk") ||
+        error?.name === "ChunkLoadError" ||
+        error?.message?.includes("Failed to fetch dynamically imported module"))
+    ) {
+      window.location.reload();
+    }
   }, [error]);
 
   return (
