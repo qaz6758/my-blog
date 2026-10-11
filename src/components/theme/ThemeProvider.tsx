@@ -10,6 +10,7 @@ import React, {
   useCallback,
   useSyncExternalStore,
 } from "react";
+import { flushSync } from "react-dom";
 
 import {
   Theme,
@@ -40,19 +41,6 @@ function isTheme(value: string | null): value is Theme {
   return value === "light" || value === "dark";
 }
 
-/**
- * 严格判断当前交互运行环境是否为移动端设备
- * 结合指针粗细（触屏 pointer: coarse）与屏幕尺寸，准确分流 PC 与手机端
- */
-export function isMobileDevice(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(hover: none) and (pointer: coarse)").matches ||
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    )
-  );
-}
 
 function getStoredTheme(): Theme | null {
   if (typeof window === "undefined") return null;
@@ -109,15 +97,17 @@ function applyThemeToDocument(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   const root = document.documentElement;
-  const backgroundColor = newTheme === "dark" ? "#050505" : "#ffffff";
-  const textColor = newTheme === "dark" ? "#e5e5e5" : "#222222";
+  const rootBackgroundColor = newTheme === "dark" ? "#000000" : "#f7f2ed";
+  const bodyBackgroundColor = newTheme === "dark" ? "#000000" : "#f7f2ed";
+  const textColor = newTheme === "dark" ? "#f1f1f1" : "#222222";
 
   root.classList.toggle("dark", newTheme === "dark");
   root.classList.toggle("light", newTheme === "light");
+  root.setAttribute("data-theme", newTheme);
   root.style.colorScheme = newTheme === "dark" ? "only dark" : "only light";
-  root.style.backgroundColor = backgroundColor;
+  root.style.backgroundColor = rootBackgroundColor;
   if (document.body) {
-    document.body.style.backgroundColor = backgroundColor;
+    document.body.style.backgroundColor = bodyBackgroundColor;
     document.body.style.color = textColor;
   }
 
@@ -129,7 +119,7 @@ function updateMetaColorScheme(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   try {
-    const themeColor = newTheme === "dark" ? "#050505" : "#ffffff";
+    const themeColor = newTheme === "dark" ? "#000000" : "#f7f2ed";
 
     // 仅原地更新属性，坚决不从 DOM 树中 remove() 节点，保护 React 19 HostHoistable (tag 26) 虚拟 DOM 树完整性
     const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
@@ -170,7 +160,13 @@ export function ThemeProvider({
   const applyThemeDirect = useCallback((newTheme: Theme) => {
     if (typeof document === "undefined") return;
     applyThemeToDocument(newTheme);
-    setThemeState(newTheme);
+    try {
+      flushSync(() => {
+        setThemeState(newTheme);
+      });
+    } catch {
+      setThemeState(newTheme);
+    }
   }, []);
 
   /*
@@ -209,7 +205,7 @@ export function ThemeProvider({
 
   /*
    * ============================================================
-   * 主题切换统一调度中心：通过 isMobileDevice() 自动分流平台差异
+   * 主题切换统一调度中心：全端统一羽化涟漪 View Transition
    * ============================================================
    */
   const toggleTheme = useCallback(
@@ -219,18 +215,17 @@ export function ThemeProvider({
     ) => {
       if (typeof document === "undefined") return;
 
-      // 互斥防抖锁：如果当前正在播放过渡动效（无论是 PC 扩散还是移动端漫染），
-      // 坚决忽略重复连击（彻底根除连击“切两下”导致的 Chromium Blink Compositor 重入与 GPU 崩溃）
+      // 互斥防抖锁：如果当前正在播放过渡动效，忽略重复连击
       if (isTransitioningRef.current) {
         return;
       }
 
       isTransitioningRef.current = true;
 
-      // 550ms 兜底安全解锁，防止任何浏览器不可抗力异常导致锁死
+      // 1050ms 兜底安全解锁，与动画时长及看门狗对齐
       const releaseTimeout = setTimeout(() => {
         isTransitioningRef.current = false;
-      }, 550);
+      }, 1050);
 
       const handleComplete = () => {
         clearTimeout(releaseTimeout);
@@ -241,16 +236,13 @@ export function ThemeProvider({
       const isCurrentlyDark = root.classList.contains("dark");
       const nextTheme: Theme = isCurrentlyDark ? "light" : "dark";
 
-      runThemeTransition(
-        {
-          nextTheme,
-          applyThemeDirect,
-          event,
-          options,
-          onComplete: handleComplete,
-        },
-        isMobileDevice()
-      );
+      runThemeTransition({
+        nextTheme,
+        applyThemeDirect,
+        event,
+        options,
+        onComplete: handleComplete,
+      });
     },
     [applyThemeDirect]
   );

@@ -1,18 +1,15 @@
 // components/thoughts/ThoughtDetailClient.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, Star, ArrowLeft, ExternalLink } from "lucide-react";
+import { Heart, Star, ArrowLeft } from "lucide-react";
+import { TypewriterTitle } from "@/components/common/TypewriterTitle"; 
 import { ThoughtMediaItem, formatThoughtDate, translateAction } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
-import { useI18n } from "@/lib/i18n/I18nContext";
-
 const STORAGE_KEY = "ow_thoughts_reactions_v1";
 
 export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
-  const { locale, convertText } = useI18n();
-
   // 1. 独立管理互动状态与 SWR 最新数据
   const [thoughtItem, setThoughtItem] = useState<ThoughtMediaItem>(item);
   const [likes, setLikes] = useState(item.likes || 0);
@@ -39,20 +36,9 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
       .catch(() => {});
   }, [item.id]);
 
-  const displayTitle = useMemo(() => {
-    if (!thoughtItem.title) return "";
-    return locale === "zh-TW" ? convertText(thoughtItem.title) : thoughtItem.title;
-  }, [thoughtItem.title, locale, convertText]);
-
-  const displayDesc = useMemo(() => {
-    if (!thoughtItem.description) return "";
-    return locale === "zh-TW" ? convertText(thoughtItem.description) : thoughtItem.description;
-  }, [thoughtItem.description, locale, convertText]);
-
-  const displayTime = useMemo(() => {
-    const date = thoughtItem.rawDate || thoughtItem.time;
-    return formatThoughtDate(date, locale).relative || thoughtItem.time;
-  }, [thoughtItem.rawDate, thoughtItem.time, locale]);
+  const displayTitle = thoughtItem.title || "";
+  const displayDesc = thoughtItem.description || "";
+  const displayTime = formatThoughtDate(thoughtItem.rawDate || thoughtItem.time).relative || thoughtItem.time;
 
   // 恢复本地红心高亮状态
   useEffect(() => {
@@ -162,158 +148,75 @@ export function ThoughtDetailClient({ item }: { item: ThoughtMediaItem }) {
     }
   };
 
-  const isEn = locale === "en";
-
   return (
-    <>
-      {/* 顶部标题：响应多语言切换 */}
-      <header className="mb-8 pl-1">
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-3xl font-sans">
-          {isEn ? "Thoughts" : "思考"}
-        </h1>
-        <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400 tracking-widest font-sans">
-          {isEn ? "Whispers of mind" : "感君倾耳"}
-        </p>
-      </header>
+<div className="flex flex-col w-full flex-1 min-h-0 pt-0">
+  <div className="flex items-center justify-center pb-1 mb-2.5 sm:mb-3 border-b-2 border-[#d0d7de] dark:border-white select-none">
+    <h2 className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#24292f] dark:text-white">
+      <TypewriterTitle text="Thoughts" />
+    </h2>
+  </div>
 
-      <div className="mb-6 pl-1">
+      {/* 2. 复古返回按钮 */}
+      <div className="mb-3">
         <Link
           href="/thoughts"
-          className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 dark:text-[#71717a] dark:hover:text-[#f4f4f5] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-['W95FA',sans-serif] text-neutral-500 hover:text-[#d0d7de] dark:text-neutral-400 dark:hover:text-[#d0d7de] transition-colors select-none"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {isEn ? "Back" : "cd.."}
+          <ArrowLeft className="h-3.5 w-3.5" /> cd..
         </Link>
       </div>
 
-      {/* 独立内容块 */}
-      <article className="relative rounded-none p-4 sm:p-5 manga-panel font-sans">
-        <div className="mb-3 flex items-center gap-2 text-xs">
-          <span className="font-semibold text-neutral-900 dark:text-neutral-100">
-            {thoughtItem.author}
+      {/* 3. 1:1 像素级复刻图一的同款方框卡片 */}
+      <article
+        data-home-content-card
+        className="rounded-[4px] border-2 border-[#d0d7de] dark:border-white bg-transparent p-3 sm:p-3.5 shadow-[0_1px_2px_rgba(27,31,36,0.08)] dark:shadow-none transition-colors flex flex-col gap-2.5 font-sans"
+      >
+        {/* 头部元信息：纯粹的日期与标签（完全对齐图一） */}
+        <div className="flex items-center justify-between pb-1.5 border-b-2 border-[#d0d7de] dark:border-white text-[11px] sm:text-[12px] font-['W95FA',sans-serif]">
+          <span className="font-mono text-neutral-600 dark:text-neutral-300">
+            {thoughtItem.fullTime || thoughtItem.time || displayTime}
           </span>
-          {thoughtItem.action && (
-            <span className="text-neutral-500 dark:text-neutral-400">
-              {translateAction(thoughtItem.action, isEn)}
+          {thoughtItem.tags && (
+            <span className="px-1.5 py-0.5 rounded-[2px] border border-[#d0d7de] dark:border-white/30 text-[10px]">
+              #{thoughtItem.tags}
             </span>
           )}
-          <span
-            className="text-neutral-400 dark:text-neutral-400"
-            title={thoughtItem.fullTime || thoughtItem.time}
-          >
-            {displayTime}
-          </span>
         </div>
 
-        {/* 主体渲染 */}
-        {isNote ? (
-          <>
-            <div className="text-[14px] leading-relaxed text-neutral-800 dark:text-neutral-300 whitespace-pre-line text-justify">
-              {displayDesc}
-            </div>
-            {thoughtItem.posterUrl && (
-              <div className="mt-3 max-h-80 w-full overflow-hidden rounded-md border border-black/[0.05] dark:border-white/[0.05]">
-                <img
-                  src={thoughtItem.posterUrl}
-                  alt={displayTitle || (isEn ? "Attachment image" : "随笔配图")}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="mb-4 flex gap-3.5 sm:gap-4 mt-2">
-            {thoughtItem.posterUrl && (
-              <div className="w-[60px] sm:w-[72px] shrink-0 mt-1">
-                {thoughtItem.sourceUrl ? (
-                  <a
-                    href={thoughtItem.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group/poster relative block aspect-[3/4] w-full overflow-hidden rounded-[4px] bg-neutral-100 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer"
-                    title={`${displayTitle} (${isEn ? "Open detail" : "点击查看详情页"})`}
-                  >
-                    <img
-                      src={thoughtItem.posterUrl}
-                      alt={displayTitle}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover/poster:scale-105"
-                    />
-                  </a>
-                ) : (
-                  <div className="block aspect-[3/4] w-full overflow-hidden rounded-[4px] bg-neutral-100 dark:bg-neutral-800 border border-black/[0.04] dark:border-white/10 shadow-sm">
-                    <img
-                      src={thoughtItem.posterUrl}
-                      alt={displayTitle}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <div className="flex-1 min-w-0">
-              <h2 className="text-[14px] sm:text-[15px] font-medium text-neutral-900 dark:text-neutral-100 tracking-tight leading-snug">
-                {thoughtItem.sourceUrl ? (
-                  <a
-                    href={thoughtItem.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline transition-colors"
-                  >
-                    {displayTitle}
-                  </a>
-                ) : (
-                  displayTitle
-                )}
-              </h2>
-              
-              {(thoughtItem.year || thoughtItem.rating || thoughtItem.tags) && (
-                <div className="mt-0.5 text-[12px] text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-1.5">
-                  {thoughtItem.year && <span className="font-mono">{thoughtItem.year}</span>}
-                  {thoughtItem.year && thoughtItem.rating && <span className="opacity-40 font-mono">/</span>}
-                  {thoughtItem.rating && (
-                    <span className="flex items-center gap-0.5 font-mono">
-                      {thoughtItem.rating} 
-                      <Star className="h-2.5 w-2.5 fill-current opacity-80 mb-[1px]" />
-                    </span>
-                  )}
-                  {(thoughtItem.year || thoughtItem.rating) && thoughtItem.tags && (
-                    <span className="opacity-40 font-mono">/</span>
-                  )}
-                  {thoughtItem.tags && (
-                    <span className="text-[12px] text-neutral-500 dark:text-neutral-400">
-                      {thoughtItem.tags}
-                    </span>
-                  )}
-                </div>
-              )}
-              
-              <p className="mt-1.5 text-[13px] sm:text-[14px] leading-relaxed text-neutral-600 dark:text-neutral-400 whitespace-pre-line text-justify">
-                {displayDesc}
-              </p>
+        {/* 正文内容（文字大小、行高、对齐 100% 对齐图一） */}
+        <p className="text-[13.5px] sm:text-[14.5px] leading-relaxed whitespace-pre-line font-sans text-neutral-800 dark:text-neutral-200">
+          {displayDesc || displayTitle}
+        </p>
+
+        {/* 配图（如果有） */}
+        {thoughtItem.posterUrl && (
+          <div className="mt-1">
+            <div className="relative block max-w-[280px] h-[160px] rounded-[3px] overflow-hidden border border-[#d0d7de] dark:border-white/40">
+              <img
+                src={thoughtItem.posterUrl}
+                alt="Thought media"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
         )}
 
-        <div className="mb-3 h-[1px] w-full border-t border-dashed border-black/[0.06] dark:border-white/[0.08]" />
-
-        {/* 顶部互动栏（支持点击 + 与 Supabase 点赞数联动） */}
-        <div className="flex items-center gap-5 text-xs text-neutral-500 dark:text-neutral-400 select-none">
+        {/* 底部点赞与互动（完全对齐图一样式） */}
+        <div className="flex items-center gap-4 pt-0.5 text-[11px] sm:text-[12px] select-none">
           <button
             type="button"
             onClick={toggleLike}
             className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
               isLiked
-                ? "text-neutral-900 dark:text-white font-bold"
-                : "hover:text-neutral-900 dark:hover:text-white"
+                ? "text-[#ff4d4f] font-bold"
+                : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
             }`}
-            style={{ transitionDuration: "var(--realm-motion-duration)", transitionTimingFunction: "var(--realm-motion-ease)" }}
           >
-            <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-current" : ""}`} />
-            <span>{Math.max(likes, isLiked ? 1 : 0)}</span>
+            <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-current text-[#ff4d4f]" : ""}`} />
+            <span className="font-mono">{Math.max(likes, isLiked ? 1 : 0)}</span>
           </button>
         </div>
       </article>
-    </>
+    </div>
   );
 }

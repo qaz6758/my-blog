@@ -1,7 +1,7 @@
 // app/photos/page.tsx
 import React, { Suspense } from "react";
 import { getGalleryImages } from "@/lib/gallery";
-import PhotosClient from "./PhotosClient";
+import { RetroPhotosView } from "@/components/gallery/RetroPhotosView";
 
 export const dynamic = "force-static";
 export const revalidate = 60;
@@ -13,9 +13,10 @@ export const metadata = {
 
 export default async function PhotosPage() {
   const photos = await getGalleryImages();
+
   return (
     <Suspense fallback={null}>
-      <PhotosClient photos={photos} />
+      <RetroPhotosView photos={photos} />
     </Suspense>
   );
 }

@@ -57,12 +57,9 @@ export default async function ThoughtDetailPage({
     notFound();
   }
 
-  return (
-    <div className="relative min-h-[100vh] w-full bg-transparent px-4 pt-24 pb-28 sm:pb-36 sm:px-6 antialiased flex flex-col">
-      <main className="mx-auto w-full max-w-[520px] flex-1">
-        {/* 客户端交互流 (内置自适应中英文 Header 与返回导航) */}
-        <ThoughtDetailClient item={item} />
-      </main>
-    </div>
-  );
+return (
+  <div className="w-full flex-1 min-h-0">
+    <ThoughtDetailClient item={item} />
+  </div>
+);
 }

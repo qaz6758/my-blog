@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { useI18n } from "@/lib/i18n/I18nContext";
 
 export interface TocItem {
   id: string;
@@ -17,7 +16,6 @@ interface TableOfContentsProps {
   className?: string;
   isArticleHovered?: boolean;
   contentKey?: string;
-  locale?: string;
 }
 
 // Anthony Fu 原版目录图标（精准裁切左侧空白，严格对齐文字首字 x=0 垂直轴）
@@ -41,10 +39,7 @@ export function TableOfContents({
   className = "",
   isArticleHovered = false,
   contentKey = "",
-  locale: propLocale,
 }: TableOfContentsProps) {
-  const { locale: contextLocale, convertText } = useI18n();
-  const currentLocale = propLocale || contextLocale;
   const propList = tocList || items;
   const [domList, setDomList] = useState<TocItem[]>([]);
   const [internalActiveId, setInternalActiveId] = useState<string>("");
@@ -162,9 +157,9 @@ export function TableOfContents({
         observer.disconnect();
       }
     };
-  }, [propList, contentKey, currentLocale]);
+  }, [propList, contentKey]);
 
-  // 2. 统一监听滚动：计算阅读进度百分比 + 智能高亮当前阅读位置（Scroll Spy）
+   // 2. 统一监听滚动：精准判定画框内的阅读标题（Scroll Spy）
   useEffect(() => {
     let ticking = false;
 
@@ -175,11 +170,7 @@ export function TableOfContents({
       requestAnimationFrame(() => {
         ticking = false;
 
-        const scrollY = window.scrollY;
-        const windowHeight = window.innerHeight;
-
-        // B. 智能判定当前阅读标题
-        // 用户点击跳转平滑滚动期间严格锁定，不执行判断
+        // 用户点击跳转平滑滚动期间锁定，不抢占高亮
         if (
           isClickScrollingRef.current ||
           externalActiveId !== undefined ||
@@ -188,46 +179,66 @@ export function TableOfContents({
           return;
         }
 
-        // 触底保护：如果已滑动至文章/页面底部，稳定高亮最后一个标题
-        if (
-          windowHeight + scrollY >=
-          document.documentElement.scrollHeight - 50
-        ) {
-          setInternalActiveId(list[list.length - 1].id);
+        const scrollContainer = document.querySelector(
+          ".home-panel-scroll"
+        ) as HTMLElement | null;
+
+        // 🎯 1. 在画框容器内进行高亮判定
+        if (scrollContainer) {
+          const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+
+          // 只有画框内真正滑到最底部（余量 30px）时，才高亮最后一项
+          if (scrollTop + clientHeight >= scrollHeight - 30) {
+            setInternalActiveId(list[list.length - 1].id);
+            return;
+          }
+
+          const containerRect = scrollContainer.getBoundingClientRect();
+          let activeHeadingId = list[0].id;
+
+          for (let i = 0; i < list.length; i++) {
+            const el = document.getElementById(list[i].id);
+            if (!el) continue;
+
+            const rect = el.getBoundingClientRect();
+            // 标题距离画框顶部的相对垂直距离（到达顶部 70px 内即判定为当前章节）
+            const relativeTop = rect.top - containerRect.top;
+
+            if (relativeTop <= 70) {
+              activeHeadingId = list[i].id;
+            } else {
+              break;
+            }
+          }
+
+          setInternalActiveId(activeHeadingId);
           return;
         }
 
-        // 正常阅读基准线：导航栏高度 68px + 适度余量 = 120px
-        const readingLineOffset = 120;
+        // 🎯 2. 兜底全局滚动模式
         let activeHeadingId = list[0].id;
-
         for (let i = 0; i < list.length; i++) {
           const el = document.getElementById(list[i].id);
-
           if (!el) continue;
-
-          const rect = el.getBoundingClientRect();
-
-          if (rect.top <= readingLineOffset) {
+          if (el.getBoundingClientRect().top <= 120) {
             activeHeadingId = list[i].id;
           } else {
-            // 文档有序，一旦当前标题在基准线下方，后续标题无需继续检查
             break;
           }
         }
-
         setInternalActiveId(activeHeadingId);
       });
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    const scrollContainer =
+      document.querySelector(".home-panel-scroll") || window;
+    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
 
     const initTimer = setTimeout(handleScroll, 120);
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      scrollContainer.removeEventListener("scroll", handleScroll);
       clearTimeout(initTimer);
-
       if (scrollEndTimerRef.current) {
         clearTimeout(scrollEndTimerRef.current);
       }
@@ -237,73 +248,74 @@ export function TableOfContents({
   // 没有任何二级标题时，彻底隐藏大纲与 ≡ 按钮
   if (list.length === 0) return null;
 
-  // 点击平滑跳转：状态锁定，杜绝闪烁中间项
-  const handleItemClick = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
 
-    const element = document.getElementById(id);
-    if (!element) return;
+const handleItemClick = (e: React.MouseEvent, id: string) => {
+  e.preventDefault();
 
-    // 立即锁定状态，避免平滑滑动过程被中间标题抢占高亮
-    isClickScrollingRef.current = true;
+  const element = document.getElementById(id);
+  if (!element) return;
 
-    if (externalActiveId === undefined) {
-      setInternalActiveId(id);
-    }
+  isClickScrollingRef.current = true;
 
-    if (scrollEndTimerRef.current) {
-      clearTimeout(scrollEndTimerRef.current);
-    }
+  if (externalActiveId === undefined) {
+    setInternalActiveId(id);
+  }
 
-    // 精准定位：导航栏高度 68px + 16px 留白 = 84px 呼吸间距
-    const targetY = Math.max(
-      0,
-      element.getBoundingClientRect().top + window.scrollY - 84
-    );
+  if (scrollEndTimerRef.current) {
+    clearTimeout(scrollEndTimerRef.current);
+  }
 
-    window.scrollTo({
-      top: targetY,
+  // 🎯 寻找外层画框的滚动容器 .home-panel-scroll
+  const scrollContainer = document.querySelector(".home-panel-scroll");
+  if (scrollContainer) {
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    // 计算目标标题相对于滚动容器顶部的准确位移（预留 20px 顶部呼吸余量）
+    const targetScrollTop =
+      scrollContainer.scrollTop + (elementRect.top - containerRect.top) - 20;
+
+    scrollContainer.scrollTo({
+      top: Math.max(0, targetScrollTop),
       behavior: "smooth",
     });
+  } else {
+    // 兜底方案
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
-    try {
-      window.history.pushState(null, "", `#${id}`);
-    } catch {}
+  try {
+    window.history.pushState(null, "", `#${id}`);
+  } catch {}
 
-    // 滚动结束解锁机制：优先 scrollend 事件，配合 800ms 超时兜底
-    const onScrollEnd = () => {
-      isClickScrollingRef.current = false;
-      window.removeEventListener("scrollend", onScrollEnd);
-    };
-
-    window.addEventListener("scrollend", onScrollEnd, { once: true });
-    scrollEndTimerRef.current = setTimeout(onScrollEnd, 800);
+  // 滚动结束解锁
+  const onScrollEnd = () => {
+    isClickScrollingRef.current = false;
+    window.removeEventListener("scrollend", onScrollEnd);
   };
 
-  const isVisible = isArticleHovered || isSelfHovered;
+  window.addEventListener("scrollend", onScrollEnd, { once: true });
+  scrollEndTimerRef.current = setTimeout(onScrollEnd, 800);
+};
+  const isVisible = true;
 
   return (
-    <nav
-      aria-label="文章目录大纲"
-      onMouseEnter={() => setIsSelfHovered(true)}
-      onMouseLeave={() => setIsSelfHovered(false)}
-      className={`fixed left-6 sm:left-8 top-24 z-30 hidden xl:block w-[220px] select-none ${className}`}
-    >
+        <nav
+          aria-label="文章目录大纲"
+          onMouseEnter={() => setIsSelfHovered(true)}
+          onMouseLeave={() => setIsSelfHovered(false)}
+          className={`relative w-full select-none ${className}`}
+        >
       <div className="flex flex-col items-start">
         {/* 顶部 ≡ 锚点按钮 (严格对齐下方目录文字左侧基准线) */}
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          title={
-            currentLocale === "zh-TW"
-              ? "文章目錄 (點擊置頂)"
-              : "文章目录 (点击置顶)"
-          }
+          title="文章目录 (点击置顶)"
           aria-label="回到顶部"
           className={`mb-3.5 flex items-center justify-start p-0 rounded transition-colors duration-300 cursor-pointer ${
             isVisible
               ? "text-neutral-700 dark:text-neutral-300 opacity-80"
-              : "text-neutral-400 dark:text-neutral-500 opacity-45 hover:opacity-80 hover:text-neutral-700 dark:hover:text-neutral-200"
+              : "text-neutral-400 dark:text-neutral-500 opacity-45 hover:opacity-100 hover:text-[#33FF33] dark:hover:text-[#33FF33]"
           }`}
         >
           <TocIcon className="w-[18px] h-[16px]" />
@@ -311,7 +323,7 @@ export function TableOfContents({
 
         {/* 目录列表 */}
         <ul
-          className={`w-full p-0 m-0 list-none space-y-1 text-[13px] font-sans overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          className={`w-full p-0 m-0 list-none space-y-1.5 text-[13px] font-['W95FA',sans-serif] tracking-wide select-none overflow-y-auto max-h-[calc(100vh-160px)] transition-opacity duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             isVisible
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none"
@@ -326,10 +338,7 @@ export function TableOfContents({
             // 大章节之间赋予自然呼吸间距
             const hasSectionMargin = isH2 && idx > 0;
 
-            const titleText =
-              currentLocale === "zh-TW"
-                ? convertText(item.text)
-                : item.text;
+            const titleText = item.text;
 
             return (
               <li
@@ -342,18 +351,19 @@ export function TableOfContents({
                       : "pl-0"
                 } ${hasSectionMargin ? "mt-2.5" : "mt-1"}`}
               >
-                <a
-                  href={`#${item.id}`}
-                  onClick={(e) => handleItemClick(e, item.id)}
-                  className={`inline-block leading-snug pb-[1.5px] border-b transition-colors duration-200 ${
-                    isActive
-                      ? "text-neutral-800 dark:text-neutral-100 border-neutral-600 dark:border-neutral-300 font-medium"
-                      : "text-neutral-500 dark:text-neutral-400 border-neutral-300/80 dark:border-neutral-700/80 hover:text-neutral-800 dark:hover:text-neutral-200 hover:border-neutral-600 dark:hover:border-neutral-400 font-normal"
-                  }`}
-                  title={titleText}
-                >
-                  {titleText}
-                </a>
+             
+              <a
+                href={`#${item.id}`}
+                onClick={(e) => handleItemClick(e, item.id)}
+                className={`inline-block leading-snug transition-colors duration-200 ${
+                  isActive
+                    ? "text-white font-bold"
+                    : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-normal"
+                }`}
+                title={titleText}
+              >
+                {titleText}
+              </a>
               </li>
             );
           })}

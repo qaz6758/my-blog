@@ -189,15 +189,23 @@ function getImageFromPage(value: unknown): string {
         const raw =
           readString(readRecord(firstFile, 'file')?.url) ||
           readString(readRecord(firstFile, 'external')?.url);
-        return raw ? getProxyImageUrl(raw) : '';
+        return raw || '';
       }
       if (fileProp.type === 'url') {
         const url = readString(fileProp.url);
-        return url ? getProxyImageUrl(url) : '';
+        return url || '';
       }
     }
   }
-  return getCover(page);
+  const cover = getCover(page);
+  if (cover.includes('/img/?url=')) {
+    try {
+      return decodeURIComponent(cover.split('/img/?url=')[1]);
+    } catch {
+      return cover;
+    }
+  }
+  return cover;
 }
 
 /**

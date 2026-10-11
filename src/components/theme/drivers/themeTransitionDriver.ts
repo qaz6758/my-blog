@@ -1,16 +1,11 @@
 // src/components/theme/drivers/themeTransitionDriver.ts
 /**
- * [工业级主题过渡引擎]
+ * [Paul Stamatiou (paulstamatiou.com) 同款羽化涟漪主题过渡引擎]
  *
  * 核心设计原则：
- * 1. PC 桌面端：依托强大独立 GPU、固定视口与精确鼠标指针，
- *    运行以点击按钮为圆心的“日光波纹扩散” View Transitions + halo 柔光动效。
- *
- * 2. 移动端（手机 QQ / 微信 / Via / 移动 Chrome / Safari）：
- *    坚决弃用移动端极易崩溃、错位、丢瓦片和半路截断的 clip-path 全屏裁剪，
- *    采用 100% 纯 GPU 合成层驱动的“水墨漫染 (Mobile Veil Transition)”动效，
- *    仅消耗 opacity 单通道变换，0% 重排、0% 坐标偏移、0% 瓦片丢失，
- *    全环境 120fps 满帧丝滑切换，彻底杜绝任何动画卡死与黑块！
+ * 1. 全端统一：手机端与 PC 桌面端 100% 保持一致，坚决不降级。
+ * 2. 5px 高斯模糊羽化：基于矢量 SVG feGaussianBlur 滤镜，形成具有温润物理质感的有机光环扩展。
+ * 3. 稳健防崩：支持原生 View Transitions API。在不支持的旧浏览器中无缝原子切换，零卡顿、零残留。
  */
 
 import { ThemeDriverParams } from "../types";
@@ -30,15 +25,12 @@ function supportsViewTransitions(
   return typeof Reflect.get(doc, "startViewTransition") === "function";
 }
 
-export function runThemeTransition(
-  params: ThemeDriverParams,
-  isMobile: boolean
-): void {
+export function runThemeTransition(params: ThemeDriverParams): void {
   if (typeof document === "undefined") return;
 
-  const { nextTheme, applyThemeDirect, options, onComplete } = params;
+  const { nextTheme, applyThemeDirect, event, options, onComplete } = params;
 
-  // 用户主动关闭动效 / prefers-reduced-motion，直接原子切换
+  // 用户主动关闭动效 / 系统 prefers-reduced-motion，直接原子切换
   if (
     options?.disableAnimation ||
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -48,93 +40,7 @@ export function runThemeTransition(
     return;
   }
 
-  // 移动端：坚决使用纯 GPU 合成层水墨帷幕，规避移动端 clip-path View Transitions 各种灾难级 Bug
-  if (isMobile) {
-    runMobileVeilTransition(nextTheme, applyThemeDirect, onComplete);
-    return;
-  }
-
-  // PC 桌面端：运行专属指针日光波纹 View Transition 引擎
-  runDesktopRippleTransition(params);
-}
-
-/**
- * 移动端硬件加速水墨帷幕 (Mobile Veil)
- * 在独立 GPU 合成层创建覆盖 100vw / 100dvh 的轻量漫染层，
- * 极速平滑晕染并在其掩映下 0ms 原子翻转 DOM，随后晨雾般消散。
- */
-function runMobileVeilTransition(
-  nextTheme: "light" | "dark",
-  applyThemeDirect: (theme: "light" | "dark") => void,
-  onComplete?: () => void
-): void {
-  const targetBg = nextTheme === "dark" ? "#050505" : "#ffffff";
-
-  // 创建纯 GPU 合成层水墨幕布（适配 100dvh 动态视口高度，0% 瓦片丢失与错位风险）
-  const veil = document.createElement("div");
-  veil.setAttribute("aria-hidden", "true");
-  veil.style.position = "fixed";
-  veil.style.inset = "0";
-  veil.style.width = "100vw";
-  veil.style.height = "100dvh";
-  veil.style.zIndex = "999999";
-  veil.style.pointerEvents = "none";
-  veil.style.backgroundColor = targetBg;
-  veil.style.opacity = "0";
-  veil.style.willChange = "opacity";
-
-  document.body.appendChild(veil);
-
-  let cleaned = false;
-  const cleanup = () => {
-    if (cleaned) return;
-    cleaned = true;
-    if (veil.parentNode) {
-      veil.parentNode.removeChild(veil);
-    }
-    onComplete?.();
-  };
-
-  // 兜底看门狗（380ms 强制清理，绝不锁死）
-  const watchdog = setTimeout(cleanup, 380);
-
-  // 阶段 1：水墨轻泛（110ms），以温润曲线平滑晕染全屏
-  requestAnimationFrame(() => {
-    veil.style.transition = "opacity 110ms cubic-bezier(0.2, 0.8, 0.25, 1)";
-    veil.style.opacity = "0.98";
-
-    setTimeout(() => {
-      if (cleaned) return;
-
-      // 阶段 2：在水墨幕布掩映下，瞬间原子切换底层 DOM（零 FOUC、零视觉跳跃）
-      applyThemeDirect(nextTheme);
-
-      // 阶段 3：水墨轻盈消散（150ms），如晨雾散去显露新景
-      requestAnimationFrame(() => {
-        veil.style.transition = "opacity 150ms cubic-bezier(0.25, 1, 0.5, 1)";
-        veil.style.opacity = "0";
-
-        setTimeout(() => {
-          clearTimeout(watchdog);
-          cleanup();
-        }, 160);
-      });
-    }, 115);
-  });
-}
-
-/**
- * PC 桌面端专属高精度日光波纹 View Transition 引擎
- */
-function runDesktopRippleTransition({
-  nextTheme,
-  applyThemeDirect,
-  event,
-  options,
-  onComplete,
-}: ThemeDriverParams): void {
-  const root = document.documentElement;
-
+  // 若浏览器不支持 View Transitions，原子切换并安全回调
   if (!supportsViewTransitions(document)) {
     applyThemeDirect(nextTheme);
     onComplete?.();
@@ -142,7 +48,7 @@ function runDesktopRippleTransition({
   }
 
   try {
-    // 1. 精确获取动画圆心坐标
+    // 1. 精确解析动画扩散圆心坐标 (按钮中心、触控点或鼠标点击处)
     let x = options?.origin?.x;
     let y = options?.origin?.y;
 
@@ -171,101 +77,96 @@ function runDesktopRippleTransition({
       }
     }
 
+    // 兜底定位：若无有效坐标，定位至导航栏右上角切换按钮常规区
     if (
       typeof x !== "number" ||
       typeof y !== "number" ||
       (x === 0 && y === 0)
     ) {
-      x = window.innerWidth / 2;
-      y = window.innerHeight / 2;
+      x = window.innerWidth - 44;
+      y = 36;
     }
 
     x = Math.max(0, Math.min(window.innerWidth, x));
     y = Math.max(0, Math.min(window.innerHeight, y));
 
-    // 2. 计算覆盖全屏所需的最大几何半径
-    const endRadius = Math.ceil(
-      Math.hypot(
-        Math.max(x, window.innerWidth - x),
-        Math.max(y, window.innerHeight - y)
-      )
+    // 2. 计算视口尺寸与遮罩最终跨度（Paul Stamatiou 官方算法：s = max(vw, vh)，finalMaskSize = s * 10）
+    // 确保羽化边缘在动画中后段（~80%）就已经完全平滑越过屏幕所有边角，最后 20% 处于 100% 实心内部，彻底消灭触边卡顿与瞬断
+    const s = Math.max(window.innerWidth, window.innerHeight);
+    const maxDistToCorner = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
     );
+    const finalMaskSize = Math.max(s * 10, Math.ceil(maxDistToCorner * 8.5));
 
-    // 3. 生成跟随波纹同步扩散的柔光圈
-    const halo = document.createElement("div");
-    halo.setAttribute("aria-hidden", "true");
-    halo.style.position = "fixed";
-    halo.style.left = `${x - 24}px`;
-    halo.style.top = `${y - 24}px`;
-    halo.style.width = "48px";
-    halo.style.height = "48px";
-    halo.style.borderRadius = "50%";
-    halo.style.pointerEvents = "none";
-    halo.style.zIndex = "999999";
-    halo.style.boxShadow =
-      nextTheme === "dark"
-        ? "0 0 28px 10px rgba(0, 0, 0, 0.45), inset 0 0 16px rgba(0, 0, 0, 0.25)"
-        : "0 0 32px 10px rgba(212, 163, 89, 0.4), inset 0 0 16px rgba(255, 240, 210, 0.4)";
-    halo.style.border =
-      nextTheme === "dark"
-        ? "1.5px solid rgba(255, 255, 255, 0.15)"
-        : "1.5px solid rgba(185, 28, 28, 0.25)";
+    // 3. Paul Stamatiou 5px 高斯模糊矢量 Mask Data URI
+    const blurredMaskUrl = `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-66 -66 132 132"><defs><filter id="blur"><feGaussianBlur stdDeviation="5"/></filter></defs><circle cx="0" cy="0" r="33" fill="black" filter="url(%23blur)"/></svg>')`;
 
-    document.body.appendChild(halo);
+    // 4. 动态注入专属 View Transition 关键帧与羽化遮罩样式表
+    const styleId = "theme-transition-styles";
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
 
-    const scaleTo = (endRadius * 2) / 48;
-    try {
-      halo.animate(
-        [
-          { transform: "scale(0)", opacity: 0.95 },
-          {
-            transform: `scale(${scaleTo * 0.75})`,
-            opacity: 0.55,
-            offset: 0.75,
-          },
-          { transform: `scale(${scaleTo})`, opacity: 0 },
-        ],
-        {
-          duration: 400,
-          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-          fill: "forwards",
+    styleEl.textContent = `
+      ::view-transition-group(root) {
+        animation-duration: 800ms;
+        animation-timing-function: linear(
+          0 0%, 0.2342 12.49%, 0.4374 24.99%,
+          0.6093 37.49%, 0.6835 43.74%,
+          0.7499 49.99%, 0.8086 56.25%,
+          0.8593 62.5%, 0.9023 68.75%, 0.9375 75%,
+          0.9648 81.25%, 0.9844 87.5%,
+          0.9961 93.75%, 1 100%
+        );
+      }
+
+      ::view-transition-new(root) {
+        animation: themeReveal 800ms ease-in-out forwards;
+        transform-origin: ${x}px ${y}px;
+        -webkit-mask: ${blurredMaskUrl} 0 0 / 100% 100% no-repeat;
+        mask: ${blurredMaskUrl} 0 0 / 100% 100% no-repeat;
+        -webkit-mask-position: ${x}px ${y}px;
+        mask-position: ${x}px ${y}px;
+      }
+
+      ::view-transition-old(root) {
+        animation: none;
+        z-index: -1;
+      }
+
+      @keyframes themeReveal {
+        0% {
+          -webkit-mask-position: ${x}px ${y}px;
+          mask-position: ${x}px ${y}px;
+          -webkit-mask-size: 0px 0px;
+          mask-size: 0px 0px;
         }
-      );
-    } catch {}
-
-    // 4. 注入 CSS 自定义属性并锚定旧主题类名
-    const isCurrentlyDark = root.classList.contains("dark");
-    const anchorClass = isCurrentlyDark
-      ? "transition-from-dark"
-      : "transition-from-light";
-
-    root.style.setProperty("--theme-ripple-x", `${x}px`);
-    root.style.setProperty("--theme-ripple-y", `${y}px`);
-    root.style.setProperty("--theme-ripple-r", `${endRadius}px`);
-    root.style.setProperty("--theme-ripple-duration", "400ms");
-
-    root.classList.add("view-transition-active", anchorClass);
+        100% {
+          -webkit-mask-position: ${x - finalMaskSize / 2}px ${y - finalMaskSize / 2}px;
+          mask-position: ${x - finalMaskSize / 2}px ${y - finalMaskSize / 2}px;
+          -webkit-mask-size: ${finalMaskSize}px ${finalMaskSize}px;
+          mask-size: ${finalMaskSize}px ${finalMaskSize}px;
+        }
+      }
+    `;
 
     let cleaned = false;
     const cleanup = () => {
       if (cleaned) return;
       cleaned = true;
-      if (halo.parentNode) {
-        halo.parentNode.removeChild(halo);
+      const el = document.getElementById(styleId);
+      if (el) {
+        el.remove();
       }
-      root.classList.remove(
-        "view-transition-active",
-        "transition-from-dark",
-        "transition-from-light"
-      );
-      root.style.removeProperty("--theme-ripple-x");
-      root.style.removeProperty("--theme-ripple-y");
-      root.style.removeProperty("--theme-ripple-r");
-      root.style.removeProperty("--theme-ripple-duration");
       onComplete?.();
     };
 
-    const watchdog = setTimeout(cleanup, 500);
+    // 1000ms 强制超时看门狗，确保无论动画完成或被系统打断都绝不残留样式
+    const watchdog = setTimeout(cleanup, 1000);
 
     const transition = document.startViewTransition(() => {
       applyThemeDirect(nextTheme);
@@ -274,7 +175,12 @@ function runDesktopRippleTransition({
     transition.finished
       .then(() => {
         clearTimeout(watchdog);
-        cleanup();
+        // 双重 rAF：确保浏览器彻底提交真实 DOM 并完成伪元素离屏渲染，无感平滑移除临时样式
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            cleanup();
+          });
+        });
       })
       .catch(() => {
         clearTimeout(watchdog);

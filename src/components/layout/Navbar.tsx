@@ -1,75 +1,519 @@
 // components/layout/Navbar.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useRef, useId } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Menu, X, ArrowUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowUp } from "lucide-react";
 
 import { useTheme } from "@/components/theme/ThemeProvider";
-import { StatusCapsule } from "@/components/layout/StatusCapsule";
-import { useLiveStatus } from "@/hooks/useLiveStatus";
-import { useI18n } from "@/lib/i18n/I18nContext";
 import { useMusic } from "@/components/playlist/MusicContext";
 
-const NAV_LINKS = [
-  { key: "nav.posts" as const, name: "Blog", href: "/posts" },
-  { key: "nav.playlist" as const, name: "Playlist", href: "/playlist" },
-  { key: "nav.photos" as const, name: "Photos", href: "/photos" },
-  { key: "nav.thoughts" as const, name: "Thinking", href: "/thoughts" },
-];
+// =========================================================================
+// Ajeet Patel 物理弹簧参数体系 (layoutSpring & textSpring)
+// =========================================================================
+const layoutSpring = {
+  type: "spring" as const,
+  stiffness: 460,
+  damping: 34,
+  mass: 0.62,
+};
 
-function isNavLinkActive(pathname: string, href: string) {
-  return pathname === href || (href !== "/" && pathname.startsWith(href));
+const textSpring = {
+  type: "spring" as const,
+  stiffness: 380,
+  damping: 32,
+  mass: 0.7,
+};
+
+// =========================================================================
+// Custom App-Grade Animated Icons (Duotone Ink Style)
+// =========================================================================
+
+// 0. Duotone Home Icon (高辨识度墨色小屋：屋脊轮廓 + 半透墨色 + 门洞悬浮回弹)
+function DuotoneHomeIcon({ isHovered = false }: { isHovered?: boolean }) {
+  return (
+    <motion.svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className="overflow-visible shrink-0"
+      animate={isHovered ? "hover" : "rest"}
+    >
+      {/* 房屋外框与尖顶：1.8px 墨线 + 26% 透光墨色 */}
+      <path
+        d="M3 10.2L12 3.2L21 10.2V19.8C21 20.46 20.46 21 19.8 21H4.2C3.54 21 3 20.46 3 19.8V10.2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.26"
+      />
+      {/* 拱形门洞：悬浮时柔和轻微跳跃回弹 */}
+      <motion.path
+        d="M9.5 21V14.5C9.5 13.12 10.62 12 12 12C13.38 12 14.5 13.12 14.5 14.5V21"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        variants={{
+          rest: { scaleY: 1 },
+          hover: {
+            scaleY: [1, 1.18, 0.94, 1],
+            transition: { duration: 0.36, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "12px 21px" }}
+      />
+    </motion.svg>
+  );
 }
 
-function GitHubIcon({ className }: { className: string }) {
+// 1. Duotone Blog Icon (高辨识度水墨手册：封皮线框 + 浓墨书脊 + 丝带书签滑出 + 阅读条纹延展)
+function DuotoneBlogIcon({ isHovered = false }: { isHovered?: boolean }) {
   return (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+    <motion.svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className="overflow-visible shrink-0"
+      animate={isHovered ? "hover" : "rest"}
+    >
+      <rect
+        x="4"
+        y="3"
+        width="16"
+        height="18"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.28"
+      />
+      <rect
+        x="4"
+        y="3"
+        width="4.2"
+        height="18"
+        rx="1.2"
+        fill="currentColor"
+      />
+      <motion.path
+        d="M12.8 2.5H9.5V10.8L11.15 9.4L12.8 10.8V2.5Z"
+        fill="currentColor"
+        variants={{
+          rest: { y: 0, rotate: 0 },
+          hover: {
+            y: [0, 4.2, -0.5, 0],
+            rotate: [0, -3.5, 1.5, 0],
+            transition: { duration: 0.5, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "11px 2.5px" }}
+      />
+      <motion.rect
+        x="10"
+        y="13.2"
+        width="6.5"
+        height="1.6"
+        rx="0.8"
+        fill="currentColor"
+        variants={{
+          rest: { scaleX: 1, opacity: 0.7 },
+          hover: {
+            scaleX: [1, 1.35, 1],
+            opacity: [0.7, 1, 0.7],
+            transition: { duration: 0.45, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "10px 13.2px" }}
+      />
+      <motion.rect
+        x="10"
+        y="16.5"
+        width="4.2"
+        height="1.6"
+        rx="0.8"
+        fill="currentColor"
+        variants={{
+          rest: { scaleX: 1, opacity: 0.7 },
+          hover: {
+            scaleX: [1, 1.5, 1],
+            opacity: [0.7, 1, 0.7],
+            transition: { duration: 0.45, delay: 0.08, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "10px 16.5px" }}
+      />
+    </motion.svg>
+  );
+}
+
+// 2. Duotone Playlist Icon (高辨识度头戴耳机：清晰头梁圆弧 + 实体耳罩微震 + 中央音频均衡器跳跃)
+function DuotonePlaylistIcon({ isHovered = false }: { isHovered?: boolean }) {
+  return (
+    <motion.svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className="overflow-visible shrink-0"
+      animate={isHovered ? "hover" : "rest"}
+    >
+      <path
+        d="M4 14C4 8.5 7.6 4 12 4C16.4 4 20 8.5 20 14"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <motion.rect
+        x="2"
+        y="11"
+        width="5"
+        height="8.5"
+        rx="2.5"
+        fill="currentColor"
+        variants={{
+          rest: { scale: 1 },
+          hover: { scale: [1, 1.15, 1], transition: { duration: 0.38 } },
+        }}
+        style={{ transformOrigin: "4.5px 15px" }}
+      />
+      <motion.rect
+        x="17"
+        y="11"
+        width="5"
+        height="8.5"
+        rx="2.5"
+        fill="currentColor"
+        variants={{
+          rest: { scale: 1 },
+          hover: { scale: [1, 1.15, 1], transition: { duration: 0.38 } },
+        }}
+        style={{ transformOrigin: "19.5px 15px" }}
+      />
+      <motion.rect
+        x="9.2"
+        y="12"
+        width="1.6"
+        height="6.5"
+        rx="0.8"
+        fill="currentColor"
+        variants={{
+          rest: { scaleY: 0.5 },
+          hover: {
+            scaleY: [0.5, 1.4, 0.25, 1.1, 0.5],
+            transition: { duration: 0.52, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "10px 18.5px" }}
+      />
+      <motion.rect
+        x="11.7"
+        y="9.5"
+        width="1.6"
+        height="9"
+        rx="0.8"
+        fill="currentColor"
+        variants={{
+          rest: { scaleY: 0.7 },
+          hover: {
+            scaleY: [0.7, 1.45, 0.3, 1.25, 0.7],
+            transition: { duration: 0.55, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "12.5px 18.5px" }}
+      />
+      <motion.rect
+        x="14.2"
+        y="11.5"
+        width="1.6"
+        height="7"
+        rx="0.8"
+        fill="currentColor"
+        variants={{
+          rest: { scaleY: 0.45 },
+          hover: {
+            scaleY: [0.45, 1.35, 0.5, 1.05, 0.45],
+            transition: { duration: 0.48, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "15px 18.5px" }}
+      />
+    </motion.svg>
+  );
+}
+
+// 3. Duotone Photos Icon (高辨识度旁轴相机：清晰机身轮廓 + 机械快门真实下沉 + 镜头光圈对焦)
+function DuotonePhotosIcon({ isHovered = false }: { isHovered?: boolean }) {
+  return (
+    <motion.svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className="overflow-visible shrink-0"
+      animate={isHovered ? "hover" : "rest"}
+    >
+      <path
+        d="M4 6.8C2.9 6.8 2 7.7 2 8.8V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8.8C22 7.7 21.1 6.8 20 6.8H16.5L15 4.5H9L7.5 6.8H4Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+        fill="currentColor"
+        fillOpacity="0.28"
+      />
+      <motion.rect
+        x="5"
+        y="3"
+        width="3.2"
+        height="2"
+        rx="0.75"
+        fill="currentColor"
+        variants={{
+          rest: { y: 0 },
+          hover: {
+            y: [0, 2.2, 0],
+            transition: { duration: 0.32, ease: "easeInOut" },
+          },
+        }}
+      />
+      <circle
+        cx="17.2"
+        cy="8.2"
+        r="1.1"
+        fill="currentColor"
+      />
+      <circle
+        cx="12"
+        cy="13.2"
+        r="4.6"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        fill="currentColor"
+        fillOpacity="0.2"
+      />
+      <motion.circle
+        cx="12"
+        cy="13.2"
+        r="2.2"
+        fill="currentColor"
+        variants={{
+          rest: { scale: 1 },
+          hover: {
+            scale: [1, 0.35, 1.35, 1],
+            transition: { duration: 0.44, ease: [0.16, 1, 0.3, 1] },
+          },
+        }}
+        style={{ transformOrigin: "12px 13.2px" }}
+      />
+    </motion.svg>
+  );
+}
+
+// 4. Style 1 Thoughts Icon (极度饱满纯实心随想气泡：内部 3 墨孔波浪跃起)
+function Style1ThoughtsIcon({ isHovered = false }: { isHovered?: boolean }) {
+  const rawId = useId();
+  const maskId = "nav-thought-mask-" + rawId.replace(/[^a-zA-Z0-9_-]/g, "");
+
+  return (
+    <motion.svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      className="overflow-visible shrink-0"
+      animate={isHovered ? "hover" : "rest"}
+    >
+      <defs>
+        <mask id={maskId}>
+          <rect x="0" y="0" width="24" height="24" fill="white" />
+          <motion.circle
+            cx="7.8"
+            cy="11.5"
+            r="1.6"
+            fill="black"
+            variants={{
+              rest: { y: 0, scale: 1 },
+              hover: {
+                y: [0, -3.5, 0],
+                scale: [1, 1.25, 1],
+                transition: { duration: 0.42, delay: 0, ease: "easeInOut" },
+              },
+            }}
+          />
+          <motion.circle
+            cx="12"
+            cy="11.5"
+            r="1.6"
+            fill="black"
+            variants={{
+              rest: { y: 0, scale: 1 },
+              hover: {
+                y: [0, -3.5, 0],
+                scale: [1, 1.25, 1],
+                transition: { duration: 0.42, delay: 0.09, ease: "easeInOut" },
+              },
+            }}
+          />
+          <motion.circle
+            cx="16.2"
+            cy="11.5"
+            r="1.6"
+            fill="black"
+            variants={{
+              rest: { y: 0, scale: 1 },
+              hover: {
+                y: [0, -3.5, 0],
+                scale: [1, 1.25, 1],
+                transition: { duration: 0.42, delay: 0.18, ease: "easeInOut" },
+              },
+            }}
+          />
+        </mask>
+      </defs>
+
+      <motion.path
+        mask={`url(#${maskId})`}
+        d="M12 3C6.48 3 2 6.8 2 11.5C2 13.9 3.1 16 5 17.5C4.7 18.9 3.9 20.2 2.8 21.1C2.5 21.3 2.7 21.8 3.1 21.7C5.8 21.4 8.1 20 9.4 19.3C10.2 19.8 11.1 20 12 20C17.5 20 22 16.2 22 11.5C22 6.8 17.5 3 12 3Z"
+        fill="currentColor"
+        variants={{
+          rest: { scale: 1 },
+          hover: {
+            scale: [1, 1.1, 0.98, 1],
+            transition: { duration: 0.38, ease: "easeInOut" },
+          },
+        }}
+        style={{ transformOrigin: "12px 12px" }}
+      />
+    </motion.svg>
+  );
+}
+
+// 5. Paul Stamatiou Theme Toggle Icon (太阳 180° 自转隐退 + 黑色月牙遮罩滑入咬合)
+function PaulThemeToggleIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      width="20"
+      height="20"
+      fill="currentColor"
+      className={`theme-toggle shrink-0 ${className}`}
+      viewBox="0 0 32 32"
+    >
+      <defs>
+        <clipPath id="theme-picker-cutout">
+          <path d="M0-11h25a1 1 0 0117 13v30H0Z" />
+        </clipPath>
+        <mask id="theme-picker-moon-mask">
+          <rect width="32" height="32" fill="white" />
+          <circle className="moon-cradle" cx="28" cy="8" r="10" fill="black" />
+        </mask>
+      </defs>
+      <g clipPath="url(#theme-picker-cutout)">
+        <circle className="main-circle" cx="16" cy="16" r="8.5" mask="url(#theme-picker-moon-mask)" />
+        <path
+          className="sun-rays"
+          d="M16 .9c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3S14.7.9 16 .9zm0 25.6c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3zm12.8-12.8c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3zM3.2 13.7c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3S.9 17.3.9 16s1-2.3 2.3-2.3zM6.7 4.4c1.3 0 2.3 1 2.3 2.3S8 9 6.7 9 4.4 8 4.4 6.7s1-2.3 2.3-2.3zm18.6 18.6c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3zM25.3 4.4c1.3 0 2.3 1 2.3 2.3S26.6 9 25.3 9 23 8 23 6.7s1-2.3 2.3-2.3zM6.7 23c1.3 0 2.3 1 2.3 2.3s-1 2.3-2.3 2.3-2.3-1-2.3-2.3 1-2.3 2.3-2.3z"
+        />
+      </g>
     </svg>
   );
 }
 
-function BrandLogo({ className = "h-9 w-9 sm:h-10 sm:w-10" }: { className?: string }) {
+// =========================================================================
+// 路由定义与激活研判
+// =========================================================================
+const NAV_ITEMS = [
+  { name: "home", href: "/", icon: DuotoneHomeIcon },
+  { name: "blog", href: "/posts", icon: DuotoneBlogIcon },
+  { name: "playlist", href: "/playlist", icon: DuotonePlaylistIcon },
+  { name: "photos", href: "/photos", icon: DuotonePhotosIcon },
+  { name: "thoughts", href: "/thoughts", icon: Style1ThoughtsIcon },
+];
+
+function isNavItemActive(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+  return pathname === href || pathname.startsWith(href);
+}
+
+// =========================================================================
+// 单项导航按钮组件
+// =========================================================================
+function DockNavItem({
+  item,
+  isActive,
+  isExpanded,
+  isHovered,
+  onHover,
+}: {
+  item: (typeof NAV_ITEMS)[number];
+  isActive: boolean;
+  isExpanded: boolean;
+  isHovered: boolean;
+  onHover: (hovered: boolean) => void;
+}) {
+  const Icon = item.icon;
+
   return (
-    <div className={`relative flex items-center justify-center select-none ${className}`}>
-      <div className="relative h-full w-full">
-        {/* Enso 墨圆：手绘不完美圆形，毛笔一笔画成 */}
-        <svg
-          viewBox="0 0 120 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="absolute inset-0 w-full h-full text-neutral-800 dark:text-neutral-200 transition-colors duration-300 pointer-events-none"
-          aria-hidden="true"
-        >
-          <path
-            d="M60 8 C28 6, 6 28, 8 60 C6 92, 28 114, 60 112 C92 114, 114 92, 112 60 C114 28, 92 6, 60 8 Z"
-            stroke="currentColor"
-            strokeWidth="3.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-        </svg>
-        {/* 头像图片：圆形裁切，内嵌于墨圆之中 */}
-        <div className="absolute inset-[3.2px] sm:inset-[3.8px] overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-900 shadow-xs">
-          <Image
-            src="/avatar.jpg"
-            alt="Vince Ou"
-            fill
-            sizes="40px"
-            className="h-full w-full object-cover"
-          />
-        </div>
+    <Link
+      href={item.href}
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
+      className={`relative isolate inline-flex items-center justify-center rounded-full font-medium h-9 min-w-9 px-2.5 transition-colors duration-150 outline-none select-none cursor-pointer ${
+        isActive
+          ? "text-[#33FF33]"
+          : "text-white hover:text-[#33FF33] "
+      }`}
+      aria-label={item.name}
+    >
+      {isActive && (
+        <motion.div
+          layoutId="dock-active-pill"
+          transition={layoutSpring}
+          className="absolute inset-0 -z-10 rounded-full  shadow-xs"
+        />
+      )}
+
+      <div className="flex items-center justify-center shrink-0 w-5 h-5">
+        <Icon isHovered={isHovered} />
       </div>
-    </div>
+
+      <motion.span
+        aria-hidden={!isExpanded}
+        initial={false}
+        animate={{
+          width: isExpanded ? "auto" : 0,
+          opacity: isExpanded ? 1 : 0,
+          x: isExpanded ? 0 : -4,
+          marginLeft: isExpanded ? 7 : 0,
+          filter: isExpanded ? "blur(0px)" : "blur(3px)",
+        }}
+        transition={textSpring}
+        className="hidden sm:inline-block overflow-hidden whitespace-nowrap text-[13px] font-medium pointer-events-none select-none"
+      >
+        {item.name}
+      </motion.span>
+    </Link>
   );
 }
 
-function ThemeToggleButton({ className = "" }: { className?: string }) {
+// =========================================================================
+// 主题切换按钮组件
+// =========================================================================
+function ThemeActionItem({
+  isExpanded,
+  onHover,
+}: {
+  isExpanded: boolean;
+  isHovered: boolean;
+  onHover: (hovered: boolean) => void;
+}) {
   const { toggleTheme } = useTheme();
 
   return (
@@ -91,33 +535,51 @@ function ThemeToggleButton({ className = "" }: { className?: string }) {
           y = e.clientY;
         }
         if (x === 0 && y === 0 && typeof window !== "undefined") {
-          x = window.innerWidth - 44;
-          y = 28;
+          x = window.innerWidth / 2;
+          y = 36;
         }
         toggleTheme(e, {
           origin: { x, y },
         });
       }}
-      className={`group relative flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none ${className}`}
-      aria-label="切换明暗主题"
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
+      className="relative isolate inline-flex items-center justify-center rounded-full font-medium h-9 min-w-9 px-2.5 transition-colors duration-150 outline-none select-none cursor-pointer text-white hover:text-[#33FF33]"
+      aria-label="切换主题"
+      title="切换主题"
     >
-      <Sun className="h-[19px] w-[19px] stroke-[2] rotate-0 scale-100 transition-transform duration-300 dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[19px] w-[19px] stroke-[2] rotate-90 scale-0 transition-transform duration-300 dark:rotate-0 dark:scale-100" />
+      <div className="flex items-center justify-center shrink-0 w-5 h-5">
+        <PaulThemeToggleIcon className="w-5 h-5" />
+      </div>
+
+      <motion.span
+        aria-hidden={!isExpanded}
+        initial={false}
+        animate={{
+          width: isExpanded ? "auto" : 0,
+          opacity: isExpanded ? 1 : 0,
+          x: isExpanded ? 0 : -4,
+          marginLeft: isExpanded ? 7 : 0,
+          filter: isExpanded ? "blur(0px)" : "blur(3px)",
+        }}
+        transition={textSpring}
+        className="hidden sm:inline-block overflow-hidden whitespace-nowrap text-[13px] font-medium pointer-events-none select-none"
+      >
+        theme
+      </motion.span>
     </button>
   );
 }
 
+// =========================================================================
+// 主导出 Navbar 组件
+// =========================================================================
 export function Navbar() {
   const pathname = usePathname();
-  const [mobileMenuOpenPath, setMobileMenuOpenPath] = useState<string | null>(null);
-  const mobileMenuOpen = mobileMenuOpenPath === pathname;
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const liveStatus = useLiveStatus();
-  const { isDark } = useTheme();
-  const { t } = useI18n();
-  const isOnline =
-  (liveStatus.activity === "music" && liveStatus.music !== null) ||
-  liveStatus.app !== null;
+  const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { currentSong } = useMusic();
 
@@ -134,18 +596,45 @@ export function Navbar() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleMouseEnter = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) return;
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current);
+      collapseTimerRef.current = null;
+    }
+    setIsExpanded(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current);
+    }
+    collapseTimerRef.current = setTimeout(() => {
+      setIsExpanded(false);
+      setHoveredKey(null);
+    }, 90);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (collapseTimerRef.current) {
+        clearTimeout(collapseTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <>
-      {/* ===================== Anthony Fu 原版回顶按钮 (当 scroll > 300 时右下角静默呈现) ===================== */}
+      {/* ===================== Anthony Fu 回顶按钮 (当 scroll > 300 时右下角静默呈现) ===================== */}
       <button
         type="button"
         title="Scroll to top"
         aria-label="Scroll to top"
         onClick={scrollToTop}
-        className={`fixed right-3 z-50 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-500/20 dark:hover:bg-neutral-400/20 transition-all duration-300 cursor-pointer print:hidden ${
+        className={`fixed right-4 sm:right-6 z-40 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-500/20 dark:hover:bg-neutral-400/20 transition-all duration-300 cursor-pointer print:hidden ${
           currentSong
-            ? "bottom-[calc(92px+env(safe-area-inset-bottom,0px))] sm:bottom-3"
-            : "bottom-[calc(14px+env(safe-area-inset-bottom,0px))] sm:bottom-3"
+            ? "bottom-[calc(92px+env(safe-area-inset-bottom,0px))] sm:bottom-6"
+            : "bottom-[calc(18px+env(safe-area-inset-bottom,0px))] sm:bottom-6"
         } ${
           showScrollTop ? "opacity-60 hover:opacity-100 dark:opacity-75 dark:hover:opacity-100" : "opacity-0 pointer-events-none"
         }`}
@@ -153,204 +642,41 @@ export function Navbar() {
         <ArrowUp className="h-4 w-4" />
       </button>
 
-      {/* ===================== 顶部导航容器（Antfu 方案 A：流式绝对定位，仅在最顶部展现，下滑自然滚出） ===================== */}
-      <header 
-        className="absolute inset-x-0 top-0 z-40 h-16 sm:h-[72px] bg-transparent select-none"
+      {/* ===================== 顶部居中悬浮交互 Dock ===================== */}
+      <header
+        className="fixed top-[calc(14px+env(safe-area-inset-top,0px))] sm:top-5 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center pointer-events-none transition-all duration-300"
       >
-        {/* 顶部通透全延展容器 (左右视口间距 px-6 sm:px-8 保持绝对像素对齐与对称) */}
-        <div className="relative mx-auto flex h-full w-full items-center justify-end px-6 sm:px-8">
-          {/* ===================== 左侧：Enso 墨圆头像 Logo + 状态胶囊 (与右侧视口间距 px-6 sm:px-8 严格对称对齐) ===================== */}
-          <div className="flex items-start gap-3 absolute xl:fixed left-6 sm:left-8 top-3.5 sm:top-5 z-50">
-            <Link
-              href="/"
-              className="flex items-start shrink-0 cursor-pointer select-none"
-              aria-label="回到首页"
-              title="Vince Ou"
-            >
-              <BrandLogo />
-            </Link>
+        <motion.nav
+          layout="size"
+          transition={layoutSpring}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          data-home-dock
+          className="pointer-events-auto relative inline-flex items-center overflow-hidden rounded-full border-2 border-[#484848] bg-[#080808] shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-2xl p-1.5 gap-1 select-none min-h-[48px]"
+          aria-label="主导航栏"
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = isNavItemActive(pathname, item.href);
 
-            {/* 实时状态胶囊：仅在有状态信息（在线）时展示 */}
-            {isOnline && (
-              <div className="hidden sm:flex items-start mt-1.5">
-                <StatusCapsule />
-              </div>
-            )}
-          </div>
+            return (
+              <DockNavItem
+                key={item.href}
+                item={item}
+                isActive={isActive}
+                isExpanded={isExpanded}
+                isHovered={hoveredKey === item.name}
+                onHover={(h) => setHoveredKey(h ? item.name : null)}
+              />
+            );
+          })}
 
-          {/* ===================== 右侧：文字导航 + 图标群带 Tooltip（Antfu 方案 A：纯静态流式，无滚动打扰） ===================== */}
-          <div className="hidden md:flex items-center gap-6 lg:gap-7">
-            <nav className="flex items-center gap-6 lg:gap-7 select-none">
-              {NAV_LINKS.map((link) => {
-                const isActive = isNavLinkActive(pathname, link.href);
-
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`text-[14.5px] sm:text-[15px] font-sans tracking-wide transition-opacity duration-200 select-none cursor-pointer py-1 ${
-                      isActive
-                        ? "opacity-100 font-bold text-black dark:text-white"
-                        : "opacity-60 hover:opacity-100 text-neutral-800 dark:text-neutral-200"
-                    }`}
-                  >
-                    <span>{t(link.key)}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* 右侧功能区：无任何竖线，全流式平铺衔接 */}
-            <div className="flex items-center gap-3.5">
-              {/* GitHub */}
-              <div className="group relative flex items-center justify-center">
-                <a
-                  href="https://github.com/qaz6758"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white opacity-60 hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
-                  aria-label="GitHub Profile"
-                >
-                  <GitHubIcon className="h-[20px] w-[20px]" />
-                </a>
-                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded bg-[#18181b] border border-white/10 text-white px-2 py-0.5 text-[11px] font-mono shadow-md whitespace-nowrap z-50">
-                  GitHub
-                </span>
-              </div>
-
-
-              {/* Theme Toggle */}
-              <div className="group relative flex items-center justify-center">
-                <ThemeToggleButton />
-                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded bg-[#18181b] border border-white/10 text-white px-2 py-0.5 text-[11px] font-mono shadow-md whitespace-nowrap z-50">
-                  Toggle Theme
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ===================== 移动端右侧：世界切换 + 汉堡菜单 ===================== */}
-          <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggleButton />
-
-            <button
-              type="button"
-              onClick={() =>
-                setMobileMenuOpenPath((openPath) =>
-                  openPath === pathname ? null : pathname,
-                )
-              }
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-700 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.05] cursor-pointer transition-colors"
-              aria-label="切换菜单"
-            >
-              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-
-      {/* ===================== 移动端空间展开 (不推动页面，融回内容) ===================== */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            className="pointer-events-auto absolute inset-x-0 top-full md:hidden bg-white/95 dark:bg-[#050505]/95 backdrop-blur-md px-6 pt-2 pb-8 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.6)]"
-            variants={{
-              open: { 
-                opacity: 1, 
-                y: 0, 
-                transition: { 
-                  duration: isDark ? 0.24 : 0.20, 
-                  ease: "easeOut",
-                  staggerChildren: 0.04,
-                  delayChildren: 0.02
-                } 
-              },
-              closed: { 
-                opacity: 0, 
-                y: -4, 
-                transition: { 
-                  duration: isDark ? 0.18 : 0.16, 
-                  ease: "easeIn",
-                  staggerChildren: 0.03,
-                  staggerDirection: -1,
-                  when: "afterChildren"
-                } 
-              }
-            }}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            style={{ 
-              // 极弱的底缘背景差，替代生硬的 border
-              backgroundImage: isDark ? "linear-gradient(to bottom, rgba(5,5,5,1) 85%, rgba(10,10,10,1) 100%)" : "none"
-            }}
-          >
-            {isOnline && (
-              <motion.div 
-                variants={{
-                  open: { opacity: 1, y: 0, transition: { duration: 0.15, ease: "easeOut" } },
-                  closed: { opacity: 0, y: -4, transition: { duration: 0.12, ease: "easeIn" } }
-                }}
-                className="mb-7 pl-2" // Status 与 Navigation 之间的呼吸空间 (28px)
-              >
-                <StatusCapsule hideWhenOffline={false} disablePopover={true} inlineApp={true} />
-              </motion.div>
-            )}
-            
-            <nav className="flex flex-col gap-3">
-              {NAV_LINKS.map((link) => {
-                const isActive = isNavLinkActive(pathname, link.href);
-
-                return (
-                  <motion.div
-                    key={link.name}
-                    variants={{
-                      open: { opacity: 1, y: 0, transition: { duration: 0.15, ease: "easeOut" } },
-                      closed: { opacity: 0, y: -4, transition: { duration: 0.12, ease: "easeIn" } }
-                    }}
-                  >
-                    <Link
-                      href={link.href}
-                      onClick={() => setMobileMenuOpenPath(null)}
-                      className="group relative flex items-center py-2 px-2 transition-colors cursor-pointer select-none"
-                    >
-                      <span className={`relative z-10 transition-colors ${
-                        isActive
-                          ? "text-neutral-900 dark:text-white font-medium tracking-wide"
-                          : "text-neutral-500 dark:text-neutral-400 font-normal tracking-wide hover:text-neutral-800 dark:hover:text-neutral-200"
-                      }`}>
-                        {t(link.key)}
-                      </span>
-                      
-                      {/* Active 痕迹 (极短、极细的纯黑/纯白) */}
-                      <span 
-                        className={`absolute left-2 bottom-1 h-[1.5px] transition-all duration-300 ease-out pointer-events-none rounded-full ${
-                          isActive
-                            ? "w-[16px] bg-neutral-950 dark:bg-white opacity-100"
-                            : "w-0 bg-transparent opacity-0"
-                        }`}
-                      />
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </nav>
-
-            {/* 移动端底部快捷图标群 */}
-            <div className="mt-5 pt-4 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center gap-4 pl-2">
-              <a
-                href="https://github.com/qaz6758"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-xs text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white transition-colors"
-              >
-                <GitHubIcon className="h-4 w-4" />
-                <span>GitHub</span>
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+          <ThemeActionItem
+            isExpanded={isExpanded}
+            isHovered={hoveredKey === "theme"}
+            onHover={(h) => setHoveredKey(h ? "theme" : null)}
+          />
+        </motion.nav>
+      </header>
     </>
   );
 }

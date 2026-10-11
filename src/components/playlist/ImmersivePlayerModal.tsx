@@ -108,7 +108,7 @@ export function ImmersivePlayerModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="will-change-transform fixed inset-0 z-[100000] flex flex-col justify-between overflow-hidden select-none antialiased bg-neutral-950 text-white"
+          className="will-change-transform fixed inset-0 z-[100000] flex flex-col justify-between overflow-hidden select-none antialiased bg-[#161616] text-white"
           style={{ transform: "translateZ(0)" }}
         >
           {/* ================= 1. Apple 官方同款 WebGL 动态流体流光溢彩背景 (@firecms/neat 驱动) ================= */}

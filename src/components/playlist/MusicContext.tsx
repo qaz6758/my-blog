@@ -12,13 +12,9 @@ import React, {
   useMemo,
 } from "react";
 import { Song } from "@/components/playlist/SongList";
-import dynamic from "next/dynamic";
 
-// ⚡ 懒加载声明 — 播放器 JS 在用户点击播放前完全不下载
-const MusicPlayer = dynamic(
-  () => import("@/components/playlist/MusicPlayer").then((m) => m.MusicPlayer),
-  { ssr: false }
-);
+
+
 
 export type RepeatMode = "off" | "all" | "one";
 
@@ -34,6 +30,8 @@ interface MusicContextType {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   closePlayer: () => void;
+  nextSong?: () => void;
+  prevSong?: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -52,21 +50,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const preloadAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // 空闲时自动静默预加载播放器组件，消除用户点击时的 chunk 下载等待
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const preload = () => {
-        import("@/components/playlist/MusicPlayer");
-      };
-      if ("requestIdleCallback" in window) {
-        window.requestIdleCallback(preload);
-      } else {
-        setTimeout(preload, 1000);
-      }
-    }
-  }, []);
 
-  // ⚡ 核心黑科技：下一首无感智能预加载 (Gapless Next Song Preloader)
   // 当歌曲播放进行中，后台静默拉取下一首音频，完成 DNS 握手与首部缓冲，切歌 0 延迟！
   useEffect(() => {
     if (!currentSong || playlistSongs.length <= 1) return;
@@ -151,11 +135,11 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!playlistSongs.length || !currentSong) return;
     if (repeatMode === "one" && audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play();
+      audioRef.current.play().catch(console.warn);
       return;
     }
     if (isShuffle && playlistSongs.length > 1) {
@@ -169,18 +153,14 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     const currentIndex = playlistSongs.findIndex((s) => s.id === currentSong.id);
     const nextIndex = (currentIndex + 1) % playlistSongs.length;
     performSeamlessSwitch(playlistSongs[nextIndex]);
-  };
+  }, [playlistSongs, currentSong, repeatMode, isShuffle, performSeamlessSwitch]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (!playlistSongs.length || !currentSong) return;
-    if (currentTime > 3 && audioRef.current) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
     const currentIndex = playlistSongs.findIndex((s) => s.id === currentSong.id);
     const prevIndex = (currentIndex - 1 + playlistSongs.length) % playlistSongs.length;
     performSeamlessSwitch(playlistSongs[prevIndex]);
-  };
+  }, [playlistSongs, currentSong, performSeamlessSwitch]);
 
   const handleMediaSessionPlay = useEffectEvent(() => {
     audioRef.current?.play();
@@ -288,6 +268,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       toggleShuffle,
       toggleRepeat,
       closePlayer,
+      nextSong: handleNext,
+      prevSong: handlePrev,
     }),
     [
       currentSong,
@@ -301,6 +283,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       toggleShuffle,
       toggleRepeat,
       closePlayer,
+      handleNext,
+      handlePrev,
     ]
   );
 
@@ -342,33 +326,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
           setIsPlaying(false);
         }}
       />
-
-      {/* 全局底部持久化浮动播放器（用户未播放时零 JS 负担） */}
-      {currentSong && (
-        <MusicPlayer
-          currentSong={currentSong}
-          playlistSongs={playlistSongs}
-          isPlaying={isPlaying}
-          isShuffle={isShuffle}
-          repeatMode={repeatMode}
-          currentTime={currentTime}
-          duration={duration}
-          volume={volume}
-          isMuted={isMuted}
-          onTogglePlay={togglePlay}
-          onToggleShuffle={toggleShuffle}
-          onToggleRepeat={toggleRepeat}
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onSeek={handleSeek}
-          onVolumeChange={handleVolumeChange}
-          onAdjustVolume={handleAdjustVolume}
-          onToggleMute={handleToggleMute}
-          onSelectSong={(song) => playSong(song)}
-          onClose={closePlayer}
-          formatTime={formatTime}
-        />
-      )}
     </MusicContext.Provider>
   );
 }

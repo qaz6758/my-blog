@@ -1,9 +1,17 @@
+
 import { ThemeScript } from "@/components/theme/ThemeScript";
 import type { Metadata, Viewport } from "next";
-import { Inter, DM_Mono, DM_Serif_Display, Bad_Script } from "next/font/google";
+import Script from "next/script";
+import {
+  Inter,
+  DM_Mono,
+  DM_Serif_Display,
+  Bad_Script,
+  Dancing_Script,
+} from "next/font/google";
 import "@/app/globals.css";
 
-// Anthony Fu (antfu.me) 同款字体全家桶配置：Inter 主力无衬线 + DM Mono 代码体 + DM Serif 衬线体 + Bad Script 手写体
+// Anthony Fu 风格字体配置
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -31,9 +39,15 @@ const badScript = Bad_Script({
   display: "swap",
 });
 
+const dancingScript = Dancing_Script({
+  weight: ["700"],
+  subsets: ["latin"],
+  variable: "--font-dancing-script",
+  display: "swap",
+});
+
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { MusicProvider } from "@/components/playlist/MusicContext";
-import { I18nProvider } from "@/lib/i18n/I18nContext";
 import { FrontendShell } from "@/components/layout/FrontendShell";
 import { siteConfig } from "@/config/site";
 import { SITE_URL, siteUrl } from "@/lib/site";
@@ -65,7 +79,7 @@ export const metadata: Metadata = {
         alt: `${siteConfig.name}'s Blog Cover`,
       },
     ],
-    locale: "en_US",
+    locale: "zh_CN",
     type: "website",
   },
   twitter: {
@@ -86,116 +100,39 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        {/* 1. 首屏零毫秒同步锁定主题脚本（由 useServerInsertedHTML 仅在服务端流式注入 HTML Head，客户端渲染返回 null，彻底消除 React 19 Script 警告） */}
-        <ThemeScript />
-
-        {/* 2. 首屏关键样式：0ms 消除 FOUC 与刷新白屏/黑底闪烁 */}
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              :root {
-                --page-bg: #ffffff;
-                --page-text: #222222;
-              }
-              @media (prefers-color-scheme: dark) {
-                :root {
-                  color-scheme: only dark;
-                }
-                html:not(.light),
-                html:not(.light) body {
-                  background-color: #050505 !important;
-                  color: #e5e5e5 !important;
-                }
-              }
-              html.light,
-              html.light body {
-                background-color: #ffffff !important;
-                color: #222222 !important;
-                color-scheme: only light !important;
-              }
-              html.dark,
-              html.dark body {
-                background-color: #050505 !important;
-                color: #e5e5e5 !important;
-                color-scheme: only dark !important;
-              }
-              /* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
-              html.no-transitions,
-              html.no-transitions *,
-              html.no-transitions *::before,
-              html.no-transitions *::after {
-                -webkit-transition: none !important;
-                -moz-transition: none !important;
-                -o-transition: none !important;
-                -ms-transition: none !important;
-                transition: none !important;
-              }
-              /* 歌单直达预阻断：0ms 杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现 */
-              html.hide-playlist-grid [data-playlist-grid] {
-                display: none !important;
-                visibility: hidden !important;
-                animation: none !important;
-                opacity: 0 !important;
-              }
-              /* 同步直出关键动画规则，杜绝 Frame 0 元素先满不透明度绘制后隐藏的跳闪 */
-              @keyframes slide-enter {
-                0% { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-                @media (prefers-reduced-motion: no-preference) {
-  :is(.slide-enter, .slide-enter-content > *) {
-    --enter-stage: 0;
-    --enter-step: 90ms;
-    --enter-initial: 0s;
-    animation: 1s both slide-enter;
-    animation-delay: calc(var(--enter-initial) + var(--enter-stage) * var(--enter-step));
-  }
-
-  .slide-enter-content > *:nth-child(1) { --enter-stage: 1 !important; }
-  .slide-enter-content > *:nth-child(2) { --enter-stage: 2 !important; }
-  .slide-enter-content > *:nth-child(3) { --enter-stage: 3 !important; }
-  .slide-enter-content > *:nth-child(4) { --enter-stage: 4 !important; }
-  .slide-enter-content > *:nth-child(5) { --enter-stage: 5 !important; }
-  .slide-enter-content > *:nth-child(6) { --enter-stage: 6 !important; }
-  .slide-enter-content > *:nth-child(7) { --enter-stage: 7 !important; }
-  .slide-enter-content > *:nth-child(8) { --enter-stage: 8 !important; }
-  .slide-enter-content > *:nth-child(9) { --enter-stage: 9 !important; }
-  .slide-enter-content > *:nth-child(10) { --enter-stage: 10 !important; }
-  .slide-enter-content > *:nth-child(11) { --enter-stage: 11 !important; }
-  .slide-enter-content > *:nth-child(12) { --enter-stage: 12 !important; }
-  .slide-enter-content > *:nth-child(13) { --enter-stage: 13 !important; }
-  .slide-enter-content > *:nth-child(14) { --enter-stage: 14 !important; }
-  .slide-enter-content > *:nth-child(15) { --enter-stage: 15 !important; }
-  .slide-enter-content > *:nth-child(16) { --enter-stage: 16 !important; }
-  .slide-enter-content > *:nth-child(17) { --enter-stage: 17 !important; }
-  .slide-enter-content > *:nth-child(18) { --enter-stage: 18 !important; }
-  .slide-enter-content > *:nth-child(19) { --enter-stage: 19 !important; }
-  .slide-enter-content > *:nth-child(20) { --enter-stage: 20 !important; }
-}
-            `,
-          }}
+        {/* 预加载 W95FA 经典像素复古字体 */}
+        <link
+          rel="preload"
+          href="/fonts/w95fa.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
         />
-        
-        {/* Anthony Fu (antfu.me) 同款字体（由 Next.js 本地零延迟自托管，零运行时请求） */}
+
+        {/* 首屏主题脚本 */}
+        <ThemeScript />
       </head>
 
       <body
-        className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable} min-h-screen w-full font-sans overflow-x-hidden antialiased`}
+        className={`${inter.variable} ${dmMono.variable} ${dmSerifDisplay.variable} ${badScript.variable} ${dancingScript.variable} min-h-screen w-full font-sans overflow-x-hidden antialiased`}
       >
         <ThemeProvider>
-          {/* 全局国际化 Provider */}
-          <I18nProvider>
-            {/* 包裹全局播放器 Provider */}
-            <MusicProvider>
-              <FrontendShell>
-                {children}
-              </FrontendShell>
-            </MusicProvider>
-          </I18nProvider>
+          {/* 全局播放器 Provider */}
+          <MusicProvider>
+            <FrontendShell>{children}</FrontendShell>
+          </MusicProvider>
         </ThemeProvider>
+
+        {/* Neko.js：经典像素猫，全站追踪鼠标 */}
+        <Script
+          src="https://louisabraham.github.io/nekojs/neko.js"
+          strategy="afterInteractive"
+          data-autostart=""
+        />
       </body>
     </html>
   );
 }
+

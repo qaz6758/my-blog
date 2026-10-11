@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { fetchPosts } from '@/lib/data';
-import { PostsListClient, PostItem } from '@/components/post/PostsListClient';
+import { RetroPostsView } from '@/components/post/RetroPostsView';
 import { siteUrl } from '@/lib/site';
 
 export const dynamic = "force-static";
@@ -17,11 +17,5 @@ export const metadata: Metadata = {
 export default async function PostsPage() {
   const posts = await fetchPosts();
 
-  return (
-    <div className="relative w-full overflow-hidden pt-24 sm:pt-32 pb-24 px-6 sm:px-8">
-      <div className="relative z-10 mx-auto w-full max-w-[660px]">
-        <PostsListClient initialPosts={posts as PostItem[]} />
-      </div>
-    </div>
-  );
+  return <RetroPostsView posts={posts} />;
 }

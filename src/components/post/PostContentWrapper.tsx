@@ -39,8 +39,6 @@ import { slugifyHeading } from "@/lib/utils";
 
 import { getProxyImageUrl } from "@/lib/image-proxy";
 
-import { useI18n } from "@/lib/i18n/I18nContext";
-
 // Prism 常用语言语法解析支持
 
 import "prismjs/components/prism-javascript";
@@ -301,7 +299,6 @@ function processAndOptimizeHtml(rawHtml: string): string {
 interface PostContentWrapperProps {
   content: string;
   isHtml: boolean;
-  locale?: string;
 }
 
 const ALERT_MAP: Record<
@@ -352,48 +349,6 @@ const ALERT_MAP: Record<
     borderColor: "border-l-[#cf222e] dark:border-l-[#f85149]",
     titleColor: "text-[#cf222e] dark:text-[#f85149]",
     icon: AlertOctagon,
-  },
-};
-
-const ALERT_TITLES: Record<string, Record<string, string>> = {
-  note: {
-    "zh-CN": "笔记",
-    "zh-TW": "筆記",
-    en: "Note",
-    ja: "ノート",
-    ko: "메모",
-  },
-
-  tip: {
-    "zh-CN": "提示",
-    "zh-TW": "提示",
-    en: "Tip",
-    ja: "ヒント",
-    ko: "팁",
-  },
-
-  important: {
-    "zh-CN": "重要",
-    "zh-TW": "重要",
-    en: "Important",
-    ja: "重要",
-    ko: "중요",
-  },
-
-  warning: {
-    "zh-CN": "警告",
-    "zh-TW": "警告",
-    en: "Warning",
-    ja: "警告",
-    ko: "경고",
-  },
-
-  caution: {
-    "zh-CN": "注意",
-    "zh-TW": "注意",
-    en: "Caution",
-    ja: "注意",
-    ko: "주의",
   },
 };
 
@@ -684,11 +639,7 @@ export const HEADING_STYLES = {
 function PostContentWrapperInternal({
   content,
   isHtml,
-  locale: propLocale,
 }: PostContentWrapperProps) {
-  const { locale: contextLocale } = useI18n();
-  const locale = propLocale || contextLocale;
-
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [activeImg, setActiveImg] = useState<{
@@ -941,11 +892,7 @@ function PostContentWrapperInternal({
 
         const AlertIcon = alertConfig.icon;
         const cleanChildren = stripAlertPrefix(children);
-
-        const alertTitle =
-          ALERT_TITLES[alertConfig.key]?.[locale] ||
-          ALERT_TITLES[alertConfig.key]?.["zh-CN"] ||
-          alertConfig.title;
+        const alertTitle = alertConfig.title;
 
         return (
           <div
@@ -1142,7 +1089,7 @@ function PostContentWrapperInternal({
             href={href}
             target={isExternal ? "_blank" : undefined}
             rel={isExternal ? "noopener noreferrer" : undefined}
-            className="text-sky-600 underline underline-offset-4 transition-colors hover:text-sky-500 dark:text-sky-400"
+            className="prose-link"
             {...props}
           >
             {children}
@@ -1154,7 +1101,7 @@ function PostContentWrapperInternal({
         <hr className="my-8 sm:my-10 border-0 border-t border-neutral-200 dark:border-neutral-800" />
       ),
     }),
-    [locale]
+    []
   );
 
   return (
@@ -1219,7 +1166,7 @@ function PostContentWrapperInternal({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 onClick={closeLightbox}
-                className="fixed inset-0 z-[9999] flex h-screen w-screen cursor-zoom-out items-center justify-center bg-black/90 p-4 sm:p-8"
+                className="fixed inset-0 z-[9999] flex h-screen w-screen cursor-zoom-out items-center justify-center bg-[#161616]/90 backdrop-blur-md p-4 sm:p-8"
               >
                 <motion.div
                   initial={{ scale: 0.94, opacity: 0 }}

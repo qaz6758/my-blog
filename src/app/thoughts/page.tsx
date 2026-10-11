@@ -1,7 +1,7 @@
 // app/thoughts/page.tsx
 import React from "react";
 import { fetchThoughtsFromNotion } from "@/lib/data";
-import { ThoughtsClientList } from "@/components/post/ThoughtsClientList";
+import { RetroThoughtsView } from "@/components/post/RetroThoughtsView";
 
 export const dynamic = "force-static";
 export const revalidate = 5;
@@ -14,11 +14,5 @@ export const metadata = {
 export default async function ThoughtsPage() {
   const thoughts = await fetchThoughtsFromNotion();
 
-  return (
-    <div className="relative w-full bg-transparent min-h-[100vh] px-6 sm:px-8 pt-24 pb-28 sm:pb-36 antialiased flex flex-col">
-      <main className="slide-enter-content mx-auto w-full max-w-[520px] flex-1">
-        <ThoughtsClientList initialItems={thoughts} />
-      </main>
-    </div>
-  );
+  return <RetroThoughtsView thoughts={thoughts} />;
 }

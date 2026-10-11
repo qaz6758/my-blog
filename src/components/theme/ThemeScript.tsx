@@ -37,7 +37,7 @@ export function ThemeScript() {
                 }
 
                 // 净化与同步所有 theme-color meta，杜绝深色 media query 劫持 Chrome 原生清屏画布
-                var themeColor = isDark ? '#050505' : '#ffffff';
+                var themeColor = isDark ? '#000000' : '#f7f2ed';
                 var themeMetas = document.querySelectorAll('meta[name="theme-color"]');
                 themeMetas.forEach(function(m) {
                   m.removeAttribute('media');
@@ -53,15 +53,7 @@ export function ThemeScript() {
                   document.cookie = 'theme=' + saved + '; path=/; max-age=31536000; SameSite=Lax';
                 }
 
-                // 同步读取用户语言偏好，消除首屏 locale 闪跳
-                var savedLang = localStorage.getItem('blog_lang');
-                var validLangs = ['en','zh-CN','zh-TW','ja','ko'];
-                if (savedLang && validLangs.indexOf(savedLang) !== -1) {
-                  docEl.setAttribute('data-locale', savedLang);
-                  docEl.lang = savedLang;
-                } else {
-                  docEl.setAttribute('data-locale', 'en');
-                }
+                docEl.lang = 'zh-CN';
 
                 function removeNoTransitions() {
                   requestAnimationFrame(function() {

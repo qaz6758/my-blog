@@ -191,7 +191,10 @@ export async function getGalleryImages(
         const seenUrls = new Set<string>();
         const unique = filtered.filter((p) => {
           if (!p.url) return false;
-          const cleanUrl = p.url.split("?")[0].trim();
+          const targetUrl = p.url.includes("/img/?url=")
+            ? decodeURIComponent(p.url.split("/img/?url=")[1])
+            : p.url;
+          const cleanUrl = targetUrl.split("?")[0].trim();
           if (seenUrls.has(cleanUrl)) return false;
           seenUrls.add(cleanUrl);
           return true;
@@ -222,11 +225,14 @@ export async function getGalleryImages(
 
     const rows = (data as PhotoRow[]) ?? [];
 
-    // 1. 严格按 URL 去重，杜绝数据库中偶发的重复记录导致前端重复渲染
+    // 1. 严格按真实图片 URL 去重，杜绝数据库中偶发的重复记录导致前端重复渲染
     const seenUrls = new Set<string>();
     const uniqueRows = rows.filter((row) => {
       if (!row.url) return false;
-      const cleanUrl = row.url.split("?")[0].trim();
+      const targetUrl = row.url.includes("/img/?url=")
+        ? decodeURIComponent(row.url.split("/img/?url=")[1])
+        : row.url;
+      const cleanUrl = targetUrl.split("?")[0].trim();
       if (seenUrls.has(cleanUrl)) return false;
       seenUrls.add(cleanUrl);
       return true;

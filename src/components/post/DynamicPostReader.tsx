@@ -9,7 +9,6 @@ import { motion, AnimatePresence, type Transition } from "framer-motion";
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 import { TableOfContents } from "@/components/post/TableOfContents";
 import { ThoughtMediaItem } from "@/lib/data";
-import { useI18n } from "@/lib/i18n/I18nContext";
 import { calculateReadTime, formatDate } from "@/lib/utils";
 
 import { PostContentWrapper } from "@/components/post/PostContentWrapper";
@@ -133,27 +132,8 @@ export function DynamicPostReader({
     };
   }, []);
 
-  // 多语言与文案转换（全局设置，正體中文由 OpenCC 客户端秒转）
-  const { locale: globalLocale, convertText } = useI18n();
-
-
   const rawContent = post?.content || post?.summary || "";
-  const postTitle = post?.title || "";
-
-  // 智能检测文章自身的源语种（通过中文字符采样判断：超过 15 个汉字判定为中文源，否则判定为英文/外文源，供 HTML 语义 lang 属性识别，激活浏览器原生翻译）
-  const isSourceZh = useMemo(() => {
-    if (!post) return true;
-    const sample = (postTitle + " " + rawContent.slice(0, 1000));
-    const zhCount = (sample.match(/[\u4e00-\u9fa5]/g) || []).length;
-    return zhCount > 15;
-  }, [post, postTitle, rawContent]);
-
-  // 计算展示标题（正體中文自动 OpenCC 纯离线秒转）
-  const displayTitle = useMemo(() => {
-    if (!post) return "";
-    if (globalLocale === "zh-TW") return convertText(post.title);
-    return post.title;
-  }, [post, globalLocale, convertText]);
+  const displayTitle = post?.title || "";
 
   // 确保浏览器标签页与窗口标题始终与当前文章标题保持精准同步
   useEffect(() => {
@@ -162,13 +142,10 @@ export function DynamicPostReader({
     }
   }, [displayTitle]);
 
-  // 计算展示正文（正體中文自动 OpenCC 纯离线秒转）
+  // 计算展示正文
   const displayContent = useMemo(() => {
     if (!post) return "";
     let content = rawContent;
-    if (globalLocale === "zh-TW") {
-      content = convertText(rawContent);
-    }
     
     // 1. 智能剥离正文开篇与主标题重复的 Markdown # 一级标题（支持 # 后面有无空格），杜绝首屏双标题堆叠
     content = content.replace(/^\s*#\s*[^\n]+(?:\r?\n)+/, "").trim();
@@ -191,7 +168,7 @@ export function DynamicPostReader({
     }
 
     return content;
-  }, [post, globalLocale, rawContent, convertText]);
+  }, [post, rawContent]);
 
   // 估算文章阅读耗时
   const readTime = useMemo(() => {
@@ -407,39 +384,52 @@ function normalizeText(text: string): string {
           transition={SMOOTH_TRANSITION}
           className="relative w-full flex flex-col items-center"
         >
-          {/* Grid 居中贴边布局 (100% 严格对称大局观：左边 Logo 与目录 32px，右边导航栏 32px，中间正文绝对居中，620px 与页脚严格同轴垂直对齐) */}
-          <div className="w-full grid grid-cols-1 xl:grid-cols-[1fr_minmax(auto,620px)_1fr] px-6 sm:px-8 pt-[88px]">
+          {/* Grid 贴合框架阅读布局 */}
+          <div className="w-full flex flex-col lg:flex-row justify-center items-start gap-6 lg:gap-8 px-2 sm:px-4 pt-1">
             
-            {/* 左侧：目录 (其最左侧与顶部 Logo 严格同轴对齐，距最左侧 32px，距 Logo 底部 28px 呼吸留白) */}
-            <div className="hidden xl:block relative">
-              <aside
-                className="sticky top-[88px] w-[220px] 2xl:w-[280px] flex flex-col"
-                onPointerEnter={handlePointerEnter}
-                onPointerLeave={handlePointerLeave}
-              >
-                <TableOfContents
-                  key={`${post.id}_${globalLocale}`}
-                  isArticleHovered={isArticleHovered}
-                  contentKey={`${displayTitle}_${displayContent}_${globalLocale}`}
-                  locale={globalLocale}
-                />
-              </aside>
-            </div>
-
-            {/* 中间：正文主阅读列 (绝对居中，620px 黄金阅读宽，与全站页脚严格垂直同轴对齐，距屏幕两边留白绝对均等，与页脚建立通透呼吸感) */}
-            <main
-              className="relative z-10 w-full max-w-[620px] mx-auto min-w-0 pb-28 sm:pb-36 lg:pb-40 pt-3 sm:pt-4"
+          {/* 左栏：目录导航（固定宽度 200px，页面向下滚动时吸顶跟随） */}
+            <aside
+              className="hidden lg:flex w-[200px] shrink-0 sticky top-4 flex-col self-start"
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
             >
+              <div className="mb-3">
+                <Link
+                  href="/posts"
+                  className="inline-flex items-center gap-1.5 text-xs font-['W95FA',sans-serif] text-neutral-500 hover:text-[#f5f5f5] dark:text-neutral-400 dark:hover:text-[#f5f5f5] transition-colors"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> cd..
+                </Link>
+              </div>
+              <TableOfContents
+                key={post.id}
+                isArticleHovered={isArticleHovered}
+                contentKey={`${displayTitle}_${displayContent}`}
+              />
+            </aside>
+           {/* 右栏：正文内容区（最大 620px 黄金阅读宽，撑满卡片其余空间） */}
+            <main
+              className="relative z-10 w-full max-w-[620px] min-w-0 flex-1 pb-16 pt-1"
+              onPointerEnter={handlePointerEnter}
+              onPointerLeave={handlePointerLeave}
+            >
+              {/* 手机端（小于 lg）屏幕小时显示的返回按钮 */}
+              <div className="lg:hidden mb-3">
+                <Link
+                  href="/posts"
+                  className="inline-flex items-center gap-1.5 text-xs font-['W95FA',sans-serif] text-neutral-500 hover:text-[#f5f5f5] dark:text-neutral-400 dark:hover:text-[#f5f5f5] transition-colors"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> cd..
+                </Link>
+              </div>
               
               {/* 标题头部保持静止不动（消除位移动画），正文段落优雅递进滑入 */}
               <header className="mb-5 sm:mb-6 relative">
-                <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold tracking-tight text-neutral-800 dark:text-neutral-100 leading-[1.15] font-sans relative inline-block">
+                <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold tracking-tight text-neutral-800 dark:text-white leading-[1.15] font-sans relative inline-block">
                   {displayTitle}
                 </h1>
                 
-                <p className="mt-1.5 sm:mt-2 text-[13px] sm:text-[13.5px] text-neutral-500 dark:text-neutral-400 font-sans opacity-50 select-none">
+                <p className="mt-1.5 sm:mt-2 text-[12px] sm:text-[13px] text-neutral-500 dark:text-[#a1a1aa] font-['W95FA',monospace] tracking-wider opacity-80 select-none">
                   {(post.published_at || post.created_at) && (
                     <span>{formatDate(post.published_at || post.created_at)}</span>
                   )}
@@ -456,7 +446,7 @@ function normalizeText(text: string): string {
                   <div className="mt-4 border-l-4 border-amber-500/80 dark:border-amber-400/80 pl-3.5 py-0.5 select-text">
                     <div className="flex items-center gap-1.5 text-[13px] font-medium text-amber-600 dark:text-amber-400 mb-0.5 select-none" suppressHydrationWarning>
                       <Lightbulb className="h-3.5 w-3.5 shrink-0 stroke-[2.2]" />
-                      <span>{globalLocale === "en" ? "Inspiration & Source" : "创意和灵感来源"}</span>
+                      <span>创意和灵感来源</span>
                     </div>
                     <div className="text-[14px] sm:text-[14.5px] leading-[1.65] text-neutral-600 dark:text-neutral-300 font-sans">
                       {post.inspiration_url ? (
@@ -477,16 +467,15 @@ function normalizeText(text: string): string {
                 )}
               </header>
 
-              {/* 正文渲染区 (标准语义 lang 属性，助力 Chrome/Safari/Edge 浏览器原生秒翻) */}
+              {/* 正文渲染区 */}
               <article
-                lang={isSourceZh ? "zh-CN" : "en"}
+                lang="zh-CN"
                 className="post-article min-w-0 font-sans"
                 style={{ fontSize: "16px", lineHeight: "1.75", letterSpacing: "normal" }}
               >
                 <PostContentWrapper
                   content={displayContent}
                   isHtml={isHtmlContent}
-                  locale={globalLocale}
                 />
               </article>
 
@@ -494,7 +483,7 @@ function normalizeText(text: string): string {
               <div className="mt-12 sm:mt-16 mb-0">
                 <Link
                   href="/posts"
-                  className="group inline-flex items-center gap-1.5 font-mono text-[14px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer select-none"
+                  className="group inline-flex items-center gap-1.5 font-mono text-[14px] text-neutral-500 hover:text-[#33FF33] dark:text-neutral-400 dark:hover:text-[#33FF33] transition-colors cursor-pointer select-none"
                 >
                   <span className="opacity-50 select-none">&gt;</span>
                   <span className="underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-700 group-hover:decoration-current">
@@ -505,18 +494,18 @@ function normalizeText(text: string): string {
 
               {/* 上下一篇导航 (自然收束，与页脚建立舒适的呼吸留白) */}
               {(prevPost || nextPost) && (
-                <nav className="mt-12 sm:mt-16 pt-8 border-t border-black/[0.08] dark:border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <nav className="mt-12 sm:mt-16 pt-8 border-t-2 border-[#d0d7de] dark:border-white grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {prevPost ? (
                     <Link
                        href={`/posts/${prevPost.slug || prevPost.source_url || prevPost.id}`}
                        className="group flex flex-col gap-2 text-left transition-colors"
                      >
-                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-black dark:group-hover:text-white transition-colors">
+                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] transition-colors">
                          <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
-                         {globalLocale === "zh-TW" ? "上一篇" : globalLocale === "en" ? "Previous" : globalLocale === "ja" ? "前の記事" : globalLocale === "ko" ? "이전 글" : "上一篇"}
+                         上一篇
                        </span>
-                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
-                         {globalLocale === "zh-TW" ? convertText(prevPost.title) : prevPost.title}
+                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] line-clamp-2 transition-colors">
+                         {prevPost.title}
                        </span>
                      </Link>
                   ) : (
@@ -528,12 +517,12 @@ function normalizeText(text: string): string {
                        href={`/posts/${nextPost.slug || nextPost.source_url || nextPost.id}`}
                        className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
                      >
-                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-black dark:group-hover:text-white transition-colors">
-                         {globalLocale === "zh-TW" ? "下一篇" : globalLocale === "en" ? "Next" : globalLocale === "ja" ? "次の記事" : globalLocale === "ko" ? "다음 글" : "下一篇"}
+                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] transition-colors">
+                         下一篇
                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                        </span>
-                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-black dark:group-hover:text-white line-clamp-2 transition-colors">
-                         {globalLocale === "zh-TW" ? convertText(nextPost.title) : nextPost.title}
+                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] line-clamp-2 transition-colors">
+                         {nextPost.title}
                        </span>
                      </Link>
                   ) : (
@@ -543,8 +532,7 @@ function normalizeText(text: string): string {
               )}
             </main>
 
-            {/* 右侧：空白占位，确保正文绝对居中 */}
-            <div className="hidden xl:block"></div>
+
             
           </div>
         </motion.div>
@@ -578,10 +566,10 @@ function normalizeText(text: string): string {
           <p className="mt-2 text-sm text-neutral-500">Page Not Found</p>
           <Link
             href="/"
-            className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+            className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-[#33FF33] dark:hover:text-[#33FF33] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>{globalLocale === "en" ? "Back to Home" : "返回首页"}</span>
+            <span>返回首页</span>
           </Link>
         </motion.div>
       )}

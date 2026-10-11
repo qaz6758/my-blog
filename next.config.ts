@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_TIME: new Date().toISOString(),
+  },
   // 静态 HTML 导出模式 (若使用 Cloudflare Pages Edge 或 Node 运行时需关闭，以支持 Server Actions 与 API 路由)
   // output: "export",
 

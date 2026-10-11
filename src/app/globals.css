@@ -1,17 +1,25 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "W95FA";
+  src: url("/fonts/w95fa.woff2") format("woff2"), url("/fonts/w95fa.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /*
  * ============================================================
- * Tailwind v4 全局字体映射 (@theme) - Anthony Fu (antfu.me) 同款字体套装
- * 包含:
- * 1. font-sans: 原生系统字体栈 (antfu.me 官方同款零延迟首屏直出，物理消除 FOUT 闪屏)
- * 2. font-mono: DM Mono (antfu.me 官方代码与元信息等宽)
- * 3. font-serif: DM Serif Display + ui-serif (antfu 衬线设计)
- * 4. font-wisper: Bad Script (antfu.me 标志性手写便签/随笔体)
+ * 1. Tailwind v4 全局字体映射 (@theme)
  * ============================================================
  */
-
 @theme {
+  --font-retro:
+    "W95FA",
+    "JetBrains Mono",
+    "Courier New",
+    monospace;
+
   --font-sans:
     var(--font-inter),
     Inter,
@@ -66,75 +74,135 @@
 
 /*
  * ============================================================
- * Tailwind Dark Mode 变体
+ * 2. Tailwind Dark Mode 变体与全站色彩变量
  * ============================================================
  */
-
-@variant dark (&:where(.dark, .dark *));
-
-/*
- * ============================================================
- * 全局底色、动态参数与排印变量（消除首屏 FOUC 与刷新闪烁）
- * ============================================================
- */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --page-bg: #ffffff;
-  --page-text: #222222;
+  --page-bg: #f1f3f7;
+  --page-text: #1e293b;
   --realm-motion-duration: 0.18s;
   --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 首屏刷新加载阻断过渡动画，消除补间闪烁 */
+html.no-transitions,
+html.no-transitions *,
+html.no-transitions *::before,
+html.no-transitions *::after {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  -ms-transition: none !important;
+  transition: none !important;
 }
 
 html.light {
   color-scheme: only light !important;
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
-  --page-bg: #ffffff;
-  --page-text: #222222;
+  --page-bg: #f1f3f7;
+  --page-text: #1e293b;
   --realm-motion-duration: 0.18s;
   --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #f1f3f7 !important;
+  background-image: none !important;
+  color: #1e293b !important;
 }
 
-html.light,
 html.light body {
-  background-color: #ffffff !important;
-  color: #222222 !important;
+  background-color: #f1f3f7 !important;
+  background-image: none !important;
+  color: #1e293b !important;
 }
 
 html.dark {
   color-scheme: only dark !important;
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
-  --page-bg: #050505;
-  --page-text: #e5e5e5;
+  --page-bg: #000000;
+  --page-text: #f1f1f1;
   --realm-motion-duration: 0.32s;
   --realm-motion-ease: cubic-bezier(0.25, 1, 0.35, 1);
+  background-color: #000000 !important;
+  background-image: none !important;
+  color: #f1f1f1 !important;
 }
 
-html.dark,
 html.dark body {
-  background-color: #050505 !important;
-  color: #e5e5e5 !important;
+  background-color: #000000 !important;
+  background-image: none !important;
+  background-attachment: fixed;
+  color: #f1f1f1 !important;
+}
+
+/* 深色模式背景（深邃纯黑夜视与右侧猫头） */
+html.dark body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("/images/night-sky-mountains.png");
+  background-position: right bottom;
+  background-size: cover;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+.night-sky-canvas {
+  display: none;
+  z-index: 1 !important;
+}
+
+html.dark .night-sky-canvas {
+  display: block;
+}
+
+/* 深色模式 CRT 扫描线 */
+html.dark body::before {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  content: "";
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 2px,
+    rgba(255, 255, 255, 0.03) 2px,
+    rgba(255, 255, 255, 0.03) 4px
+  );
+  animation: night-sky-scanlines 100ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.dark body::before {
+    animation: none;
+  }
+}
+
+@keyframes night-sky-scanlines {
+  from { transform: translateY(0); }
+  to { transform: translateY(4px); }
 }
 
 /*
  * ============================================================
- * HTML & 全局排版渲染优化
+ * 3. HTML & 全局排版渲染优化
  * ============================================================
  */
-
 html {
   min-height: 100%;
   scrollbar-gutter: stable;
   scrollbar-color: #c4c4c4 transparent;
   scrollbar-width: thin;
-
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-
-  /* 彻底禁用浏览器算法伪造的假粗体与假斜体，消除字体重影与模糊发虚 */
+  /* 彻底禁用浏览器伪粗体与伪斜体，消除字体重影与模糊 */
   font-synthesis: none;
 }
 
@@ -155,13 +223,7 @@ body {
   overflow-x: hidden;
 }
 
-/*
- * ============================================================
- * 沉浸式选中文本系统 (Selection) - Anthony Fu 同款风格 (#8884)
- * 柔和半透明中性灰，绝不反色，自然透出文字与链接细线
- * ============================================================
- */
-
+/* 选中文本系统 (Selection) */
 ::selection {
   background: #8884;
 }
@@ -171,13 +233,7 @@ html.dark ::selection {
   background: #8884;
 }
 
-/*
- * ============================================================
- * 双界文本链接系统 (Prose Link) - Anthony Fu 风格 1px 细线
- * 继承正文字重，克制自然，避免色块与字形突兀
- * ============================================================
- */
-
+/* 双界文本链接系统 (Prose Link) - Anthony Fu 风格 1px 细线 */
 .prose-link {
   font-weight: inherit;
   color: inherit;
@@ -189,30 +245,22 @@ html.dark ::selection {
               border-color var(--realm-motion-duration, 0.2s) var(--realm-motion-ease, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
-/* 昼行悬停：利落纯黑，加深下划线 */
 .prose-link:hover {
-  color: #000000 !important;
-  border-bottom-color: #000000 !important;
+  color: #33FF33 !important;
+  border-bottom-color: #33FF33 !important;
 }
 
-/* 夜行常态：中性半透明浅灰底线 */
 .dark .prose-link {
   color: inherit;
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* 夜行悬停：极致纯白留白 */
 .dark .prose-link:hover {
-  color: #ffffff !important;
-  border-bottom-color: #ffffff !important;
+  color: #33FF33 !important;
+  border-bottom-color: #33FF33 !important;
 }
 
-/*
- * ============================================================
- * 交互与外设优化 (Focus, Tap, ProgressBar)
- * ============================================================
- */
-
+/* 交互与外设优化 */
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -227,21 +275,7 @@ html.dark :focus-visible {
   outline-color: rgba(255, 255, 255, 0.35);
 }
 
-#top-progress-bar,
-#top-progress-bar > div {
-  min-height: 0 !important;
-  max-height: 1.5px !important;
-  height: 1.5px !important;
-  line-height: 0 !important;
-  font-size: 0 !important;
-}
-
-/*
- * ============================================================
- * 自定义滚动条 (Webkit Scrollbar)
- * ============================================================
- */
-
+/* 自定义滚动条 (Webkit Scrollbar) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -270,57 +304,22 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
 /*
  * ============================================================
- * 浪客行黑白漫画风格系统 (Vagabond Manga Aesthetic)
+ * 4. 随想录详情卡片 (.manga-panel)
  * ============================================================
  */
-
-/* --- 1. 墨迹笔触分割线 (Ink Brush Stroke Divider) --- */
-hr,
-.ink-divider {
-  border: none;
-  height: 6px;
-  background: transparent;
-  position: relative;
-  overflow: visible;
-  margin: 2rem 0;
-}
-
-hr::after,
-.ink-divider::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 4px;
-  transform: translateY(-50%);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='6' viewBox='0 0 800 6'%3E%3Cpath d='M0 3 Q40 0.5, 80 2.8 T160 3.2 T240 2.5 T320 3.5 T400 2.2 T480 3.8 T560 2.8 T640 3.2 T720 2.5 T800 3' stroke='%23222' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 100% 100%;
-  opacity: 0.5;
-}
-
-html.dark hr::after,
-html.dark .ink-divider::after {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='6' viewBox='0 0 800 6'%3E%3Cpath d='M0 3 Q40 0.5, 80 2.8 T160 3.2 T240 2.5 T320 3.5 T400 2.2 T480 3.8 T560 2.8 T640 3.2 T720 2.5 T800 3' stroke='%23ddd' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  opacity: 0.4;
-}
-
-/* --- 2. 漫画分格卡片 (Manga Panel Card) 纯粹硬朗方正波普版 --- */
 .manga-panel {
   position: relative;
   background: #ffffff;
-  border: 2px solid #050505;
-  border-radius: 0;
-  box-shadow: 4px 4px 0 #050505;
+  border: 1px solid #222222;
+  border-radius: 2px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   z-index: 1;
 }
 
 html.dark .manga-panel {
-  background: #080808;
-  border-color: #ffffff;
-  box-shadow: 4px 4px 0 #ffffff;
+  background: #161616;
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 .manga-panel:hover {
@@ -329,10 +328,306 @@ html.dark .manga-panel {
 
 /*
  * ============================================================
- * Anthony Fu 像素级错落入场动画
+ * 5. 复古桌面主窗口与布局系统
+ * ============================================================
+ */
+.home-status-display {
+  font-family: "W95FA", "JetBrains Mono", "Courier New", monospace;
+}
+
+.home-page-layout {
+  box-sizing: border-box;
+  height: 100svh;
+  padding-top: calc(86px + env(safe-area-inset-top, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+}
+
+.home-main-content {
+  margin-block: 0;
+  width: 100%;
+  height: 100%;
+  max-height: calc(100svh - 110px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+}
+
+[data-home-main-panel] {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100svh - 110px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  font-family: "W95FA", "JetBrains Mono", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-home-main-panel] h1,
+[data-home-main-panel] [data-home-content-card] h2 {
+  font-family: "W95FA", "JetBrains Mono", "Courier New", monospace;
+  letter-spacing: 0.03em;
+}
+
+@media (min-width: 640px) {
+  .home-page-layout {
+    height: 100svh;
+    padding-top: calc(96px + env(safe-area-inset-top, 0px));
+    padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+
+  .home-main-content {
+    height: 100%;
+    max-height: calc(100svh - 128px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+
+  [data-home-main-panel] {
+    height: 100%;
+    max-height: calc(100svh - 128px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.home-panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 20%) transparent;
+}
+
+.home-panel-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.home-panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.home-panel-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(0 0 0 / 20%);
+}
+
+.home-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(0 0 0 / 35%);
+}
+
+html.dark .home-panel-scroll {
+  scrollbar-color: rgb(255 255 255 / 20%) transparent;
+}
+
+html.dark .home-panel-scroll::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 20%);
+}
+
+html.dark .home-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 35%);
+}
+
+.site-stat-row {
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 0; /* 👈 纯硬核直角边，零圆角 */
+  background: #e8f2eb;
+}
+
+.site-stat-label {
+  color: #58665c;
+}
+
+.site-stat-value {
+  color: #16803a;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 🎯 深色模式：纯正直角 + 沉稳暗墨黑底色 (#1b211b) */
+html.dark .site-stat-row {
+  border-radius: 0;    /*  纯硬核直角边 */
+  background: #1b211b; /* 真实采样暗墨黑 */
+  border: none;        /* 无多余边框 */
+  box-shadow: none;
+}
+
+html.dark .site-stat-label {
+  color: #b1bbb3;      /* 内敛终端灰 */
+}
+
+html.dark .site-stat-value {
+  color: #33FF33;      /* 仅数字亮起 */
+  text-shadow: 0 0 5px rgba(51, 255, 51, 0.55), 0 0 11px rgba(51, 255, 51, 0.3);
+}
+
+/*
+ * ============================================================
+ * 6. 动态微交互与特效 (辉光管、打字机、CRT 关闭)
  * ============================================================
  */
 
+/* 辉光管访客计数器 */
+.nixie-display {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 4px;
+}
+
+.nixie-tube {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 50px;
+  place-items: center;
+  overflow: hidden;
+  border: 1.2px solid rgb(191 112 62 / 56%);
+  border-radius: 11px 11px 6px 6px;
+  background:
+    linear-gradient(90deg, rgb(255 228 198 / 10%), transparent 20%, transparent 78%, rgb(255 217 178 / 9%)),
+    radial-gradient(ellipse at 50% 64%, rgb(104 47 23 / 62%), transparent 65%),
+    linear-gradient(180deg, #241712 0%, #120d0b 48%, #080706 100%);
+  color: #ff9b55;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  text-shadow:
+    0 0 2px #ffd0a0,
+    0 0 6px rgb(255 126 48 / 96%),
+    0 0 12px rgb(255 91 20 / 75%),
+    0 0 20px rgb(255 70 10 / 35%);
+  box-shadow:
+    inset 1px 0 2px rgb(255 237 218 / 18%),
+    inset -1px 0 2px rgb(255 195 145 / 12%),
+    inset 0 -5px 8px rgb(0 0 0 / 72%),
+    0 0 6px rgb(201 92 39 / 20%);
+}
+
+.nixie-tube::before {
+  position: absolute;
+  top: 6px;
+  right: 2.5px;
+  left: 2.5px;
+  height: 1.2px;
+  background: linear-gradient(90deg, transparent, rgb(255 165 99 / 48%), transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.nixie-tube::after {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 3px;
+  width: 2px;
+  border-radius: 1.5px;
+  background: linear-gradient(180deg, rgb(255 240 220 / 28%), transparent 42%, rgb(255 231 209 / 10%));
+  content: "";
+  pointer-events: none;
+}
+
+@media (max-width: 360px) {
+  .nixie-display {
+    gap: 3px;
+    padding: 2px;
+  }
+  .nixie-tube {
+    width: 26px;
+    height: 44px;
+    font-size: 29px;
+    border-radius: 9px 9px 5px 5px;
+  }
+  .nixie-tube::before {
+    top: 5px;
+  }
+  .nixie-tube::after {
+    top: 4px;
+    bottom: 5px;
+    left: 2.5px;
+    width: 1.5px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nixie-tube {
+    animation: nixie-tube-ignite 520ms ease-out both;
+  }
+
+  .nixie-tube:nth-child(2) { animation-delay: 45ms; }
+  .nixie-tube:nth-child(3) { animation-delay: 90ms; }
+  .nixie-tube:nth-child(4) { animation-delay: 135ms; }
+  .nixie-tube:nth-child(5) { animation-delay: 180ms; }
+  .nixie-tube:nth-child(6) { animation-delay: 225ms; }
+}
+
+@keyframes nixie-tube-ignite {
+  0% {
+    opacity: 0.35;
+    filter: brightness(0.45);
+  }
+  22% {
+    opacity: 0.9;
+    filter: brightness(1.45);
+  }
+  36% {
+    opacity: 0.65;
+    filter: brightness(0.75);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* 欢迎语像素打字机动画 */
+@keyframes homepage-welcome-type {
+  from { width: 0; }
+  to { width: calc(35ch + 1.8em); }
+}
+
+@keyframes homepage-welcome-cursor {
+  50% { border-color: transparent; }
+}
+
+.welcome-typewriter {
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid currentColor;
+  text-shadow: 0 0 8px rgb(229 72 77 / 22%);
+  animation:
+    homepage-welcome-type 2.2s steps(35, end) 0.15s forwards,
+    homepage-welcome-cursor 0.8s step-end 0.15s infinite;
+}
+
+/* CRT 示波器光线压扁湮灭动画 */
+@keyframes crt-collapse {
+  0% {
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scaleY(0.04) scaleX(1);
+    filter: brightness(3.5) drop-shadow(0 0 12px #ffffff);
+    opacity: 1;
+  }
+  75% {
+    transform: scaleY(0.04) scaleX(0.04);
+    filter: brightness(6) drop-shadow(0 0 20px #ffffff);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0) scaleX(0);
+    filter: brightness(0);
+    opacity: 0;
+  }
+}
+
+.animate-crt-collapse {
+  animation: crt-collapse 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+  pointer-events: none !important;
+}
+
+/*
+ * ============================================================
+ * 7. Anthony Fu 错落阶梯式入场动画 (slide-enter-content)
+ * ============================================================
+ */
 @keyframes slide-enter {
   0% {
     opacity: 0;
@@ -344,14 +639,27 @@ html.dark .manga-panel {
   }
 }
 
-.slide-enter {
-  --enter-stage: 0;
-  --enter-step: 90ms;
-  --enter-initial: 0s;
+@keyframes home-element-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Anthony Fu 原版 slide-enter-content 阶梯式错落入场 (1:1 官方同款参数) */
 @media (prefers-reduced-motion: no-preference) {
+  .home-element-enter {
+    animation: home-element-enter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .home-element-enter--1 { animation-delay: 40ms; }
+  .home-element-enter--2 { animation-delay: 90ms; }
+  .home-element-enter--4 { animation-delay: 160ms; }
+  .home-element-enter--5 { animation-delay: 220ms; }
+
   :is(.slide-enter, .slide-enter-content > *) {
     --enter-stage: 0;
     --enter-step: 90ms;
@@ -389,142 +697,218 @@ html.dark .manga-panel {
     opacity: 1 !important;
     transform: none !important;
   }
+
+  .welcome-typewriter {
+    animation: none;
+    width: auto;
+    overflow: visible;
+    border-right: 0;
+    text-shadow: none;
+  }
+
+  .home-element-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .nixie-tube {
+    animation: none;
+  }
 }
 
 /*
  * ============================================================
- * 原生 View Transitions API (CSS 变量注入驱动 + 硬件级防卡死波纹体系)
+ * 8. View Transitions 与主题切换动效
  * ============================================================
  */
-
-@keyframes theme-ripple-expand {
-  from {
-    clip-path: circle(0px at var(--theme-ripple-x, 50%) var(--theme-ripple-y, 50%));
-  }
-  to {
-    clip-path: circle(var(--theme-ripple-r, 150vmax) at var(--theme-ripple-x, 50%) var(--theme-ripple-y, 50%));
-  }
-}
-
 ::view-transition {
   background-color: var(--page-bg);
 }
 
-html.transition-from-light::view-transition {
-  background-color: #ffffff !important;
-}
-
-html.transition-from-dark::view-transition {
-  background-color: #050505 !important;
-}
-
-::view-transition-group(root) {
-  animation: none !important;
-}
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: none !important;
-  mix-blend-mode: normal !important;
+  mix-blend-mode: normal;
 }
 
-::view-transition-old(root) {
-  z-index: 1;
-}
-
-::view-transition-new(root) {
+/* Paul Stamatiou 日月食切换动效 */
+.theme-toggle {
+  will-change: transform;
   z-index: 9999;
-  animation: theme-ripple-expand var(--theme-ripple-duration, 0.4s) cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html.view-transition-active,
-html.view-transition-active *,
-html.view-transition-active *::before,
-html.view-transition-active *::after {
-  transition: none !important;
+.theme-toggle > g,
+.theme-toggle .main-circle {
+  transform-origin: 16px 16px;
+  transform: scale(1);
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html.view-transition-active [data-theme-toggle] svg {
-  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+.dark .theme-toggle .main-circle,
+[data-theme="dark"] .theme-toggle .main-circle,
+html.dark .theme-toggle .main-circle {
+  transform: scale(1.5) !important;
 }
 
-/*
- * ============================================================
- * 顶部极简进度指示条流动动画 (Top Progress Bar)
- * ============================================================
- */
-
-@keyframes top-progress-indeterminate {
-  0% {
-    transform: translateX(-100%) scaleX(0.2);
-  }
-  50% {
-    transform: translateX(0%) scaleX(0.65);
-  }
-  100% {
-    transform: translateX(100%) scaleX(0.2);
-  }
+.theme-toggle .sun-rays {
+  transform-origin: 16px 16px;
+  transform: scale(1) rotate(0turn);
+  opacity: 1;
+  will-change: opacity, transform;
+  transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-top-progress {
-  transform-origin: 0% 50%;
-  animation: top-progress-indeterminate 1.4s infinite cubic-bezier(0.65, 0, 0.35, 1);
+.dark .theme-toggle .sun-rays,
+[data-theme="dark"] .theme-toggle .sun-rays,
+html.dark .theme-toggle .sun-rays {
+  opacity: 0 !important;
+  transform: scale(0.8) rotate(0.5turn) !important;
 }
 
-/*
- * ============================================================
- * CRT 示波器光线压扁湮灭动画 (CRT Oscilloscope Collapse)
- * ============================================================
- */
-
-@keyframes crt-collapse {
-  0% {
-    transform: scaleY(1) scaleX(1);
-    filter: brightness(1);
-    opacity: 1;
-  }
-  45% {
-    transform: scaleY(0.04) scaleX(1);
-    filter: brightness(3.5) drop-shadow(0 0 12px #ffffff);
-    opacity: 1;
-  }
-  75% {
-    transform: scaleY(0.04) scaleX(0.04);
-    filter: brightness(6) drop-shadow(0 0 20px #ffffff);
-    opacity: 1;
-  }
-  100% {
-    transform: scaleY(0) scaleX(0);
-    filter: brightness(0);
-    opacity: 0;
-  }
+.theme-toggle .moon-cradle {
+  will-change: transform;
+  transform: translate(20px, -20px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-crt-collapse {
-  animation: crt-collapse 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
-  pointer-events: none !important;
+.dark .theme-toggle .moon-cradle,
+[data-theme="dark"] .theme-toggle .moon-cradle,
+html.dark .theme-toggle .moon-cradle {
+  transform: translate(-5px, 2px) !important;
 }
 
 /*
  * ============================================================
- * 歌单直达预阻断：杜绝刷新时由于客户端状态未就绪导致的歌单列表闪现
+ * 9. 复古窗口深色模式高对比描边与排版规范
  * ============================================================
  */
+html.dark [data-home-main-panel] {
+  background-color: transparent !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
 
-html.hide-playlist-grid [data-playlist-grid] {
-  display: none !important;
+html.dark [data-home-content-card][class~="border-2"],
+html.dark [data-home-content-card] {
+  background-color: transparent !important;
+  border: 2px solid #ffffff !important;
+  border-width: 2px !important;
+  box-shadow: none !important;
+}
+
+html.dark [data-home-content-card] [class*="border-b-2"] {
+  border-bottom: 2px solid #ffffff !important;
+}
+
+html.dark [data-home-content-card] {
+  color: #ffffff;
+}
+
+html.dark [data-home-content-card] h1,
+html.dark [data-home-content-card] h2,
+html.dark [data-home-content-card] h3,
+html.dark [data-home-content-card] h4 {
+  color: #ffffff !important;
 }
 
 /*
  * ============================================================
- * Anthony Fu (antfu.me) 同款短横线分割线 (.prose hr, hr.divider)
+ * 10. 全局核心排印与交互色彩中心 (Single Source of Truth)
+ * 文本颜色与悬浮效果统一在此集中控制，改这一处全站生效
  * ============================================================
  */
 
-.prose hr,
-hr.divider {
-  width: 50px;
-  margin: 2em auto;
-  border: none;
-  border-top: 1px solid #7d7d7d4d;
+/* 1. 随想录正文 (Thoughts) - 默认颜色与悬浮变色效果 */
+.thought-text,
+[data-thought-text] {
+  color: #24292f;
+  transition: color 150ms ease;
+}
+
+html.dark .thought-text,
+html.dark [data-thought-text] {
+  color: #ffffff !important;
+}
+
+/* 随想录悬停高光效果 (修改此处的 #33FF33 即可改变悬停颜色) */
+[data-thought-link]:hover [data-thought-text],
+.thought-text:hover,
+[data-thought-text]:hover,
+html.dark [data-thought-link]:hover [data-thought-text],
+html.dark [data-thought-text]:hover,
+html.dark .thought-text:hover {
+  color: #33FF33 !important;
+}
+
+/* 2. 歌单歌曲名称 (Playlist) */
+[data-song-title] {
+  color: #24292f;
+  transition: color 150ms ease;
+}
+
+html.dark [data-song-title] {
+  color: #ffffff !important;
+}
+
+/* 歌单当前播放中高光绿色 */
+[data-song-playing],
+html.dark [data-song-playing] {
+  color: #33FF33 !important;
+}
+
+/* 3. 文章列表标题 (Posts) */
+.post-title,
+[data-post-title] {
+  color: #24292f;
+  transition: color 150ms ease;
+}
+
+html.dark .post-title,
+html.dark [data-post-title] {
+  color: #ffffff !important;
+}
+
+/* 文章标题悬停高光效果 (与随想录保持 100% 一致) */
+[data-post-link]:hover [data-post-title],
+[data-post-link]:hover .post-title,
+.group:hover [data-post-title],
+.group:hover .post-title,
+.post-title:hover,
+[data-post-title]:hover,
+html.dark [data-post-link]:hover [data-post-title],
+html.dark [data-post-link]:hover .post-title,
+html.dark .group:hover [data-post-title],
+html.dark .group:hover .post-title,
+html.dark [data-post-title]:hover,
+html.dark .post-title:hover {
+  color: #33FF33 !important;
+}
+
+/* 4. 次要元信息（日期、艺术家、时长、标签） */
+[data-song-meta],
+[data-thought-meta],
+[data-post-meta],
+[data-meta-text] {
+  color: #6e7781;
+}
+
+html.dark [data-song-meta],
+html.dark [data-thought-meta],
+html.dark [data-post-meta],
+html.dark [data-meta-text] {
+  color: #a1a1aa !important;
+}
+
+/* 5. 底部悬浮控制台 (Retro Dock) */
+[data-home-dock],
+html.dark [data-home-dock] {
+  background-color: #080808 !important;
+  border: 2px solid #484848 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.26) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(110%);
+  backdrop-filter: blur(10px) saturate(110%);
 }
