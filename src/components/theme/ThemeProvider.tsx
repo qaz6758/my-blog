@@ -97,9 +97,9 @@ function applyThemeToDocument(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   const root = document.documentElement;
-  const rootBackgroundColor = newTheme === "dark" ? "#000000" : "#f7f2ed";
-  const bodyBackgroundColor = newTheme === "dark" ? "#000000" : "#f7f2ed";
-  const textColor = newTheme === "dark" ? "#f1f1f1" : "#222222";
+  const rootBackgroundColor = newTheme === "dark" ? "#000000" : "#f6f8fa";
+  const bodyBackgroundColor = newTheme === "dark" ? "#000000" : "transparent";
+  const textColor = newTheme === "dark" ? "#f1f1f1" : "#1f2328";
 
   root.classList.toggle("dark", newTheme === "dark");
   root.classList.toggle("light", newTheme === "light");
@@ -119,7 +119,7 @@ function updateMetaColorScheme(newTheme: Theme) {
   if (typeof document === "undefined") return;
 
   try {
-    const themeColor = newTheme === "dark" ? "#000000" : "#f7f2ed";
+    const themeColor = newTheme === "dark" ? "#000000" : "#f6f8fa";
 
     // 仅原地更新属性，坚决不从 DOM 树中 remove() 节点，保护 React 19 HostHoistable (tag 26) 虚拟 DOM 树完整性
     const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');

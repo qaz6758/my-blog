@@ -589,13 +589,13 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]">
+    <div className="code-block-wrapper group relative my-6 overflow-hidden rounded-[6px] border border-[#d0d7de] dark:border-white/[0.08] bg-[#f6f8fa] dark:bg-[#0c0c0e]">
       {/* 悬停浮现的极简复制按钮 (右上角绝对定位，不占任何独立顶栏) */}
       <button
         type="button"
         onClick={handleCopy}
         aria-label="复制代码"
-        className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none"
+        className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-[#d0d7de] dark:border-white/10 bg-white dark:bg-neutral-800/80 text-[#656d76] hover:text-[#0969da] dark:text-neutral-400 dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none"
       >
         {copied ? (
           <Check className="h-3.5 w-3.5 text-emerald-500" />
@@ -669,7 +669,7 @@ function PostContentWrapperInternal({
         const wrapper = document.createElement("div");
 
         wrapper.className =
-          "code-block-wrapper group relative my-6 overflow-hidden rounded-xl border border-black/[0.06] dark:border-white/[0.08] bg-[#f8f8fa] dark:bg-[#0c0c0e]";
+          "code-block-wrapper group relative my-6 overflow-hidden rounded-[6px] border border-[#d0d7de] dark:border-white/[0.08] bg-[#f6f8fa] dark:bg-[#0c0c0e]";
 
         const copyBtn = document.createElement("button");
 
@@ -678,7 +678,7 @@ function PostContentWrapperInternal({
         copyBtn.setAttribute("aria-label", "复制代码");
 
         copyBtn.className =
-          "absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-white/80 dark:bg-neutral-800/80 text-neutral-500 dark:text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-900 dark:hover:text-white transition-opacity duration-200 cursor-pointer select-none";
+          "absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md border border-[#d0d7de] dark:border-white/10 bg-white dark:bg-neutral-800/80 text-[#656d76] hover:text-[#0969da] dark:text-neutral-400 dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer select-none";
 
         copyBtn.innerHTML = COPY_SVG;
 

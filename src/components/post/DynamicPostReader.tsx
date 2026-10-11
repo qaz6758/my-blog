@@ -396,7 +396,7 @@ function normalizeText(text: string): string {
               <div className="mb-3">
                 <Link
                   href="/posts"
-                  className="inline-flex items-center gap-1.5 text-xs font-['W95FA',sans-serif] text-neutral-500 hover:text-[#f5f5f5] dark:text-neutral-400 dark:hover:text-[#f5f5f5] transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-['W95FA',sans-serif] text-neutral-500 hover:text-[#d0d7de] dark:text-neutral-400 dark:hover:text-[#f5f5f5] transition-colors"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> cd..
                 </Link>
@@ -483,7 +483,7 @@ function normalizeText(text: string): string {
               <div className="mt-12 sm:mt-16 mb-0">
                 <Link
                   href="/posts"
-                  className="group inline-flex items-center gap-1.5 font-mono text-[14px] text-neutral-500 hover:text-[#33FF33] dark:text-neutral-400 dark:hover:text-[#33FF33] transition-colors cursor-pointer select-none"
+                  className="group inline-flex items-center gap-1.5 font-mono text-[14px] text-neutral-500 hover:text-[#0969da] dark:text-neutral-400 dark:hover:text-[#33FF33] transition-colors cursor-pointer select-none"
                 >
                   <span className="opacity-50 select-none">&gt;</span>
                   <span className="underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-700 group-hover:decoration-current">
@@ -500,11 +500,11 @@ function normalizeText(text: string): string {
                        href={`/posts/${prevPost.slug || prevPost.source_url || prevPost.id}`}
                        className="group flex flex-col gap-2 text-left transition-colors"
                      >
-                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] transition-colors">
+                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 group-hover:text-[#d0d7de] dark:group-hover:text-[#f5f5f5] transition-colors">
                          <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
                          上一篇
                        </span>
-                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] line-clamp-2 transition-colors">
+                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-[#d0d7de] dark:group-hover:text-[#f5f5f5] line-clamp-2 transition-colors">
                          {prevPost.title}
                        </span>
                      </Link>
@@ -517,11 +517,11 @@ function normalizeText(text: string): string {
                        href={`/posts/${nextPost.slug || nextPost.source_url || nextPost.id}`}
                        className="group flex flex-col gap-2 text-right sm:items-end transition-colors"
                      >
-                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] transition-colors">
+                       <span className="text-[11px] text-neutral-400 dark:text-neutral-400 flex items-center gap-1 justify-end group-hover:text-[#d0d7de] dark:group-hover:text-[#f5f5f5] transition-colors">
                          下一篇
                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                        </span>
-                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-[#f5f5f5] dark:group-hover:text-[#f5f5f5] line-clamp-2 transition-colors">
+                       <span className="text-[15px] font-serif font-bold text-neutral-700 dark:text-neutral-300 group-hover:text-[#d0d7de] dark:group-hover:text-[#f5f5f5] line-clamp-2 transition-colors">
                          {nextPost.title}
                        </span>
                      </Link>
@@ -566,7 +566,7 @@ function normalizeText(text: string): string {
           <p className="mt-2 text-sm text-neutral-500">Page Not Found</p>
           <Link
             href="/"
-            className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-[#33FF33] dark:hover:text-[#33FF33] transition-colors"
+            className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-[#0969da] dark:hover:text-[#33FF33] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>返回首页</span>

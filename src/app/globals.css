@@ -80,8 +80,20 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --page-bg: #f1f3f7;
-  --page-text: #1e293b;
+  --page-bg: #f6f8fa;
+  --page-text: #1f2328;
+  --theme-primary: #1f2328;
+  --theme-secondary: #0969da;
+  --theme-accent: #8250df;
+  --theme-background: #ffffff;
+  --theme-surface: rgba(246, 248, 250, 0.98);
+  --theme-border: #d0d7de;
+  --theme-text-primary: #1f2328;
+  --theme-text-secondary: #0969da;
+  --theme-text-muted: #656d76;
+  --theme-border-radius: 6px;
+  --theme-widget-border-radius: 6px;
+  --theme-shell-shadow: 0 1px 3px rgba(31, 35, 40, 0.12), 0 8px 24px rgba(31, 35, 40, 0.08);
   --realm-motion-duration: 0.18s;
   --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -98,29 +110,67 @@ html.no-transitions *::after {
   transition: none !important;
 }
 
-html.light {
+html.light,
+[data-theme="light"],
+html:not(.dark) {
   color-scheme: only light !important;
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
-  --page-bg: #f1f3f7;
-  --page-text: #1e293b;
+  --theme-primary: #1f2328;
+  --theme-secondary: #0969da;
+  --theme-accent: #8250df;
+  --theme-background: #ffffff;
+  --theme-surface: rgba(246, 248, 250, 0.98);
+  --theme-border: #d0d7de;
+  --theme-text-primary: #1f2328;
+  --theme-text-secondary: #0969da;
+  --theme-text-muted: #656d76;
+  --theme-border-radius: 6px;
+  --theme-widget-border-radius: 6px;
+  --theme-widget-border-width: 2px;
+  --theme-shell-shadow: 0 1px 3px rgba(31, 35, 40, 0.12), 0 8px 24px rgba(31, 35, 40, 0.08);
+  --theme-content-max-width: 1000px;
+  --global-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --page-bg: #f6f8fa;
+  --page-text: #1f2328;
   --realm-motion-duration: 0.18s;
   --realm-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  background-color: #f1f3f7 !important;
-  background-image: none !important;
-  color: #1e293b !important;
+  background: linear-gradient(180deg, #f6f8fa 0%, #ffffff 55%, #f6f8fa 100%) !important;
+  background-attachment: fixed !important;
+  color: #1f2328 !important;
 }
 
-html.light body {
-  background-color: #f1f3f7 !important;
-  background-image: none !important;
-  color: #1e293b !important;
+html.light ::selection,
+[data-theme="light"] ::selection,
+html:not(.dark) ::selection {
+  background: #b6e3ff !important;
+  color: #1f2328 !important;
+}
+
+html.light body,
+[data-theme="light"] body,
+html:not(.dark) body {
+  background: transparent !important;
+  color: #1f2328 !important;
 }
 
 html.dark {
   color-scheme: only dark !important;
   forced-color-adjust: none;
   -webkit-forced-color-adjust: none;
+  --theme-primary: #ffffff;
+  --theme-secondary: #33FF33;
+  --theme-accent: #33FF33;
+  --theme-background: #000000;
+  --theme-surface: rgba(16, 16, 16, 0.95);
+  --theme-border: #ffffff;
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #a1a1aa;
+  --theme-text-muted: #71717a;
+  --theme-border-radius: 6px;
+  --theme-widget-border-radius: 6px;
+  --theme-widget-border-width: 2px;
+  --global-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --page-bg: #000000;
   --page-text: #f1f1f1;
   --realm-motion-duration: 0.32s;
@@ -223,11 +273,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 选中文本系统 (Selection) */
-::selection {
-  background: #8884;
-}
-
+/* 选中文本系统 (Selection - GitHub Dark) */
 .dark ::selection,
 html.dark ::selection {
   background: #8884;
@@ -246,8 +292,8 @@ html.dark ::selection {
 }
 
 .prose-link:hover {
-  color: #33FF33 !important;
-  border-bottom-color: #33FF33 !important;
+  color: #0969da !important;
+  border-bottom-color: #0969da !important;
 }
 
 .dark .prose-link {
@@ -341,6 +387,10 @@ html.dark .manga-panel {
   padding-top: calc(86px + env(safe-area-inset-top, 0px));
   padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .home-main-content {
@@ -360,7 +410,7 @@ html.dark .manga-panel {
 }
 
 [data-home-main-panel] h1,
-[data-home-main-panel] [data-home-content-card] h2 {
+[data-home-main-panel] [data-home-content-card] h2:not(.font-sans) {
   font-family: "W95FA", "JetBrains Mono", "Courier New", monospace;
   letter-spacing: 0.03em;
 }
@@ -371,16 +421,20 @@ html.dark .manga-panel {
     padding-top: calc(96px + env(safe-area-inset-top, 0px));
     padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   .home-main-content {
     height: 100%;
-    max-height: calc(100svh - 128px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: min(840px, calc(100svh - 128px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
   }
 
   [data-home-main-panel] {
     height: 100%;
-    max-height: calc(100svh - 128px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: min(840px, calc(100svh - 128px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
   }
 }
 
@@ -418,37 +472,107 @@ html.dark .home-panel-scroll::-webkit-scrollbar-thumb:hover {
   background: rgb(255 255 255 / 35%);
 }
 
-.site-stat-row {
-  min-height: 34px;
-  padding: 6px 10px;
-  border-radius: 0; /* 👈 纯硬核直角边，零圆角 */
-  background: #e8f2eb;
+/* ============================================================
+ * Dane 原版卡片规范 (.bordered-box)
+ * ============================================================ */
+[data-home-content-card],
+.bordered-box {
+  width: 100%;
+  background: var(--theme-surface, rgba(246, 248, 250, 0.98));
+  border: var(--theme-widget-border-width, 2px) solid var(--theme-border, #d0d7de);
+  border-radius: var(--theme-widget-border-radius, 6px);
+  padding: 0 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(208, 215, 222, 0.8);
+  transition: all 0.3s ease;
 }
 
-.site-stat-label {
-  color: #58665c;
-}
-
-.site-stat-value {
-  color: #16803a;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* 🎯 深色模式：纯正直角 + 沉稳暗墨黑底色 (#1b211b) */
-html.dark .site-stat-row {
-  border-radius: 0;    /*  纯硬核直角边 */
-  background: #1b211b; /* 真实采样暗墨黑 */
-  border: none;        /* 无多余边框 */
+html.dark [data-home-content-card],
+html.dark .bordered-box {
+  background: var(--theme-surface, rgba(16, 16, 16, 0.95));
+  border: 2px solid #ffffff;
   box-shadow: none;
 }
 
+.bordered-box-header {
+  margin-bottom: -2px;
+  padding: 8px 0 0;
+}
+
+.header-text {
+  font-size: calc(16 * 1em / 14);
+  font-weight: 700;
+  color: var(--theme-text-primary, #1f2328);
+  margin: 0 0 4px;
+  padding: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-family: var(--global-font-family, "W95FA", "JetBrains Mono", "Courier New", monospace);
+}
+
+.header-divider {
+  width: 100%;
+  height: 2px;
+  background: var(--box-border-color, var(--theme-border, #d0d7de));
+  margin: 0;
+  padding: 0;
+}
+
+html.dark .header-divider {
+  background: #ffffff;
+}
+
+.bordered-box-content {
+  margin: 0 -12px;
+  padding: 0;
+}
+
+.bordered-box-content.padded {
+  margin: 0;
+  padding: 10px 0 12px;
+}
+
+/* ============================================================
+ * 站点统计组件 (.site-stat-row, .site-stat-label, .site-stat-value)
+ * ============================================================ */
+.site-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--theme-secondary, #0969da) 4%, transparent);
+}
+
+html.dark .site-stat-row {
+  background: color-mix(in srgb, #33FF33 7%, transparent);
+}
+
+.site-stat-label {
+  color: #656d76;
+  font-family: var(--global-font-family, "W95FA", "JetBrains Mono", "Courier New", monospace);
+  font-size: 13px;
+  font-weight: 500;
+}
+
 html.dark .site-stat-label {
-  color: #b1bbb3;      /* 内敛终端灰 */
+  color: #b1bbb3;
+}
+
+.site-stat-value {
+  color: #1f2328;
+  font-family: var(--global-font-family, "W95FA", "JetBrains Mono", "Courier New", monospace);
+  font-size: 13.5px;
+  font-weight: 700;
 }
 
 html.dark .site-stat-value {
-  color: #33FF33;      /* 仅数字亮起 */
+  color: #33FF33;
   text-shadow: 0 0 5px rgba(51, 255, 51, 0.55), 0 0 11px rgba(51, 255, 51, 0.3);
 }
 
@@ -552,6 +676,8 @@ html.dark .site-stat-value {
   .nixie-tube:nth-child(4) { animation-delay: 135ms; }
   .nixie-tube:nth-child(5) { animation-delay: 180ms; }
   .nixie-tube:nth-child(6) { animation-delay: 225ms; }
+  .nixie-tube:nth-child(7) { animation-delay: 270ms; }
+  .nixie-tube:nth-child(8) { animation-delay: 315ms; }
 }
 
 @keyframes nixie-tube-ignite {
@@ -781,9 +907,36 @@ html.dark .theme-toggle .moon-cradle {
 
 /*
  * ============================================================
- * 9. 复古窗口深色模式高对比描边与排版规范
+ * 9. 复古窗口深色与日间模式（GitHub Light 1:1 复刻）排版规范
  * ============================================================
  */
+
+/* 日间模式：直接使用内部组件 (.bordered-box) 同款边框与描边样式 */
+html.light [data-home-main-panel],
+[data-theme="light"] [data-home-main-panel],
+html:not(.dark) [data-home-main-panel] {
+  background-color: #ffffff !important;
+  border: var(--theme-widget-border-width, 2px) solid var(--theme-border, #d0d7de) !important;
+  border-radius: var(--theme-widget-border-radius, 6px) !important;
+  box-shadow: 0 0 0 1px rgba(208, 215, 222, 0.8) !important;
+  color: #1f2328 !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+
+/* 顶部悬浮控制台 (Navbar Dock) 日间模式样式：同步内部组件同款硬轮廓 */
+html.light [data-home-dock],
+[data-theme="light"] [data-home-dock],
+html:not(.dark) [data-home-dock] {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border: var(--theme-widget-border-width, 2px) solid var(--theme-border, #d0d7de) !important;
+  box-shadow: 0 0 0 1px rgba(208, 215, 222, 0.8) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
+  backdrop-filter: blur(12px) saturate(110%);
+}
+
+/* 深色模式原有规范保持不变 */
 html.dark [data-home-main-panel] {
   background-color: transparent !important;
   border: 2px solid #ffffff !important;
@@ -798,14 +951,11 @@ html.dark [data-home-content-card] {
   border: 2px solid #ffffff !important;
   border-width: 2px !important;
   box-shadow: none !important;
+  color: #ffffff;
 }
 
 html.dark [data-home-content-card] [class*="border-b-2"] {
   border-bottom: 2px solid #ffffff !important;
-}
-
-html.dark [data-home-content-card] {
-  color: #ffffff;
 }
 
 html.dark [data-home-content-card] h1,
@@ -815,6 +965,14 @@ html.dark [data-home-content-card] h4 {
   color: #ffffff !important;
 }
 
+html.dark [data-home-dock] {
+  background-color: #080808 !important;
+  border: 2px solid #484848 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(10px) saturate(110%);
+  backdrop-filter: blur(10px) saturate(110%);
+}
+
 /*
  * ============================================================
  * 10. 全局核心排印与交互色彩中心 (Single Source of Truth)
@@ -822,10 +980,10 @@ html.dark [data-home-content-card] h4 {
  * ============================================================
  */
 
-/* 1. 随想录正文 (Thoughts) - 默认颜色与悬浮变色效果 */
+/* 1. 随想录正文 (Thoughts) */
 .thought-text,
 [data-thought-text] {
-  color: #24292f;
+  color: #1f2328;
   transition: color 150ms ease;
 }
 
@@ -834,19 +992,9 @@ html.dark [data-thought-text] {
   color: #ffffff !important;
 }
 
-/* 随想录悬停高光效果 (修改此处的 #33FF33 即可改变悬停颜色) */
-[data-thought-link]:hover [data-thought-text],
-.thought-text:hover,
-[data-thought-text]:hover,
-html.dark [data-thought-link]:hover [data-thought-text],
-html.dark [data-thought-text]:hover,
-html.dark .thought-text:hover {
-  color: #33FF33 !important;
-}
-
 /* 2. 歌单歌曲名称 (Playlist) */
 [data-song-title] {
-  color: #24292f;
+  color: #1f2328;
   transition: color 150ms ease;
 }
 
@@ -854,8 +1002,11 @@ html.dark [data-song-title] {
   color: #ffffff !important;
 }
 
-/* 歌单当前播放中高光绿色 */
-[data-song-playing],
+/* 歌单当前播放中高光：暗色为经典绿色，日间模式为 GitHub 蓝 #0969da */
+[data-song-playing] {
+  color: #0969da !important;
+}
+
 html.dark [data-song-playing] {
   color: #33FF33 !important;
 }
@@ -863,7 +1014,7 @@ html.dark [data-song-playing] {
 /* 3. 文章列表标题 (Posts) */
 .post-title,
 [data-post-title] {
-  color: #24292f;
+  color: #1f2328;
   transition: color 150ms ease;
 }
 
@@ -872,28 +1023,35 @@ html.dark [data-post-title] {
   color: #ffffff !important;
 }
 
-/* 文章标题悬停高光效果 (与随想录保持 100% 一致) */
-[data-post-link]:hover [data-post-title],
-[data-post-link]:hover .post-title,
-.group:hover [data-post-title],
-.group:hover .post-title,
-.post-title:hover,
-[data-post-title]:hover,
-html.dark [data-post-link]:hover [data-post-title],
-html.dark [data-post-link]:hover .post-title,
-html.dark .group:hover [data-post-title],
-html.dark .group:hover .post-title,
-html.dark [data-post-title]:hover,
-html.dark .post-title:hover {
+/* 4. 卡片与板块标题 (Recent Posts 等) 专属悬停变色微交互 */
+[data-card-title],
+[data-home-content-card] h2 {
+  color: #1f2328;
+  transition: color 150ms ease;
+  cursor: default;
+}
+
+html.dark [data-card-title],
+html.dark [data-home-content-card] h2 {
+  color: #ffffff !important;
+}
+
+[data-card-title]:hover,
+[data-home-content-card] h2:hover {
+  color: #0969da !important;
+}
+
+html.dark [data-card-title]:hover,
+html.dark [data-home-content-card] h2:hover {
   color: #33FF33 !important;
 }
 
-/* 4. 次要元信息（日期、艺术家、时长、标签） */
+/* 5. 次要元信息（日期、艺术家、时长、标签） */
 [data-song-meta],
 [data-thought-meta],
 [data-post-meta],
 [data-meta-text] {
-  color: #6e7781;
+  color: #656d76;
 }
 
 html.dark [data-song-meta],
@@ -901,14 +1059,4 @@ html.dark [data-thought-meta],
 html.dark [data-post-meta],
 html.dark [data-meta-text] {
   color: #a1a1aa !important;
-}
-
-/* 5. 底部悬浮控制台 (Retro Dock) */
-[data-home-dock],
-html.dark [data-home-dock] {
-  background-color: #080808 !important;
-  border: 2px solid #484848 !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.26) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(110%);
-  backdrop-filter: blur(10px) saturate(110%);
 }

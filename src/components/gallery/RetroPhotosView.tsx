@@ -12,7 +12,7 @@ export function RetroPhotosView({ photos }: { photos: GalleryImage[] }) {
   return (
  <div className="flex flex-col w-full flex-1 min-h-0 pt-0">
   <div className="flex items-center justify-center pb-1 mb-2.5 sm:mb-3 border-b-2 border-[#d0d7de] dark:border-white select-none">
-    <h2 className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#24292f] dark:text-white">
+    <h2 className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#1f2328] dark:text-white">
       <TypewriterTitle text="Photos" />
     </h2>
   </div>
@@ -24,7 +24,7 @@ export function RetroPhotosView({ photos }: { photos: GalleryImage[] }) {
               <div
                 key={photo.id}
                 onClick={() => setSelectedPhoto(photo)}
-                className="group relative cursor-pointer overflow-hidden rounded-[3px] border border-[#d0d7de] dark:border-white/40 bg-[#eaeef2] dark:bg-transparent aspect-4/3 transition-all hover:border-black dark:hover:border-white shadow-sm"
+                className="group relative cursor-pointer overflow-hidden rounded-[6px] border border-[#d0d7de] dark:border-white/40 bg-[#eaeef2] dark:bg-transparent aspect-4/3 transition-all hover:border-black dark:hover:border-white shadow-sm"
               >
                 <Image
                   src={photo.thumbnailUrl || photo.url}
@@ -51,7 +51,7 @@ export function RetroPhotosView({ photos }: { photos: GalleryImage[] }) {
           onClick={() => setSelectedPhoto(null)}
           className="fixed inset-0 z-40 bg-black/85 backdrop-blur-xs flex items-center justify-center pt-24 sm:pt-28 pb-8 px-4 sm:px-6 cursor-pointer select-none animate-in fade-in duration-150"
         >
-          <div className="relative inline-flex items-center justify-center max-w-[90vw] max-h-[calc(100vh-140px)] bg-[#0a0a0a] border-2 border-white rounded-[4px] p-1.5 sm:p-2 shadow-[0_16px_50px_rgba(0,0,0,0.85)] overflow-hidden">
+          <div className="relative inline-flex items-center justify-center max-w-[90vw] max-h-[calc(100vh-140px)] bg-[#0a0a0a] border-2 border-white rounded-[6px] p-1.5 sm:p-2 shadow-[0_16px_50px_rgba(0,0,0,0.85)] overflow-hidden">
             <img
               src={selectedPhoto.hdUrl || selectedPhoto.url}
               alt={selectedPhoto.title || "Full photo"}

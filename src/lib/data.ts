@@ -187,6 +187,49 @@ export function formatThoughtDate(
   return { relative: full, full };
 }
 
+/**
+ * 格式化随想录卡片顶部类型标识（支持全大写转首字母大写，如 NOTE -> Note，若为空回退为 viceo）
+ */
+export function formatThoughtType(type?: string): string {
+  if (!type || !type.trim()) return 'viceo';
+  const trimmed = type.trim();
+  // 全大写单词转换为 Title Case（例如 NOTE -> Note, BOOK -> Book）
+  if (trimmed === trimmed.toUpperCase() && trimmed.length > 1) {
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  }
+  // 全小写单词也首字母大写（例如 note -> Note）
+  if (trimmed === trimmed.toLowerCase()) {
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  }
+  return trimmed;
+}
+
+/**
+ * 格式化随想录英文时间戳：对齐极简无逗号风格（如 Mon Oct 05 2026 20:29:10）
+ * 强制指定 Asia/Shanghai 时区以杜绝 SSR/SSG 与 Client 之间的 Hydration 差异
+ */
+export function formatEnglishThoughtDate(dateInput?: string | Date | null): string {
+  if (!dateInput) return '';
+  const d = dateInput instanceof Date ? dateInput : parseAnyDate(String(dateInput));
+  if (!d || isNaN(d.getTime())) return String(dateInput);
+
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'Asia/Shanghai',
+  });
+
+  const parts = dtf.formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value || '';
+  return `${get('weekday')} ${get('month')} ${get('day')} ${get('year')} ${get('hour')}:${get('minute')}:${get('second')}`;
+}
+
 // ================= 随想录接口 (Notion CMS 优先 + Supabase 备份) =================
 
 export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
@@ -212,17 +255,6 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
       }
     }
 
-    // 从 Supabase 仅安全读取已发布条目的点赞数据 (id, likes)，严格受控于行级与列级安全策略
-    const { data: likesData } = await supabase
-      .from('thoughts')
-      .select('id, likes')
-      .eq('is_published', true);
-
-    const supabaseLikesMap = new Map<string, number>();
-    (likesData || []).forEach((row) => {
-      if (row?.id) supabaseLikesMap.set(row.id, row.likes || 0);
-    });
-
     if (notionThoughts && notionThoughts.length > 0) {
       const formattedNotion: ThoughtMediaItem[] = notionThoughts.map((t) => {
         const dateInfo = formatThoughtDate(t.time);
@@ -241,7 +273,7 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
           tags: t.tags,
           sourceUrl: t.sourceUrl,
           posterUrl: t.posterUrl,
-          likes: supabaseLikesMap.get(t.id) ?? t.likes ?? 0,
+          likes: 0,
           upvotes: 0,
           replies: t.replies,
         };
@@ -273,20 +305,7 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
     if (res.ok) {
       const json = await res.json();
       if (json?.success && json.data) {
-        const thoughtItem = json.data as ThoughtMediaItem;
-        // 同步 Supabase 云端已发布真实点赞数
-        try {
-          const { data: likeRow } = await supabase
-            .from('thoughts')
-            .select('likes')
-            .eq('id', id)
-            .eq('is_published', true)
-            .maybeSingle();
-          if (likeRow && typeof likeRow.likes === 'number') {
-            thoughtItem.likes = likeRow.likes;
-          }
-        } catch {}
-        return thoughtItem;
+        return json.data as ThoughtMediaItem;
       }
     }
   } catch (workerErr) {

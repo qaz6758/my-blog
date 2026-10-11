@@ -200,7 +200,7 @@ export function RetroMusicWidget({
         {/* 封面与信息 */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* 54x54 规整专辑封面（日间模式纯白方块占位，夜间模式纯黑方块占位，获取后才显示封面） */}
-          <div className="relative h-[54px] w-[54px] shrink-0 rounded-[3px] overflow-hidden border border-[#d0d7de] dark:border-white/40 bg-white dark:bg-transparent">
+          <div className="relative h-[54px] w-[54px] shrink-0 rounded-[6px] overflow-hidden border border-[#d0d7de] dark:border-white/40 bg-white dark:bg-transparent">
             {activeSong?.cover_url && !coverError ? (
               <Image
                 src={activeSong.cover_url}
@@ -216,10 +216,10 @@ export function RetroMusicWidget({
 
           {/* 标题与歌手（未获取前以不折行空格占位，杜绝首曲文字跳动与高度位移） */}
           <div className="min-w-0 flex-1">
-            <h3 className="text-[14px] sm:text-[15px] font-bold text-[#24292f] dark:text-white truncate leading-tight">
+            <h3 className="text-[14px] sm:text-[15px] font-bold text-[#1f2328] dark:text-white truncate leading-tight">
               {activeSong?.title || "\u00A0"}
             </h3>
-            <p className="text-[12px] text-[#57606a] dark:text-[#a1a1aa] truncate mt-1 leading-tight">
+            <p className="text-[12px] text-[#656d76] dark:text-[#a1a1aa] truncate mt-1 leading-tight">
               {activeSong?.artist || "\u00A0"}
             </p>
           </div>
@@ -231,7 +231,7 @@ export function RetroMusicWidget({
           <button
             type="button"
             onClick={handlePrev}
-            className="text-neutral-500 hover:text-[#24292f] dark:text-white dark:hover:text-[#33FF33] transition-colors cursor-pointer p-1 active:scale-95"
+            className="text-neutral-500 hover:text-[#0969da] dark:text-white dark:hover:text-[#33FF33] transition-colors cursor-pointer p-1 active:scale-95"
             title="Previous Track"
           >
             <SkipBack className="h-4 w-4 fill-current" />
@@ -241,7 +241,7 @@ export function RetroMusicWidget({
           <button
             type="button"
             onClick={handleTogglePlay}
-            className="h-8 w-8 rounded-full bg-[#24292f] text-white dark:bg-white dark:text-[#141414] hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center cursor-pointer transition-all"
+            className="h-8 w-8 rounded-full bg-[#1f2328] text-white dark:bg-white dark:text-[#141414] hover:scale-105 active:scale-95 shadow-sm flex items-center justify-center cursor-pointer transition-all"
             title={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? (
@@ -255,7 +255,7 @@ export function RetroMusicWidget({
           <button
             type="button"
             onClick={handleNext}
-            className="text-neutral-500 hover:text-[#24292f] dark:text-white dark:hover:text-[#33FF33] transition-colors cursor-pointer p-1 active:scale-95"
+            className="text-neutral-500 hover:text-[#0969da] dark:text-white dark:hover:text-[#33FF33] transition-colors cursor-pointer p-1 active:scale-95"
             title="Next Track"
           >
             <SkipForward className="h-4 w-4 fill-current" />
@@ -275,7 +275,7 @@ export function RetroMusicWidget({
           <div className="relative h-[2.5px] flex-1 overflow-hidden bg-[#e1e4e8] dark:bg-[#394554] rounded-full">
             {/* 播放进度填色 */}
             <div
-              className="absolute left-0 top-0 h-full bg-[#24292f] dark:bg-[#3fb950] transition-all duration-1000 ease-linear"
+              className="absolute left-0 top-0 h-full bg-[#1f2328] dark:bg-[#3fb950] transition-all duration-1000 ease-linear"
               style={{ width: `${audioProgress}%` }}
             >
              
@@ -284,7 +284,7 @@ export function RetroMusicWidget({
         </div>
 
         {/* 进度条两侧时间读数 */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-[#57606a] dark:text-[#a1a1aa] tabular-nums leading-none">
+        <div className="flex items-center justify-between text-[11px] font-mono text-[#656d76] dark:text-[#a1a1aa] tabular-nums leading-none">
           <span>{formatTime(currentTimeSec)}</span>
           <span>{formatTime(durationSec)}</span>
         </div>

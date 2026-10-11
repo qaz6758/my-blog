@@ -21,27 +21,36 @@ export function ContentCard({
   return (
     <div
       data-home-content-card
-      className={`rounded-[4px] border-2 border-[#d0d7de] dark:border-white bg-transparent p-3 shadow-[0_1px_2px_rgba(27,31,36,0.08)] dark:shadow-none transition-colors ${className}`}
+      className={`bordered-box relative w-full overflow-hidden ${className}`}
     >
       {title && (
-        <div
-          className={`flex items-center ${
-            titleAlign === "center" ? "justify-center" : "justify-between"
-          } pb-1.5 mb-2 border-b-2 border-[#d0d7de] dark:border-white select-none`}
-        >
-          <h2 className={`font-bold tracking-wide leading-[1.2] font-['W95FA',sans-serif] ${titleClassName || "text-[15px] sm:text-[16px] text-[#24292f] dark:text-white"}`}>
-            {title}
-          </h2>
-          {rightText && titleAlign !== "center" && (
-            <div className="text-[12px] sm:text-[13px] font-mono font-medium text-[#57606a] dark:text-[#a1a1aa] tracking-tight">
-              {rightText}
+        <div className="bordered-box-header select-none">
+          <div
+            className={`header-text ${
+              titleAlign === "center" ? "justify-center" : "justify-between"
+            }`}
+          >
+            <div className="header-left flex items-center gap-1.5 min-w-0">
+              <h2
+                data-card-title
+                className={`font-bold leading-[1.2] cursor-default transition-colors text-inherit ${titleClassName || ""}`}
+              >
+                {title}
+              </h2>
             </div>
-          )}
+            {rightText && titleAlign !== "center" && (
+              <div className="header-right-wrapper text-[12px] sm:text-[13px] font-mono font-medium text-[#656d76] dark:text-[#a1a1aa] tracking-tight">
+                {rightText}
+              </div>
+            )}
+          </div>
+          <div className="header-divider" />
         </div>
       )}
-      <div className={`text-[13px] leading-relaxed text-[#24292f] dark:text-white ${bodyClassName}`}>
+      <div className={`bordered-box-content padded text-[13px] leading-relaxed text-[#1f2328] dark:text-white ${bodyClassName}`}>
         {children}
       </div>
     </div>
   );
 }
+

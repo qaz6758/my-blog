@@ -9,7 +9,7 @@ export function RetroAboutView() {
   return (
 <div className="flex flex-col w-full flex-1 min-h-0 pt-0">
   <div className="flex items-center justify-center pb-1 mb-2.5 sm:mb-3 border-b-2 border-[#d0d7de] dark:border-white select-none">
-    <h2 className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#24292f] dark:text-white">
+    <h2 className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#1f2328] dark:text-white">
       <TypewriterTitle text="About" />
     </h2>
   </div>
@@ -17,11 +17,11 @@ export function RetroAboutView() {
       {/* 个人全景介绍 */}
       <div>
         <div className="flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-[#d0d7de] dark:border-white select-none">
-          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#24292f] dark:text-white">
+          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#1f2328] dark:text-white">
             About Me
           </h3>
         </div>
-        <div className="text-[13px] sm:text-[14px] text-[#24292f] dark:text-white space-y-3 leading-[1.6]">
+        <div className="text-[13px] sm:text-[14px] text-[#1f2328] dark:text-white space-y-3 leading-[1.6]">
           <p>
             嗨，我是 <strong className="text-black dark:text-white">Vince Ou</strong>！一名全栈摸索者与数字花园构建者。
           </p>
@@ -29,7 +29,7 @@ export function RetroAboutView() {
             热衷于用代码实现优雅直观的用户交互与系统架构。喜欢老式互联网的质朴纯粹，也享受现代全栈工具带来的开发心流。
           </p>
           <div className="pt-1">
-            <p className="font-bold text-[#24292f] dark:text-white mb-2 select-none font-['W95FA',sans-serif]">
+            <p className="font-bold text-[#1f2328] dark:text-white mb-2 select-none font-['W95FA',sans-serif]">
               Quick Facts:
             </p>
             <ul className="list-disc pl-5 space-y-1">
@@ -53,25 +53,25 @@ export function RetroAboutView() {
       {/* 技术栈清单 */}
       <div>
         <div className="flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-[#d0d7de] dark:border-white select-none">
-          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#24292f] dark:text-white">
+          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#1f2328] dark:text-white">
             Skills & Tech Stack
           </h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] sm:text-[13px]">
-          <div className="p-2.5 rounded-[3px] bg-neutral-100/70 dark:bg-transparent border border-[#e1e4e8] dark:border-white/40">
-            <h4 className="font-bold text-[#24292f] dark:text-white mb-1 font-['W95FA',sans-serif]">
+          <div className="p-2.5 rounded-[6px] bg-neutral-100/70 dark:bg-transparent border border-[#e1e4e8] dark:border-white/40">
+            <h4 className="font-bold text-[#1f2328] dark:text-white mb-1 font-['W95FA',sans-serif]">
               Frontend & UI
             </h4>
-            <p className="text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+            <p className="text-[#656d76] dark:text-[#a1a1aa] leading-relaxed">
               React 19, Next.js 16 (App Router), TypeScript, Tailwind CSS, Framer Motion, HTML5/CSS3.
             </p>
           </div>
 
-          <div className="p-2.5 rounded-[3px] bg-neutral-100/70 dark:bg-transparent border border-[#e1e4e8] dark:border-white/40">
-            <h4 className="font-bold text-[#24292f] dark:text-white mb-1 font-['W95FA',sans-serif]">
+          <div className="p-2.5 rounded-[6px] bg-neutral-100/70 dark:bg-transparent border border-[#e1e4e8] dark:border-white/40">
+            <h4 className="font-bold text-[#1f2328] dark:text-white mb-1 font-['W95FA',sans-serif]">
               Backend & Cloud
             </h4>
-            <p className="text-neutral-600 dark:text-[#a1a1aa] leading-relaxed">
+            <p className="text-[#656d76] dark:text-[#a1a1aa] leading-relaxed">
               Cloudflare Workers / Pages, Supabase, PostgreSQL, Notion API Gateway, Node.js.
             </p>
           </div>
@@ -81,12 +81,12 @@ export function RetroAboutView() {
       {/* 建站理念 */}
       <div>
         <div className="flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-[#d0d7de] dark:border-white select-none">
-          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#24292f] dark:text-white">
+          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#1f2328] dark:text-white">
             Site Philosophy
           </h3>
         </div>
-        <div className="text-[13px] text-[#24292f] dark:text-white leading-[1.6]">
-          <p className="mb-2 italic text-neutral-600 dark:text-[#a1a1aa] font-mono">
+        <div className="text-[13px] text-[#1f2328] dark:text-white leading-[1.6]">
+          <p className="mb-2 italic text-[#656d76] dark:text-[#a1a1aa] font-mono">
             &ldquo;大道至简，衍化至繁。这里是我的个人数字花园与技术自留地。&rdquo;
           </p>
           <p>
@@ -98,7 +98,7 @@ export function RetroAboutView() {
       {/* 社交链接 */}
       <div>
         <div className="flex items-center justify-between pb-1.5 mb-2.5 border-b-2 border-[#d0d7de] dark:border-white select-none">
-          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#24292f] dark:text-white">
+          <h3 className="font-bold tracking-wide font-['W95FA',sans-serif] text-[15px] sm:text-[16px] text-[#1f2328] dark:text-white">
             Connect
           </h3>
         </div>
@@ -107,7 +107,7 @@ export function RetroAboutView() {
             href="https://github.com/qaz6758"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-2.5 py-1 rounded-[3px] border border-[#d0d7de] dark:border-[#333] hover:border-[#33FF33] hover:text-[#33FF33] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-neutral-700 dark:text-white"
+            className="px-2.5 py-1 rounded-[6px] border border-[#d0d7de] dark:border-[#333] hover:border-[#0969da] hover:text-[#0969da] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-[#1f2328] dark:text-white"
           >
             GitHub: @qaz6758
           </a>
@@ -115,7 +115,7 @@ export function RetroAboutView() {
             href="https://space.bilibili.com/520681544"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-2.5 py-1 rounded-[3px] border border-[#d0d7de] dark:border-[#333] hover:border-[#33FF33] hover:text-[#33FF33] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-neutral-700 dark:text-neutral-300"
+            className="px-2.5 py-1 rounded-[6px] border border-[#d0d7de] dark:border-[#333] hover:border-[#0969da] hover:text-[#0969da] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-[#1f2328] dark:text-neutral-300"
           >
             Bilibili
           </a>
@@ -123,7 +123,7 @@ export function RetroAboutView() {
             href="https://twitter.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-2.5 py-1 rounded-[3px] border border-[#d0d7de] dark:border-[#333] hover:border-[#33FF33] hover:text-[#33FF33] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-neutral-700 dark:text-neutral-300"
+            className="px-2.5 py-1 rounded-[6px] border border-[#d0d7de] dark:border-[#333] hover:border-[#0969da] hover:text-[#0969da] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-[#1f2328] dark:text-neutral-300"
           >
             Twitter / X
           </a>
@@ -131,7 +131,7 @@ export function RetroAboutView() {
             href="https://t.me"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-2.5 py-1 rounded-[3px] border border-[#d0d7de] dark:border-[#333] hover:border-[#33FF33] hover:text-[#33FF33] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-neutral-700 dark:text-neutral-300"
+            className="px-2.5 py-1 rounded-[6px] border border-[#d0d7de] dark:border-[#333] hover:border-[#0969da] hover:text-[#0969da] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33] transition-colors text-[#1f2328] dark:text-neutral-300"
           >
             Telegram
           </a>

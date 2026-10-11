@@ -134,9 +134,9 @@ export function SiteVisitCounter() {
     return <span className="text-[#8b949e]">暂不可用</span>;
   }
 
-  // 始终以 6 位辉光管外壳渲染（杜绝文字闪烁引起的跳变）
+  // 始终以 8 位辉光管外壳渲染（杜绝文字闪烁引起的跳变）
   const currentNum = displayCount ?? count ?? 0;
-  const digits = String(currentNum).padStart(6, "0");
+  const digits = String(currentNum).padStart(8, "0");
 
   return (
     <span

@@ -315,7 +315,7 @@ const handleItemClick = (e: React.MouseEvent, id: string) => {
           className={`mb-3.5 flex items-center justify-start p-0 rounded transition-colors duration-300 cursor-pointer ${
             isVisible
               ? "text-neutral-700 dark:text-neutral-300 opacity-80"
-              : "text-neutral-400 dark:text-neutral-500 opacity-45 hover:opacity-100 hover:text-[#33FF33] dark:hover:text-[#33FF33]"
+              : "text-neutral-400 dark:text-neutral-500 opacity-45 hover:opacity-100 hover:text-[#0969da] dark:hover:text-[#33FF33]"
           }`}
         >
           <TocIcon className="w-[18px] h-[16px]" />
@@ -357,8 +357,8 @@ const handleItemClick = (e: React.MouseEvent, id: string) => {
                 onClick={(e) => handleItemClick(e, item.id)}
                 className={`inline-block leading-snug transition-colors duration-200 ${
                   isActive
-                    ? "text-white font-bold"
-                    : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white font-normal"
+                    ? "text-[#0969da] dark:text-white font-bold"
+                    : "text-[#656d76] dark:text-neutral-400 hover:text-[#1f2328] dark:hover:text-white font-normal"
                 }`}
                 title={titleText}
               >

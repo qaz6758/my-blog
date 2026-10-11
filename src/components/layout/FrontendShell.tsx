@@ -31,7 +31,7 @@ export function FrontendShell({ children }: { children: React.ReactNode }) {
         <main className="night-sky-target home-main-content relative z-10 w-full max-w-[900px] flex flex-col items-center">
           <div
             data-home-main-panel
-            className="w-full h-full rounded-[7px] border-2 border-[#d0d7de] bg-[#f6f8fa] shadow-[0_1px_3px_rgba(27,31,36,0.08)] transition-all dark:border-white dark:bg-transparent dark:shadow-none flex flex-col overflow-hidden"
+            className="w-full h-full rounded-[6px] border-2 border-[#d0d7de] bg-white shadow-[0_0_0_1px_rgba(208,215,222,0.8)] transition-all dark:rounded-[7px] dark:border-2 dark:border-white dark:bg-transparent dark:shadow-none flex flex-col overflow-hidden"
           >
             {/* 1. 顶部 Header 栏与基准线 (固定且跟随全站所有页面) */}
             <SiteWindowHeader />

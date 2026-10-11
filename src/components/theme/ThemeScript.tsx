@@ -37,7 +37,7 @@ export function ThemeScript() {
                 }
 
                 // 净化与同步所有 theme-color meta，杜绝深色 media query 劫持 Chrome 原生清屏画布
-                var themeColor = isDark ? '#000000' : '#f7f2ed';
+                var themeColor = isDark ? '#000000' : '#f6f8fa';
                 var themeMetas = document.querySelectorAll('meta[name="theme-color"]');
                 themeMetas.forEach(function(m) {
                   m.removeAttribute('media');

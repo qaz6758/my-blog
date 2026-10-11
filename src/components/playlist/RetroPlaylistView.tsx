@@ -39,7 +39,10 @@ export function RetroPlaylistView({ playlists }: { playlists: PlaylistCategory[]
   return (
 <div className="flex flex-col w-full flex-1 min-h-0 pt-0">
   <div className="flex items-center justify-center pb-1 mb-2.5 sm:mb-3 border-b-2 border-[#d0d7de] dark:border-white select-none">
-    <h2 className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#24292f] dark:text-white">
+    <h2
+      data-card-title
+      className="font-bold tracking-[0.12em] font-['W95FA',sans-serif] leading-none text-[19px] sm:text-[22px] text-[#1f2328] dark:text-white cursor-default select-none"
+    >
       <TypewriterTitle text="Playlist" />
     </h2>
   </div>
@@ -56,8 +59,8 @@ export function RetroPlaylistView({ playlists }: { playlists: PlaylistCategory[]
                     onClick={() => setSelectedId(p.id)}
                     className={`px-2.5 py-1 rounded-[3px] border transition-all cursor-pointer ${
                       selectedId === p.id
-                        ? "bg-neutral-900 text-white dark:bg-white dark:text-black border-neutral-900 dark:border-white font-bold"
-                        : "border-[#d0d7de] dark:border-[#333] bg-transparent text-neutral-600 dark:text-[#a1a1aa] hover:border-[#33FF33] hover:text-[#33FF33] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33]"
+                        ? "bg-[#1f2328] text-white border-[#1f2328] dark:bg-white dark:text-black dark:border-white font-bold"
+                        : "border-[#d0d7de] dark:border-[#333] bg-transparent text-[#656d76] dark:text-[#a1a1aa] hover:border-[#0969da] hover:text-[#0969da] dark:hover:border-[#33FF33] dark:hover:text-[#33FF33]"
                     }`}
                   >
                     {p.title} ({p.songs?.length || 0})
@@ -100,7 +103,7 @@ export function RetroPlaylistView({ playlists }: { playlists: PlaylistCategory[]
                           playSong(song);
                         }
                       }}
-                      className={`group p-2 flex items-center justify-between gap-3 cursor-pointer rounded-[4px] transition-colors select-none ${
+                      className={`group p-2 flex items-center justify-between gap-3 cursor-pointer rounded-[6px] transition-colors select-none ${
                         isCurrent
                           ? "bg-neutral-200/50 dark:bg-white/[0.06]"
                           : "hover:bg-neutral-100/70 dark:hover:bg-white/[0.03]"
@@ -108,7 +111,7 @@ export function RetroPlaylistView({ playlists }: { playlists: PlaylistCategory[]
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {/* 序号替换为歌曲封面，悬停或播放时展现控制按钮 */}
-                        <div className="relative h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-[4px] overflow-hidden border border-[#d0d7de] dark:border-[#333] bg-neutral-200 dark:bg-neutral-800">
+                        <div className="relative h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-[6px] overflow-hidden border border-[#d0d7de] dark:border-[#333] bg-neutral-200 dark:bg-neutral-800">
                           <img
                             src={initialCover}
                             alt={song.title}
@@ -154,21 +157,21 @@ export function RetroPlaylistView({ playlists }: { playlists: PlaylistCategory[]
                               data-song-playing={isCurrent ? "" : undefined}
                               className={`text-[13.5px] sm:text-[14.5px] font-bold truncate transition-colors leading-snug ${
                                 isCurrent
-                                  ? "!text-[#33FF33]"
-                                  : "text-neutral-900 dark:text-white"
+                                  ? "text-[#0969da] dark:text-[#33FF33]"
+                                  : "text-[#1f2328] dark:text-white"
                               }`}
                             >
                               {song.title}
                             </p>
                             {isCurrent && (
-                              <span data-song-playing className="text-[11px] font-mono !text-[#33FF33] shrink-0">
+                              <span data-song-playing className="text-[11px] font-mono text-[#0969da] dark:text-[#33FF33] shrink-0">
                                 {isCurrentlyPlaying ? "[播放中]" : "[已暂停]"}
                               </span>
                             )}
                           </div>
                           <p
                             data-song-meta
-                            className="text-[11.5px] sm:text-[12px] text-neutral-500 dark:text-[#a1a1aa] truncate mt-0.5 font-sans leading-tight"
+                            className="text-[11.5px] sm:text-[12px] text-[#656d76] dark:text-[#a1a1aa] truncate mt-0.5 font-sans leading-tight"
                           >
                             {song.artist || "Unknown Artist"}
                           </p>
@@ -181,8 +184,8 @@ export function RetroPlaylistView({ playlists }: { playlists: PlaylistCategory[]
                         data-song-playing={isCurrent ? "" : undefined}
                         className={`text-[12px] sm:text-[13px] font-mono shrink-0 tabular-nums ${
                           isCurrent
-                            ? "!text-[#33FF33] font-semibold"
-                            : "text-neutral-500 dark:text-[#a1a1aa]"
+                            ? "text-[#0969da] dark:text-[#33FF33] font-semibold"
+                            : "text-[#656d76] dark:text-[#a1a1aa]"
                         }`}
                       >
                         {formatDuration(song.duration)}
