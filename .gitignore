@@ -46,7 +46,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-#
-FULLSTACK_WORKFLOW.md
-
-!.env.production
+FULLSTACK_WORKFLOW.md
