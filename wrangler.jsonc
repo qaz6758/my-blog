@@ -14,6 +14,7 @@
     { "pattern": "vinceou.site", "custom_domain": true },
     { "pattern": "www.vinceou.site", "custom_domain": true }
   ],
+  "workers_dev": true,
   "observability": {
     "enabled": true
   }
