@@ -6,6 +6,7 @@ import {
   fetchThoughtsFromNotion as fetchNotionThoughts,
   extractDatabaseId,
   NotionPostItem,
+  NotionThoughtItem,
 } from '@/lib/notion';
 
 export type { NotionPostItem };
@@ -190,45 +191,39 @@ export function formatThoughtDate(
 
 export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
   try {
-    const [notionThoughts, supabaseRes] = await Promise.all([
-      fetchNotionThoughts().catch(() => []),
-      supabase
-        .from('thoughts')
-        .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false }),
-    ]);
+    let notionThoughts = await fetchNotionThoughts().catch(() => []);
 
-    const supabaseItems: ThoughtMediaItem[] = (supabaseRes.data || []).map((item) => {
-      const dateInfo = formatThoughtDate(item.created_at);
-      return {
-        id: item.id,
-        author: item.author || 'Vince Ou',
-        action: item.action || '',
-        time: dateInfo.relative,
-        fullTime: dateInfo.full,
-        rawDate: item.created_at,
-        type: item.type || 'NOTE',
-        year: item.year || new Date(item.created_at).getFullYear().toString(),
-        title: item.title || '',
-        description: item.description || '',
-        rating: item.rating || undefined,
-        tags: Array.isArray(item.tags) ? item.tags.join(', ') : item.tags,
-        sourceUrl: item.source_url || undefined,
-        posterUrl: item.poster_url || undefined,
-        likes: item.likes || 0,
-        upvotes: item.upvotes || 0,
-        replies: item.replies || 0,
-      };
-    });
+    // 降级/容灾通道：若 Notion 直连为空或失败，从 Cloudflare Worker (Notion Gateway) 获取已发布随想
+    if (!notionThoughts || notionThoughts.length === 0) {
+      try {
+        const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
+        const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/thoughts`, {
+          next: { revalidate: 10 },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+            notionThoughts = json.data as NotionThoughtItem[];
+          }
+        }
+      } catch (workerErr) {
+        console.warn('[Fetch Thoughts Worker Fallback]:', workerErr);
+      }
+    }
 
-    // 同步 Supabase 云端真实点赞数，与首屏静态注水无缝对齐（杜绝快照闪烁）
+    // 从 Supabase 仅安全读取已发布条目的点赞数据 (id, likes)，严格受控于行级与列级安全策略
+    const { data: likesData } = await supabase
+      .from('thoughts')
+      .select('id, likes')
+      .eq('is_published', true);
+
     const supabaseLikesMap = new Map<string, number>();
-    (supabaseRes.data || []).forEach((row) => {
+    (likesData || []).forEach((row) => {
       if (row?.id) supabaseLikesMap.set(row.id, row.likes || 0);
     });
 
-    if (notionThoughts.length > 0) {
+    if (notionThoughts && notionThoughts.length > 0) {
       const formattedNotion: ThoughtMediaItem[] = notionThoughts.map((t) => {
         const dateInfo = formatThoughtDate(t.time);
         return {
@@ -252,17 +247,11 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
         };
       });
 
-      // 去重逻辑：以 Notion 为准，过滤掉 Supabase 中已有的相同 id 记录
-      const notionIds = new Set(formattedNotion.map((t) => t.id));
-      const filteredSupabase = supabaseItems.filter((t) => !notionIds.has(t.id));
-
-      const merged = [...formattedNotion, ...filteredSupabase];
-      merged.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
-      return merged;
+      formattedNotion.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
+      return formattedNotion;
     }
 
-    supabaseItems.sort((a, b) => getThoughtTimestamp(b) - getThoughtTimestamp(a));
-    return supabaseItems;
+    return [];
   } catch (err) {
     console.warn('[Fetch Thoughts Error]:', err);
     return [];
@@ -274,35 +263,37 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
   const found = all.find((t) => t.id === id);
   if (found) return found;
 
-  const { data, error } = await supabase
-    .from('thoughts')
-    .select('*')
-    .eq('id', id)
-    .single();
+  // 降级通道：通过 Cloudflare Worker (Notion Gateway) 获取实时随想详情 (Worker 端严格校验已发布状态)
+  try {
+    const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
+    const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/thoughts/${id}`, {
+      next: { revalidate: 10 },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.success && json.data) {
+        const thoughtItem = json.data as ThoughtMediaItem;
+        // 同步 Supabase 云端已发布真实点赞数
+        try {
+          const { data: likeRow } = await supabase
+            .from('thoughts')
+            .select('likes')
+            .eq('id', id)
+            .eq('is_published', true)
+            .maybeSingle();
+          if (likeRow && typeof likeRow.likes === 'number') {
+            thoughtItem.likes = likeRow.likes;
+          }
+        } catch {}
+        return thoughtItem;
+      }
+    }
+  } catch (workerErr) {
+    console.warn('[Fetch Thought Detail Worker Fallback]:', workerErr);
+  }
 
-  if (error || !data) return null;
-
-  const dateInfo = formatThoughtDate(data.created_at);
-
-  return {
-    id: data.id,
-    author: data.author,
-    action: data.action,
-    time: dateInfo.relative,
-    fullTime: dateInfo.full,
-    rawDate: data.created_at,
-    type: data.type,
-    year: data.year,
-    title: data.title,
-    description: data.description,
-    rating: data.rating,
-    tags: Array.isArray(data.tags) ? data.tags.join(', ') : data.tags,
-    sourceUrl: data.source_url,
-    posterUrl: data.poster_url,
-    likes: data.likes,
-    upvotes: data.upvotes,
-    replies: data.replies,
-  };
+  return null;
 }
 
 // ================= 博客文章接口 (Notion CMS 唯一内容源) =================

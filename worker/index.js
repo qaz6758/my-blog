@@ -361,8 +361,9 @@ async function handleGetThoughts(env) {
 
   for (const page of data.results || []) {
     const p = page.properties;
-    const publishedProp = findProp(p, "Published", "公开", "发布");
-    if (publishedProp && !getCheckbox(publishedProp)) continue;
+    if (!isPagePublished(p)) {
+      continue;
+    }
 
     const rawDate = getDate(findProp(p, "Date", "日期", "时间")) || page.created_time;
     const ratingNum = getNumber(findProp(p, "Rating", "评分", "Score"));
@@ -414,6 +415,10 @@ async function handleGetThoughtDetail(pageId, env) {
 
   const page = await res.json();
   const p = page.properties;
+
+  if (!isPagePublished(p)) {
+    return jsonResponse({ success: false, error: "Thought not found" }, 404);
+  }
 
   const rawDate = getDate(findProp(p, "Date", "日期", "时间")) || page.created_time;
   const ratingNum = getNumber(findProp(p, "Rating", "评分", "Score"));
@@ -527,7 +532,7 @@ function isPagePublished(properties) {
 
   const publishedProp = findProp(properties, "Published", "公开", "发布");
   if (publishedProp?.type === "checkbox") {
-    return publishedProp.checkbox === true;
+    return getCheckbox(publishedProp);
   }
 
   const status = getStatus(findProp(properties, "状态", "Status", "State", "阶段"))
