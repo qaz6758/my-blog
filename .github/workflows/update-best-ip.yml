@@ -1,0 +1,25 @@
+name: Sync Cloudflare Best IPs
+
+on:
+  schedule:
+    # 每 4 小时自动定时巡检更新一次
+    - cron: '0 */4 * * *'
+  workflow_dispatch: # 支持在 GitHub 网页 Actions 面板手动一键点击运行
+
+jobs:
+  sync-best-ip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync Cloudflare Best IPs
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: 'cb90e81a5c68401c9a9d233f5389baf2'
+        run: node scripts/update-cf-best-ip.mjs
