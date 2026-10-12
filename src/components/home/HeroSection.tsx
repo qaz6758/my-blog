@@ -498,9 +498,9 @@ export function HeroSection({
                 </div>
               </ContentCard>
 
-              {/* 卡片 D: Site Visits (8位辉光管全局访客计数器) */}
-              <ContentCard title="Site Visits">
-                <div className="flex h-[76px] items-center justify-center py-1">
+              {/* 卡片 D: Site Visits (全局访客计数器) */}
+              <ContentCard title="Site Visits" bodyClassName="!py-2">
+                <div className="flex items-center">
                   <SiteVisitCounter />
                 </div>
               </ContentCard>

@@ -131,27 +131,32 @@ export function SiteVisitCounter() {
   }, []);
 
   if (hasError && count === null) {
-    return <span className="text-[#8b949e]">暂不可用</span>;
+    return (
+      <div className="flex w-full items-center justify-between px-1 select-none font-['W95FA',monospace]">
+        <span className="text-2xl sm:text-[26px] font-bold tracking-tight text-[#1f2328] dark:text-[#33FF33] select-none leading-none">
+          hello
+        </span>
+        <span className="text-xs text-[#8b949e]">暂不可用</span>
+      </div>
+    );
   }
 
-  // 始终以 8 位辉光管外壳渲染（杜绝文字闪烁引起的跳变）
   const currentNum = displayCount ?? count ?? 0;
-  const digits = String(currentNum).padStart(8, "0");
 
   return (
-    <span
+    <div
       aria-label={`累计访问 ${count ?? 0} 次`}
-      className="nixie-display select-none"
+      className="flex w-full items-center justify-between px-1 select-none font-['W95FA',monospace]"
     >
-      {Array.from(digits, (digit, index) => (
-        <span
-          key={`${index}-${digits.length}`}
-          aria-hidden="true"
-          className="nixie-tube"
-        >
-          {digit}
-        </span>
-      ))}
-    </span>
+      {/* 左侧：Hello 像素字 */}
+      <span className="text-2xl sm:text-[26px] font-bold tracking-tight text-[#1f2328] dark:text-[#33FF33] select-none leading-none">
+        hello
+      </span>
+
+      {/* 右侧：访客人数 */}
+      <span className="text-2xl sm:text-[26px] font-bold tracking-tight tabular-nums text-[#1f2328] dark:text-[#33FF33] select-none leading-none">
+        {currentNum.toLocaleString()}
+      </span>
+    </div>
   );
 }
