@@ -4,7 +4,7 @@ import { fetchThoughtsFromNotion } from "@/lib/data";
 import { RetroThoughtsView } from "@/components/post/RetroThoughtsView";
 
 export const dynamic = "force-static";
-export const revalidate = 5;
+export const revalidate = 60;
 
 export const metadata = {
   title: "Thoughts",

@@ -3,7 +3,7 @@ import { fetchPosts, fetchThoughts, fetchPlaylists } from "@/lib/data";
 import type { Song } from "@/components/playlist/SongList";
 
 export const dynamic = "force-static";
-export const revalidate = 10;
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [posts, thoughts, playlists] = await Promise.all([

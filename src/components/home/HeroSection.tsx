@@ -104,14 +104,14 @@ function RetroWebBadges() {
 
   return (
     <ContentCard title="Web Badges">
-      <div className="grid grid-cols-3 gap-2 py-1 select-none">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 py-1 select-none min-w-0">
         {badges.map((b) => (
           <div
             key={b.label}
-            className={`h-[30px] px-1.5 py-0.5 rounded-[3px] border text-[9.5px] font-['W95FA',monospace] font-bold flex flex-col justify-center items-center leading-tight shadow-[inset_1px_1px_0px_rgba(255,255,255,0.2),inset_-1px_-1px_0px_rgba(0,0,0,0.35)] hover:brightness-110 cursor-default transition-all ${b.bg} ${b.border}`}
+            className={`h-[30px] min-w-0 px-1 sm:px-1.5 py-0.5 rounded-[3px] border text-[9px] sm:text-[9.5px] font-['W95FA',monospace] font-bold flex flex-col justify-center items-center leading-tight shadow-[inset_1px_1px_0px_rgba(255,255,255,0.2),inset_-1px_-1px_0px_rgba(0,0,0,0.35)] hover:brightness-110 cursor-default transition-all overflow-hidden ${b.bg} ${b.border}`}
           >
-            <span className="tracking-wider">{b.label}</span>
-            <span className="text-[7.5px] opacity-75 font-normal tracking-tight">{b.sub}</span>
+            <span className="tracking-wider truncate max-w-full">{b.label}</span>
+            <span className="text-[7px] sm:text-[7.5px] opacity-75 font-normal tracking-tight truncate max-w-full">{b.sub}</span>
           </div>
         ))}
       </div>
@@ -318,7 +318,7 @@ export function HeroSection({
       <div className="mt-0.5 flex w-full flex-col items-start gap-2.5 sm:gap-3 md:flex-row md:gap-3">
 
             {/* ===================== 左栏 (宽度 35%，状态与元信息，固定间距无过度拉伸) ===================== */}
-            <div className="flex w-full shrink-0 flex-col gap-2.5 sm:gap-3 md:w-[35%] md:flex-[0_0_35%]">
+            <div className="flex w-full min-w-0 flex-col gap-2.5 sm:gap-3 md:w-[35%] md:flex-[0_0_35%] md:shrink-0">
 
               {/* 卡片 A: 当前状态 (Dane 真实规范 .discord-widget) */}
               <div
@@ -568,7 +568,7 @@ export function HeroSection({
 
               {/* 卡片 E: About Me (对标 Dane 图一同款 14px / line-height 1.6 / 列表 1.4 排印) */}
               <ContentCard title="About Me">
-                <div className="text-[13.5px] sm:text-[14px] text-[#1f2328] dark:text-white font-['W95FA',sans-serif] py-0.5">
+                <div className="text-[13.5px] sm:text-[14px] text-[#1f2328] dark:text-white font-['W95FA',sans-serif] py-0.5 min-w-0 break-words">
                   <p className="mb-3 leading-[1.6]">
                     嗨，我是 Vince Ou！一名全栈摸索者与自由折腾者。
                   </p>
@@ -577,7 +577,7 @@ export function HeroSection({
                     <p className="font-bold text-[#1f2328] dark:text-white mb-2 select-none font-['W95FA',sans-serif]">
                       关于我的一些快速事实:
                     </p>
-                    <ul className="list-disc pl-5 space-y-1.5">
+                    <ul className="list-disc pl-5 space-y-1.5 break-words">
                       <li className="leading-[1.5]">
                         来自南方小城 <Emote src="/emotes/city.webp" alt="city" />，在城市角落写代码、听歌 <Emote src="/emotes/clouds.webp" alt="clouds" />。
                       </li>

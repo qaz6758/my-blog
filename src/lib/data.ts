@@ -241,7 +241,7 @@ export async function fetchThoughts(): Promise<ThoughtMediaItem[]> {
       try {
         const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
         const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/thoughts`, {
-          next: { revalidate: 10 },
+          next: { revalidate: 60 },
           signal: AbortSignal.timeout(5000),
         });
         if (res.ok) {
@@ -299,7 +299,7 @@ export async function fetchThoughtDetail(id: string): Promise<ThoughtMediaItem |
   try {
     const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
     const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/thoughts/${id}`, {
-      next: { revalidate: 10 },
+      next: { revalidate: 60 },
       signal: AbortSignal.timeout(5000),
     });
     if (res.ok) {
@@ -331,7 +331,7 @@ export async function fetchPosts(limit?: number): Promise<NotionPostItem[]> {
   try {
     const workerUrl = process.env.NEXT_PUBLIC_NOTION_WORKER_URL || 'https://api.vinceou.site';
     const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/posts`, {
-      next: { revalidate: 10 },
+      next: { revalidate: 60 },
       signal: AbortSignal.timeout(5000),
     });
     if (res.ok) {
@@ -376,7 +376,7 @@ export async function fetchPostDetail(slugOrId: string): Promise<NotionPostItem 
 
     if (targetId) {
       const res = await fetch(`${workerUrl.replace(/\/$/, '')}/api/posts/${targetId}`, {
-        next: { revalidate: 10 },
+        next: { revalidate: 60 },
         signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {

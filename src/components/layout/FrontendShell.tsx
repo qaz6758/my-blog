@@ -12,12 +12,19 @@ export function FrontendShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 页面切换时，框内滚动条自动平滑重置至顶部（确保与普通页面跳转体感一致）
+  // 页面切换时，框内滚动条自动平滑重置至顶部（确保与普通页面跳转体感一致）并锁定水平偏移
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
+      scrollContainerRef.current.scrollLeft = 0;
     }
   }, [pathname]);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollLeft !== 0) {
+      scrollContainerRef.current.scrollLeft = 0;
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-transparent overflow-x-clip">
@@ -39,7 +46,8 @@ export function FrontendShell({ children }: { children: React.ReactNode }) {
             {/* 2. 内部独立滚动区域 (全站页面跳转只存在于此框内) */}
             <div
               ref={scrollContainerRef}
-              className="home-panel-scroll w-full flex-1 min-h-0 overflow-y-auto px-3.5 pb-3.5 pt-1.5 sm:px-4 sm:pb-4 sm:pt-2 overscroll-contain flex flex-col"
+              onScroll={handleScroll}
+              className="home-panel-scroll w-full flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3.5 pb-3.5 pt-1.5 sm:px-4 sm:pb-4 sm:pt-2 overscroll-contain flex flex-col"
             >
               {children}
             </div>

@@ -6,7 +6,7 @@ import { fetchThoughtDetailFromNotion, fetchThoughtsFromNotion } from "@/lib/dat
 import { ThoughtDetailClient } from "@/components/post/ThoughtDetailClient";
 
 export const dynamicParams = false;
-export const revalidate = 5;
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   try {

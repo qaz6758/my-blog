@@ -439,6 +439,7 @@ html.dark .manga-panel {
 }
 
 .home-panel-scroll {
+  overflow-x: hidden !important;
   scrollbar-width: thin;
   scrollbar-color: rgb(0 0 0 / 20%) transparent;
 }
